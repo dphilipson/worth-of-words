@@ -1,0 +1,12 @@
+{
+  "name": "wordle-royale-merkle-trees",
+  "version": "0.1.0",
+  "description": "Generate Merkle trees of valid words for Wordle Royale.",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.io/dphilipson/wordle-royale.git"
+  },
+  "author": "David Philipson <david.philipson@gmail.com>",
+  "license": "GPL-3.0"
+}

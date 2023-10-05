@@ -1,0 +1,25 @@
+{
+  "name": "wordle-royale",
+  "version": "0.1.0",
+  "description": "ZK-based on-chain multiplayer Wordle",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.io/dphilipson/wordle-royale.git"
+  },
+  "keywords": [
+    "blockchain",
+    "crypto",
+    "snarks",
+    "wordle",
+    "zero-knowledge",
+    "zk-snarks"
+  ],
+  "author": "David Philipson <david.philipson@gmail.com>",
+  "license": "GPL-3.0",
+  "workspaces": [
+    "app",
+    "circuits",
+    "merkle-trees"
+  ]
+}
