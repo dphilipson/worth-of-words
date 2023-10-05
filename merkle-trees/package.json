@@ -2,7 +2,9 @@
   "name": "wordle-royale-merkle-trees",
   "version": "0.1.0",
   "description": "Generate Merkle trees of valid words for Wordle Royale.",
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint --fix '**/*.ts'"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.io/dphilipson/wordle-royale.git"
