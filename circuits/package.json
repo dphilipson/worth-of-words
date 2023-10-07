@@ -5,8 +5,11 @@
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "git://github.io/dphilipson/wordle-royale.git"
+    "url": "git://github.com/dphilipson/wordle-royale.git"
   },
   "author": "David Philipson <david.philipson@gmail.com>",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "circomlib": "^2.0.5"
+  }
 }
