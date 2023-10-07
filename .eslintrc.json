@@ -14,7 +14,8 @@
       "warn",
       { "argsIgnorePattern": "^_" }
     ],
-    "@typescript-eslint/no-use-before-define": "off"
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error"
   },
   "settings": {
     "import/parsers": {

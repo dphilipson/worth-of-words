@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "description": "Generate Merkle trees of valid words for Wordle Royale.",
   "scripts": {
+    "build": "tsx src/index.ts",
+    "clean": "rm dist/*",
     "lint": "eslint --fix '**/*.ts'"
   },
   "repository": {
@@ -10,5 +12,11 @@
     "url": "git://github.io/dphilipson/wordle-royale.git"
   },
   "author": "David Philipson <david.philipson@gmail.com>",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@darkforest_eth/hashing": "^6.7.29",
+    "@openzeppelin/merkle-tree": "^1.0.5",
+    "big-integer": "^1.6.51",
+    "tsx": "^3.13.0"
+  }
 }
