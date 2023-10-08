@@ -2,7 +2,10 @@
   "name": "wordle-royale",
   "version": "0.1.0",
   "description": "ZK-based on-chain multiplayer Wordle",
-  "scripts": {},
+  "scripts": {
+    "rerun-ceremony-start": "./scripts/rerun-ceremony-start.sh",
+    "build": "./scripts/build.sh"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/dphilipson/wordle-royale.git"
