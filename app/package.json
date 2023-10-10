@@ -9,17 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@darkforest_eth/hashing": "^6.7.29",
+    "next": "13.5.4",
     "react": "^18",
-    "react-dom": "^18",
-    "next": "13.5.4"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/snarkjs": "^0.7.5",
     "autoprefixer": "^10",
+    "eslint-config-next": "13.5.4",
     "postcss": "^8",
-    "tailwindcss": "^3",
-    "eslint-config-next": "13.5.4"
+    "tailwindcss": "^3"
   }
 }

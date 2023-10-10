@@ -2,7 +2,9 @@
   "name": "wordle-royale-circuits",
   "version": "0.1.0",
   "description": "Circuits for the zero-knowledge proofs used by Wordle Royale.",
-  "scripts": {},
+  "scripts": {
+    "build": "./scripts/build.sh"
+  },
   "repository": {
     "type": "git",
     "url": "git://github.com/dphilipson/wordle-royale.git"
