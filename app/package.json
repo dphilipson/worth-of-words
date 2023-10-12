@@ -6,19 +6,23 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "wagmi-generate": "wagmi generate"
   },
   "dependencies": {
     "@darkforest_eth/hashing": "^6.7.29",
     "next": "13.5.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "viem": "^1.16.4",
+    "wagmi": "^1.4.3"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/snarkjs": "^0.7.5",
+    "@wagmi/cli": "^1.5.2",
     "autoprefixer": "^10",
     "eslint-config-next": "13.5.4",
     "postcss": "^8",

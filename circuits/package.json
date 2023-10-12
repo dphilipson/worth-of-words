@@ -1,8 +1,10 @@
 {
   "name": "wordle-royale-circuits",
   "version": "0.1.0",
+  "private": true,
   "description": "Circuits for the zero-knowledge proofs used by Wordle Royale.",
   "scripts": {
+    "rerun-ceremony-start": "./scripts/rerun-ceremony-start.sh",
     "build": "./scripts/build.sh"
   },
   "repository": {

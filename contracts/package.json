@@ -1,0 +1,20 @@
+{
+  "name": "wordle-royale-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Contracts used by Wordle Royale.",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "anvil": "anvil",
+    "deploy-to-anvil": "forge script script/Deploy.s.sol:DeployScript --fork-url http://localhost:8545 --broadcast"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dphilipson/wordle-royale.git"
+  },
+  "author": "David Philipson <david.philipson@gmail.com>",
+  "license": "GPL-3.0"
+}
