@@ -1,19 +1,26 @@
 "use client";
+import { ReactNode } from "react";
+import { chainFrom } from "transducist";
 
-import { useEffect, useRef } from "react";
+import {
+  useScoreGuessVerifierRead,
+  useScoreGuessVerifierVerifyProof,
+} from "./_generated/wagmi";
+import { proofAsCallData, useProveScoreGuess } from "./_lib/proofs";
 
-import { doStuff } from "./_lib/proofs";
+export default function Testo(): ReactNode {
+  const { data, error, isError, isSuccess } = useProveScoreGuess({
+    word: [0, 1, 2, 3, 4],
+    salt: 42,
+    guess: [10, 1, 3, 10, 10],
+  });
 
-export default function Testo() {
-  const hasLoadedRef = useRef(false);
-
-  useEffect(() => {
-    if (hasLoadedRef.current) {
-      return;
-    }
-    hasLoadedRef.current = true;
-    setTimeout(doStuff, 2000);
-  }, []);
+  const queryResult = useScoreGuessVerifierVerifyProof({
+    address: "0x8597BEE3925d03f9644aC11236cEdF8f121cD1Cc",
+    args: (data && proofAsCallData(data))!,
+    enabled: !!data,
+  });
+  console.log(queryResult);
 
   return <div />;
 }
