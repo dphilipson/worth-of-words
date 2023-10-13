@@ -1,7 +1,6 @@
 pragma circom 2.0.0;
 
 include "../../node_modules/circomlib/circuits/comparators.circom";
-include "../../node_modules/circomlib/circuits/gates.circom";
 include "./hash2.circom";
 
 /**
@@ -17,30 +16,49 @@ template ScoreGuess(NumLetters) {
     signal output commitment;
     // Each element in scores array is 0, 1, or 2 if letter in guess is…
     //   …not in word -> 0
-    //   …in word at different position -> 1
-    //   …in word at correct position -> 2
+    //   …in word at different position (yellow) -> 1
+    //   …in word at correct position (green) -> 2
     signal output scores[NumLetters];
 
     // Verify that hash(word, salt) == commitment.
     component wordToNumber = WordToNumber(NumLetters);
     wordToNumber.word <== word;
+
     component commitmentHasher = Hash2();
     commitmentHasher.ins[0] <== wordToNumber.number;
     commitmentHasher.ins[1] <== salt;
     commitment <== commitmentHasher.out;
 
     // Compute and verify the scores.
-    component ors[NumLetters];
-    component equals[NumLetters][NumLetters];
+    component guessEqualsWord = EqualsByLetter(NumLetters);
+    guessEqualsWord.ins[0] <== guess;
+    guessEqualsWord.ins[1] <== word;
+
+    component guessEqualsGuess = EqualsByLetter(NumLetters);
+    guessEqualsGuess.ins[0] <== guess;
+    guessEqualsGuess.ins[1] <== guess;
+
+    component greens = Greens(NumLetters);
+    greens.guessEqualsWord <== guessEqualsWord.out;
+
+    component appearancesInWord = AppearancesInWord(NumLetters);
+    appearancesInWord.guessEqualsWord <== guessEqualsWord.out;
+
+    component leftAppearancesInGuess = LeftAppearancesInGuess(NumLetters);
+    leftAppearancesInGuess.guessEqualsGuess <== guessEqualsGuess.out;
+
+    component rightSameLetterGreens = RightSameLetterGreens(NumLetters);
+    rightSameLetterGreens.greens <== greens.out;
+    rightSameLetterGreens.guessEqualsGuess <== guessEqualsGuess.out;
+
+    component yellows = Yellows(NumLetters);
+    yellows.greens <== greens.out;
+    yellows.appearancesInWord <== appearancesInWord.out;
+    yellows.leftAppearancesInGuess <== leftAppearancesInGuess.out;
+    yellows.rightSameLetterGreens <== rightSameLetterGreens.out;
+
     for (var i = 0; i < NumLetters; i++) {
-      ors[i] = MultiOr(NumLetters);
-      for (var j = 0; j < NumLetters; j++) {
-        equals[i][j] = IsEqual();
-        equals[i][j].in[0] <== guess[i];
-        equals[i][j].in[1] <== word[j];
-        ors[i].ins[j] <== equals[i][j].out;
-      }
-      scores[i] <== ors[i].out + equals[i][i].out;
+      scores[i] <== 2 * greens.out[i] + yellows.out[i];
     }
 }
 
@@ -55,20 +73,114 @@ template WordToNumber(NumLetters) {
   number <== acc[NumLetters - 1];
 }
 
-template MultiOr(n) {
-  signal input ins[n];
-  signal output out;
-  // De Morgan's Law over a MultiAND circuit.
-  component and = MultiAND(n);
-  component nots[n];
-  for (var i = 0; i < n; i++) {
-    nots[i] = NOT();
-    nots[i].in <== ins[i];
-    and.in[i] <== nots[i].out;
+// Returns out[i][j] is true if ins[0][i] == ins[1][j].
+template EqualsByLetter(NumLetters) {
+  signal input ins[2][NumLetters];
+  signal output out[NumLetters][NumLetters];
+  component equals[NumLetters][NumLetters];
+  for (var i = 0; i < NumLetters; i++) {
+    for (var j = 0; j < NumLetters; j++) {
+      equals[i][j] = IsEqual();
+      equals[i][j].in[0] <== ins[0][i];
+      equals[i][j].in[1] <== ins[1][j];
+      out[i][j] <== equals[i][j].out;
+    }
   }
-  component not = NOT();
-  not.in <== and.out;
-  out <== not.out;
+}
+
+// Returns out[i] = true if guess[i] is green.
+template Greens(NumLetters) {
+  signal input guessEqualsWord[NumLetters][NumLetters];
+  signal output out[NumLetters];
+  for (var i = 0; i < NumLetters; i++) {
+    out[i] <== guessEqualsWord[i][i];
+  }
+}
+
+// For each letter of the guess, counts how many times that letter appears in
+// the word.
+template AppearancesInWord(NumLetters) {
+  signal input guessEqualsWord[NumLetters][NumLetters];
+  signal output out[NumLetters];
+  component sums[NumLetters];
+  for (var i = 0; i < NumLetters; i++) {
+    sums[i] = MultiSum(NumLetters);
+    for (var j = 0; j < NumLetters; j++) {
+      sums[i].ins[j] <== guessEqualsWord[i][j];
+    }
+    out[i] <== sums[i].out;
+  }
+}
+
+// For each letter of the guess, counts how many times that letter appears in
+// the guess to the left of it.
+template LeftAppearancesInGuess(NumLetters) {
+  signal input guessEqualsGuess[NumLetters][NumLetters];
+  signal output out[NumLetters];
+  component sums[NumLetters];
+  for (var i = 0; i < NumLetters; i++) {
+    sums[i] = MultiSum(NumLetters);
+    for (var j = 0; j < NumLetters; j++) {
+      sums[i].ins[j] <== j < i ? guessEqualsGuess[i][j] : 0;
+    }
+    out[i] <== sums[i].out;
+  }
+}
+
+// For each letter of the guess, counts how many times that letter appears in
+// the guess as a green to the right of it.
+template RightSameLetterGreens(NumLetters) {
+  signal input greens[NumLetters];
+  signal input guessEqualsGuess[NumLetters][NumLetters];
+  signal output out[NumLetters];
+  component sums[NumLetters];
+  for (var i = 0; i < NumLetters; i++) {
+    sums[i] = MultiSum(NumLetters);
+    for (var j = 0; j < NumLetters; j++) {
+      // Multiplication is AND.
+      sums[i].ins[j] <== j > i ? greens[j] * guessEqualsGuess[i][j] : 0;
+    }
+    out[i] <== sums[i].out;
+  }
+}
+
+function numBits(x) {
+  var n = 1;
+  var exp = 0;
+  while (n <= x) {
+    exp++;
+    n *= 2;
+  }
+  return exp;
+}
+
+template Yellows(NumLetters) {
+  signal input greens[NumLetters];
+  signal input appearancesInWord[NumLetters];
+  signal input leftAppearancesInGuess[NumLetters];
+  signal input rightSameLetterGreens[NumLetters];
+  signal output out[NumLetters];
+  component lessThans[NumLetters];
+  // A yellow is a letter which is:
+  // - not a green
+  // - #(leftAppearancesInGuess) + #(rightSameLetterGreens) < #(appearancesInWord)
+  for (var i = 0; i < NumLetters; i++) {
+    lessThans[i] = LessThan(numBits(NumLetters));
+    lessThans[i].in[0] <== leftAppearancesInGuess[i] + rightSameLetterGreens[i];
+    lessThans[i].in[1] <== appearancesInWord[i];
+    // 1 - x is NOT(x), multiplication is AND.
+    out[i] <== (1 - greens[i]) * lessThans[i].out;
+  }
+}
+
+template MultiSum(N) {
+  signal input ins[N];
+  signal output out;
+  signal acc[N];
+  for (var i = 0; i < N; i++) {
+    acc[i] <== i == 0 ? ins[0] : acc[i - 1] + ins[i];
+  }
+  out <== acc[N - 1];
 }
 
 component main {public [guess]} = ScoreGuess(5);
