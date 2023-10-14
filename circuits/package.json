@@ -5,7 +5,8 @@
   "description": "Circuits for the zero-knowledge proofs used by Worth of Words.",
   "scripts": {
     "rerun-ceremony-start": "./scripts/rerun-ceremony-start.sh",
-    "build": "./scripts/build.sh"
+    "build": "./scripts/build.sh",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
