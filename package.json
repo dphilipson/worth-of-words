@@ -1,12 +1,12 @@
 {
-  "name": "wordle-royale",
+  "name": "worth-of-words",
   "version": "0.1.0",
   "private": true,
-  "description": "ZK-based on-chain multiplayer Wordle",
+  "description": "ZK-based on-chain multiplayer word game inspired by Wordle.",
   "scripts": {},
   "repository": {
     "type": "git",
-    "url": "git://github.com/dphilipson/wordle-royale.git"
+    "url": "git://github.com/dphilipson/worth-of-words.git"
   },
   "keywords": [
     "blockchain",

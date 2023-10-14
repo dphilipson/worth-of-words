@@ -1,8 +1,8 @@
 {
-  "name": "wordle-royale-contracts",
+  "name": "worth-of-words-contracts",
   "version": "0.1.0",
   "private": true,
-  "description": "Contracts used by Wordle Royale.",
+  "description": "Contracts used by Worth of Words.",
   "directories": {
     "lib": "lib",
     "test": "test"
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/dphilipson/wordle-royale.git"
+    "url": "git://github.com/dphilipson/worth-of-words.git"
   },
   "author": "David Philipson <david.philipson@gmail.com>",
   "license": "GPL-3.0"

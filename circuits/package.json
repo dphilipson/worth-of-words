@@ -1,15 +1,15 @@
 {
-  "name": "wordle-royale-circuits",
+  "name": "worth-of-words-circuits",
   "version": "0.1.0",
   "private": true,
-  "description": "Circuits for the zero-knowledge proofs used by Wordle Royale.",
+  "description": "Circuits for the zero-knowledge proofs used by Worth of Words.",
   "scripts": {
     "rerun-ceremony-start": "./scripts/rerun-ceremony-start.sh",
     "build": "./scripts/build.sh"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/dphilipson/wordle-royale.git"
+    "url": "git://github.com/dphilipson/worth-of-words.git"
   },
   "author": "David Philipson <david.philipson@gmail.com>",
   "license": "GPL-3.0",
