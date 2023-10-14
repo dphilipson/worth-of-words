@@ -50,7 +50,7 @@ function makeKeccakTree(words: string[]): unknown {
  *   in circuits. Instead, the proof will indicate the order of the inputs at
  *   each step.
  */
-function makeMimcTree(words: string[]): BigInteger[] {
+function makeMimcTree(words: string[]): string[] {
   if (words.length === 0) {
     throw new Error("words must be nonempty");
   }
@@ -65,9 +65,9 @@ function makeMimcTree(words: string[]): BigInteger[] {
     tree[i + paddedWordCount - 1] = lastWord;
   }
   for (let i = tree.length - 2; i > 0; i -= 2) {
-    tree[(i / 2) | 0] = hashTwo(tree[i], tree[i + 1]);
+    tree[(i - 1) / 2] = hashTwo(tree[i], tree[i + 1]);
   }
-  return tree;
+  return tree.map((n) => `0x${n.toString(16)}`);
 }
 
 function wordToNumber(word: string): number {
