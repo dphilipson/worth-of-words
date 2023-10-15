@@ -96,14 +96,19 @@ interface IWorthOfWords {
         address indexed player,
         string playerName
     );
-    event GameStarted(LobbyId indexed lobbyId, uint256 playerCount);
+    event GameStarted(LobbyId indexed lobbyId, uint32 playerCount);
     event NewRound(
         LobbyId indexed,
         uint32 roundNumber,
-        uint32 targetOffsets,
+        uint32[] targetOffsets,
         uint32 remainingPlayerCount
     );
-    event NewPhase(LobbyId indexed, uint32 roundNumber, uint48 deadline);
+    event NewPhase(
+        LobbyId indexed,
+        Phase indexed phase,
+        uint32 roundNumber,
+        uint48 deadline
+    );
     event GuessCommitted(
         LobbyId indexed lobbyId,
         address indexed player,
@@ -153,13 +158,13 @@ interface IWorthOfWords {
 
     // Errors for joinLobby.
     error AlreadyInLobby();
-    error LobbyIsFull(uint256 playerLimit);
+    error LobbyIsFull(uint32 playerLimit);
     error IncorrectLobbyPassword();
-    error WrongNumberOfSecretWords(uint256 provided, uint8 required);
-    error InvalidSecretWordProof(uint256 proofIndex);
+    error WrongNumberOfSecretWords(uint32 provided, uint32 required);
+    error InvalidSecretWordProof(uint32 proofIndex);
 
     // Errors for startGame.
-    error NotEnoughPlayers(uint256 currentPlayers, uint256 requiredPlayers);
+    error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
 
     // Errors for commitGuess (none).
 
@@ -170,7 +175,7 @@ interface IWorthOfWords {
     error InvalidMatchProof();
 
     // Errors for eliminateUnrevealedPlayers.
-    error DeadlineNotExpired(uint256 currentTime, uint256 deadline);
+    error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
 
     function createLobby(
         LobbyConfig calldata config

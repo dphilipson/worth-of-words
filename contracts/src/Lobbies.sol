@@ -18,7 +18,7 @@ library Lobbies {
         EnumerableSet.AddressSet[] livePlayerAddressesByRound;
         uint48 phaseDeadline;
         uint32 roundNumber;
-        uint32 remainingPlayersInRound;
+        uint32 numPlayersYetToAct;
         uint32 randomishSeed;
         IWorthOfWords.Phase currentPhase;
     }
@@ -40,18 +40,54 @@ library Lobbies {
     uint256 constant NUM_TARGETS = 3;
 
     modifier requirePhase(Lobby storage self, IWorthOfWords.Phase phase) {
-        if (phase != self.currentPhase) {
+        if (self.currentPhase != phase) {
             revert IWorthOfWords.WrongPhase(phase, self.currentPhase);
         }
         _;
     }
 
-    function initialize(
+    modifier requirePhaseOrTransition(
+        Lobby storage self,
+        IWorthOfWords.Phase previousPhase,
+        IWorthOfWords.Phase phase
+    ) {
+        if (
+            self.currentPhase != phase &&
+            (self.currentPhase != previousPhase ||
+                block.timestamp <= uint256(self.phaseDeadline))
+        ) {
+            revert IWorthOfWords.WrongPhase(phase, self.currentPhase);
+        }
+        _;
+    }
+
+    function initializeLobby(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId,
         IWorthOfWords.LobbyConfig calldata config
     ) internal {
-        // TODO
+        // Checks
+        if (config.secretWordMerkleRoot == 0) {
+            revert IWorthOfWords.MissingSecretWordMerkleRoot();
+        }
+        if (config.guessWordMerkleRoot == bytes32(0)) {
+            revert IWorthOfWords.MissingGuessWordMerkleRoot();
+        }
+        if (config.minPlayers < 2) {
+            revert IWorthOfWords.MinPlayerCountTooLow();
+        }
+        if (config.maxPlayers < config.minPlayers) {
+            revert IWorthOfWords.PlayerCountRangeIsEmpty();
+        }
+        if (config.numLives == 0) {
+            revert IWorthOfWords.NumLivesIsZero();
+        }
+
+        // Effects
+        self.config = config;
+        self.randomishSeed = uint32(uint256(blockhash(block.number)));
+
+        emit IWorthOfWords.LobbyCreated(lobbyId, msg.sender);
     }
 
     function addPlayer(
@@ -69,11 +105,12 @@ library Lobbies {
             self.livePlayerAddressesByRound[0].length() >=
             uint256(self.config.maxPlayers)
         ) {
-            revert IWorthOfWords.LobbyIsFull(uint256(self.config.maxPlayers));
+            revert IWorthOfWords.LobbyIsFull(self.config.maxPlayers);
         }
-        if (secretWordCommitments.length != self.config.numLives) {
+        uint32 numCommitments = uint32(secretWordCommitments.length);
+        if (numCommitments != self.config.numLives) {
             revert IWorthOfWords.WrongNumberOfSecretWords(
-                secretWordCommitments.length,
+                numCommitments,
                 self.config.numLives
             );
         }
@@ -94,7 +131,7 @@ library Lobbies {
             player.secretWordCommitments.push() = secretWordCommitments[i]
                 ._pubSignals[0];
         }
-        // TOOD: update other storage fields
+        self.livePlayerAddressesByRound[0].add(msg.sender);
 
         emit IWorthOfWords.JoinedLobby(lobbyId, msg.sender, playerName);
     }
@@ -102,26 +139,72 @@ library Lobbies {
     function startGame(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId
-    ) internal requirePhase(self, IWorthOfWords.Phase.NotStarted) {}
+    ) internal requirePhase(self, IWorthOfWords.Phase.NotStarted) {
+        // Checks
+        _validateCurrentPlayer(self);
+        uint32 playerCount = uint32(self._getLivePlayerCount());
+        if (self._getLivePlayerCount() < self.config.minPlayers) {
+            revert IWorthOfWords.NotEnoughPlayers(
+                playerCount,
+                self.config.minPlayers
+            );
+        }
+
+        // Effects
+        self._setDeadline(self.config.maxCommitGuessTime);
+        self.numPlayersYetToAct = playerCount;
+        self.currentPhase = IWorthOfWords.Phase.CommittingGuesses;
+
+        emit IWorthOfWords.GameStarted(lobbyId, playerCount);
+    }
 
     function commitGuess(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId,
         bytes32 commitment
-    ) internal requirePhase(self, IWorthOfWords.Phase.CommittingGuesses) {}
+    ) internal requirePhase(self, IWorthOfWords.Phase.CommittingGuesses) {
+        // Checks
+        Player storage player = _validateCurrentPlayer(self);
+        player.guessCommitment = commitment;
+        self.numPlayersYetToAct--;
+        emit IWorthOfWords.GuessCommitted(lobbyId, msg.sender, player.score);
+
+        if (self.numPlayersYetToAct == 0) {
+            self._transitionToRevealGuessPhase(lobbyId);
+        }
+    }
 
     function revealGuess(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId,
         IWorthOfWords.Word guess,
         uint256 salt
-    ) internal requirePhase(self, IWorthOfWords.Phase.RevealingGuesses) {}
+    )
+        internal
+        requirePhaseOrTransition(
+            self,
+            IWorthOfWords.Phase.CommittingGuesses,
+            IWorthOfWords.Phase.RevealingGuesses
+        )
+    {
+        if (self.currentPhase == IWorthOfWords.Phase.CommittingGuesses) {
+            self._transitionToRevealGuessPhase(lobbyId);
+        }
+        // TODO
+    }
 
     function revealMatches(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId,
         IWorthOfWords.ScoreGuessProof[] calldata proofs
-    ) internal requirePhase(self, IWorthOfWords.Phase.RevealingMatches) {}
+    )
+        internal
+        requirePhaseOrTransition(
+            self,
+            IWorthOfWords.Phase.RevealingGuesses,
+            IWorthOfWords.Phase.RevealingMatches
+        )
+    {}
 
     function eliminateUnrevealedPlayers(
         Lobby storage self,
@@ -138,6 +221,36 @@ library Lobbies {
         Lobby storage self
     ) internal view returns (IWorthOfWords.LobbyState memory) {
         revert("not implemented");
+    }
+
+    function _transitionToRevealGuessPhase(
+        Lobby storage self,
+        IWorthOfWords.LobbyId lobbyId
+    ) internal {
+        self._setDeadline(self.config.maxRevealGuessTime);
+        // Only players who committed a guess can act in this phase.
+        self.numPlayersYetToAct =
+            uint32(self._getLivePlayerCount()) -
+            self.numPlayersYetToAct;
+        self.currentPhase = IWorthOfWords.Phase.RevealingGuesses;
+
+        self._emitNewPhaseEvent(lobbyId);
+    }
+
+    function _setDeadline(Lobby storage self, uint32 timeLimit) internal {
+        self.phaseDeadline = uint48(block.timestamp) + uint48(timeLimit);
+    }
+
+    function _emitNewPhaseEvent(
+        Lobby storage self,
+        IWorthOfWords.LobbyId lobbyId
+    ) internal {
+        emit IWorthOfWords.NewPhase(
+            lobbyId,
+            self.currentPhase,
+            self.roundNumber,
+            self.phaseDeadline
+        );
     }
 
     function _validateCurrentPlayer(
@@ -189,7 +302,7 @@ library Lobbies {
                 proof._pubSignals
             )
         ) {
-            revert IWorthOfWords.InvalidSecretWordProof(proofIndex);
+            revert IWorthOfWords.InvalidSecretWordProof(uint32(proofIndex));
         }
     }
 
@@ -213,6 +326,12 @@ library Lobbies {
                     playerCount - 1 - NUM_TARGETS
                 );
         }
+    }
+
+    function _getLivePlayerCount(
+        Lobby storage self
+    ) internal view returns (uint256) {
+        return self.livePlayerAddressesByRound[self.roundNumber].length();
     }
 
     function _chooseRandomishOffsets(
@@ -250,11 +369,5 @@ library Lobbies {
             }
         }
         return false;
-    }
-
-    function _getLivePlayerCount(
-        Lobby storage self
-    ) internal view returns (uint256) {
-        return self.livePlayerAddressesByRound[self.roundNumber].length();
     }
 }
