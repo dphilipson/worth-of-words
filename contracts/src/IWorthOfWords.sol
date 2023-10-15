@@ -160,6 +160,7 @@ interface IWorthOfWords {
     error LobbyIsFull(uint32 playerLimit);
     error IncorrectLobbyPassword();
     error WrongNumberOfSecretWords(uint32 provided, uint32 required);
+    error InvalidMerkleProofInSecretWordProof(uint32 proofIndex);
     error InvalidSecretWordProof(uint32 proofIndex);
 
     // Errors for startGame.
@@ -168,11 +169,19 @@ interface IWorthOfWords {
     // Errors for commitGuess (none).
 
     // Errors for revealGuess.
-    error InvalidGuessReveal();
-    error GuessIsNotAWord();
+    error NoGuessCommitted();
+    error GuessDoesNotMatchCommitment(bytes32 commitment);
+    error InvalidMerkleProofInGuessReveal();
 
     // Errors for revealMatches.
-    error InvalidMatchProof();
+    error WrongNumberOfMatchReveals(uint32 provided, uint32 required);
+    error WrongSecretWordOrSaltInMatchProof(
+        uint32 proofIndex,
+        uint32 secretWordIndex,
+        string guess
+    );
+    error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
+    error InvalidMatchProof(uint32 index, string guess);
 
     // Errors for startNewRound.
     error DeadlineNotExpired(uint48 currentTime, uint48 deadline);

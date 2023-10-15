@@ -6,6 +6,7 @@ import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProo
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IWorthOfWords} from "./IWorthOfWords.sol";
 import {Words} from "./Words.sol";
+import {ScoreGuessVerifier} from "./generated/ScoreGuessVerifier.sol";
 import {ValidWordVerifier} from "./generated/ValidWordVerifier.sol";
 
 library Lobbies {
@@ -197,10 +198,15 @@ library Lobbies {
 
         // Checks
         Player storage player = self._validateCurrentPlayer();
+        if (player.guessCommitment == bytes32(0)) {
+            revert IWorthOfWords.NoGuessCommitted();
+        }
         if (
             keccak256(abi.encodePacked(guess, salt)) != player.guessCommitment
         ) {
-            revert IWorthOfWords.InvalidGuessReveal();
+            revert IWorthOfWords.GuessDoesNotMatchCommitment(
+                player.guessCommitment
+            );
         }
         // See https://github.com/OpenZeppelin/merkle-tree#leaf-hash
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(guess))));
@@ -211,7 +217,7 @@ library Lobbies {
                 leaf
             )
         ) {
-            revert IWorthOfWords.GuessIsNotAWord();
+            revert IWorthOfWords.InvalidMerkleProofInGuessReveal();
         }
 
         // Effects
@@ -244,6 +250,16 @@ library Lobbies {
 
         // Checks
         Player storage player = self._validateCurrentPlayer();
+        uint32 playerCount = self._getLivePlayerCount();
+        uint32[] memory offsets = self._getTargetOffsets();
+        if (proofs.length != offsets.length) {
+            revert IWorthOfWords.WrongNumberOfMatchReveals(
+                uint32(proofs.length),
+                uint32(offsets.length)
+            );
+        }
+        for (uint32 i = 0; i < offsets.length; i++) {}
+        // TODO!!!!
     }
 
     function startNewRound(
@@ -287,7 +303,13 @@ library Lobbies {
     function _transitionToRevealMatchesPhase(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId
-    ) internal {}
+    ) internal {
+        self._setDeadline(self.config.maxRevealMatchesTime);
+        self.numPlayersYetToAct = self._getLivePlayerCount();
+        self.currentPhase = IWorthOfWords.Phase.RevealingMatches;
+
+        self._emitNewPhaseEvent(lobbyId);
+    }
 
     function _setDeadline(Lobby storage self, uint32 timeLimit) internal {
         self.phaseDeadline = uint48(block.timestamp) + uint48(timeLimit);
@@ -344,24 +366,6 @@ library Lobbies {
         }
     }
 
-    function _verifyValidWord(
-        IWorthOfWords.ValidWordProof calldata proof,
-        uint32 proofIndex,
-        uint256 secretWordMerkleRoot
-    ) internal view {
-        if (
-            proof._pubSignals[1] != secretWordMerkleRoot ||
-            !ValidWordVerifier.verifyProof(
-                proof._pA,
-                proof._pB,
-                proof._pC,
-                proof._pubSignals
-            )
-        ) {
-            revert IWorthOfWords.InvalidSecretWordProof(proofIndex);
-        }
-    }
-
     function _getTargetOffsets(
         Lobby storage self
     ) internal view returns (uint32[] memory) {
@@ -389,6 +393,63 @@ library Lobbies {
     ) internal view returns (uint32) {
         return
             uint32(self.livePlayerAddressesByRound[self.roundNumber].length());
+    }
+
+    function _verifyValidWord(
+        IWorthOfWords.ValidWordProof calldata proof,
+        uint32 proofIndex,
+        uint256 secretWordMerkleRoot
+    ) internal view {
+        if (
+            !ValidWordVerifier.verifyProof(
+                proof._pA,
+                proof._pB,
+                proof._pC,
+                proof._pubSignals
+            )
+        ) {
+            revert IWorthOfWords.InvalidSecretWordProof(proofIndex);
+        }
+        if (proof._pubSignals[1] != secretWordMerkleRoot) {
+            revert IWorthOfWords.InvalidMerkleProofInSecretWordProof(
+                proofIndex
+            );
+        }
+    }
+
+    function _verifyMatches(
+        IWorthOfWords.ScoreGuessProof calldata proof,
+        uint32 proofIndex,
+        uint32 secretWordIndex,
+        uint256 secretWordCommitment,
+        IWorthOfWords.Word guess
+    ) internal view {
+        if (
+            !ScoreGuessVerifier.verifyProof(
+                proof._pA,
+                proof._pB,
+                proof._pC,
+                proof._pubSignals
+            )
+        ) {
+            revert IWorthOfWords.InvalidMatchProof(
+                proofIndex,
+                guess.toString()
+            );
+        }
+        if (proof._pubSignals[0] != secretWordCommitment) {
+            revert IWorthOfWords.WrongSecretWordOrSaltInMatchProof(
+                proofIndex,
+                secretWordIndex,
+                guess.toString()
+            );
+        }
+        if (!guess.equalsPublicSignalSlice(proof._pubSignals)) {
+            revert IWorthOfWords.WrongGuessInMatchProof(
+                proofIndex,
+                guess.toString()
+            );
+        }
     }
 
     // *************************************************************************
