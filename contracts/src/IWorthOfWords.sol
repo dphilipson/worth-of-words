@@ -18,7 +18,15 @@ interface IWorthOfWords {
         uint32 maxRevealGuessTime;
         uint32 maxRevealMatchesTime;
         uint8 numLives;
+        /**
+         * 0 for no round limit.
+         */
         uint8 maxRounds;
+        uint8 pointsForYellow;
+        uint8 pointsForGreen;
+        uint8 pointsForFullWord;
+        uint8 pointPenaltyForLosingLife;
+        uint8 pointsForDroppedOpponent;
     }
 
     struct LobbyState {
@@ -76,22 +84,42 @@ interface IWorthOfWords {
         uint256[11] _pubSignals;
     }
 
+    struct MatchesLog {
+        address guesser;
+        string guess;
+        LetterMatch[5] matches;
+    }
+
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
-    event JoinedLobby(LobbyId indexed lobbyId, address indexed player);
-    event GameStarted(LobbyId indexed lobbyId, uint256 playerCount);
-    event NewPhase(
-        LobbyId indexed,
-        uint256 roundNumber,
-        Phase phase,
-        uint48 deadline
+    event JoinedLobby(
+        LobbyId indexed lobbyId,
+        address indexed player,
+        string playerName
     );
-    event GuessCommitted(LobbyId indexed lobbyId, address indexed player);
+    event GameStarted(LobbyId indexed lobbyId, uint256 playerCount);
+    event NewRound(
+        LobbyId indexed,
+        uint32 roundNumber,
+        uint32 targetOffsets,
+        uint32 remainingPlayerCount
+    );
+    event NewPhase(LobbyId indexed, uint32 roundNumber, uint48 deadline);
+    event GuessCommitted(
+        LobbyId indexed lobbyId,
+        address indexed player,
+        uint32 currentScore
+    );
     event GuessRevealed(
         LobbyId indexed lobbyId,
         address indexed player,
-        string guess
+        string guess,
+        address[] targetedPlayers
     );
-    event MatchesRevealed(LobbyId indexed lobbyId, address indexed player);
+    event MatchesRevealed(
+        LobbyId indexed lobbyId,
+        address indexed player,
+        MatchesLog[] matches
+    );
     event SecretWordFound(
         LobbyId indexed lobbyId,
         address indexed player,
@@ -121,6 +149,7 @@ interface IWorthOfWords {
     error MissingGuessWordMerkleRoot();
     error MinPlayerCountTooLow();
     error PlayerCountRangeIsEmpty();
+    error NumLivesIsZero();
 
     // Errors for joinLobby.
     error AlreadyInLobby();
