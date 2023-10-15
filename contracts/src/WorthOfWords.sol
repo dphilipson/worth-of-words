@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
-import {IWorthOfWords, LobbyConfig, LobbyDoesNotExist, LobbyId, LobbyState, ScoreGuessProof, ValidWordProof, Word} from "./IWorthOfWords.sol";
-import {Lobbies, LobbyStorage} from "./Lobbies.sol";
+import {IWorthOfWords} from "./IWorthOfWords.sol";
+import {Lobbies} from "./Lobbies.sol";
 
 contract WorthOfWords is IWorthOfWords {
-    using Lobbies for LobbyStorage;
+    using Lobbies for Lobbies.Lobby;
 
-    mapping(LobbyId => LobbyStorage) private _lobbiesById;
+    mapping(LobbyId => Lobbies.Lobby) private _lobbiesById;
 
     function createLobby(
         LobbyConfig calldata config
@@ -26,6 +26,10 @@ contract WorthOfWords is IWorthOfWords {
             password,
             secretWordCommitments
         );
+    }
+
+    function startGame(LobbyId lobbyId) external override {
+        _getLobby(lobbyId).startGame();
     }
 
     function commitGuess(
@@ -66,10 +70,10 @@ contract WorthOfWords is IWorthOfWords {
 
     function _getLobby(
         LobbyId lobbyId
-    ) private view returns (LobbyStorage storage) {
-        LobbyStorage storage lobby = _lobbiesById[lobbyId];
+    ) private view returns (Lobbies.Lobby storage) {
+        Lobbies.Lobby storage lobby = _lobbiesById[lobbyId];
         if (lobby.config.secretWordMerkleRoot == 0) {
-            revert LobbyDoesNotExist(lobbyId);
+            revert LobbyDoesNotExist();
         }
         return lobby;
     }
