@@ -61,11 +61,11 @@ interface IWorthOfWords {
 
     struct Guess {
         string word;
-        LetterMatch[5] matches;
+        Color[5] matches;
     }
 
-    enum LetterMatch {
-        Grey,
+    enum Color {
+        Gray,
         Yellow,
         Green
     }
@@ -87,7 +87,7 @@ interface IWorthOfWords {
     struct MatchesLog {
         address guesser;
         string guess;
-        LetterMatch[5] matches;
+        Color[5] matches;
     }
 
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
@@ -117,8 +117,7 @@ interface IWorthOfWords {
     event GuessRevealed(
         LobbyId indexed lobbyId,
         address indexed player,
-        string guess,
-        address[] targetedPlayers
+        string guess
     );
     event MatchesRevealed(
         LobbyId indexed lobbyId,
@@ -170,11 +169,12 @@ interface IWorthOfWords {
 
     // Errors for revealGuess.
     error InvalidGuessReveal();
+    error GuessIsNotAWord();
 
     // Errors for revealMatches.
     error InvalidMatchProof();
 
-    // Errors for eliminateUnrevealedPlayers.
+    // Errors for startNewRound.
     error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
 
     function createLobby(
@@ -192,14 +192,19 @@ interface IWorthOfWords {
 
     function commitGuess(LobbyId lobbyId, bytes32 commitment) external;
 
-    function revealGuess(LobbyId lobbyId, Word guess, uint256 salt) external;
+    function revealGuess(
+        LobbyId lobbyId,
+        Word guess,
+        uint256 salt,
+        bytes32[] calldata merkleProof
+    ) external;
 
     function revealMatches(
         LobbyId lobbyId,
         ScoreGuessProof[] calldata proofs
     ) external;
 
-    function eliminateUnrevealedPlayers(LobbyId lobbyId) external;
+    function startNewRound(LobbyId lobbyId) external;
 
     function getLobbyConfig(
         LobbyId lobbyId

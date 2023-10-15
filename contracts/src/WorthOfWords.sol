@@ -43,9 +43,10 @@ contract WorthOfWords is IWorthOfWords {
     function revealGuess(
         LobbyId lobbyId,
         Word guess,
-        uint256 salt
+        uint256 salt,
+        bytes32[] calldata merkleProof
     ) external override {
-        _getLobby(lobbyId).revealGuess(lobbyId, guess, salt);
+        _getLobby(lobbyId).revealGuess(lobbyId, guess, salt, merkleProof);
     }
 
     function revealMatches(
@@ -55,8 +56,8 @@ contract WorthOfWords is IWorthOfWords {
         _getLobby(lobbyId).revealMatches(lobbyId, proofs);
     }
 
-    function eliminateUnrevealedPlayers(LobbyId lobbyId) external override {
-        _getLobby(lobbyId).eliminateUnrevealedPlayers(lobbyId);
+    function startNewRound(LobbyId lobbyId) external override {
+        _getLobby(lobbyId).startNewRound(lobbyId);
     }
 
     function getLobbyConfig(

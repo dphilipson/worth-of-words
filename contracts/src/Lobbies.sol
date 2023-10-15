@@ -2,15 +2,16 @@
 pragma solidity ^0.8.13;
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {ShortString, ShortStrings} from "@openzeppelin/contracts/utils/ShortStrings.sol";
+import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IWorthOfWords} from "./IWorthOfWords.sol";
+import {Words} from "./Words.sol";
 import {ValidWordVerifier} from "./generated/ValidWordVerifier.sol";
 
 library Lobbies {
     using Lobbies for Lobby;
+    using Words for IWorthOfWords.Word;
     using EnumerableSet for EnumerableSet.AddressSet;
-    using ShortStrings for *;
 
     struct Lobby {
         IWorthOfWords.LobbyConfig config;
@@ -24,20 +25,18 @@ library Lobbies {
     }
 
     struct Player {
-        ShortString name;
         uint256[] secretWordCommitments;
         bytes32 guessCommitment;
-        IWorthOfWords.Word[] guessesToRespondTo;
         uint32 currentLife;
         uint32 score;
+        IWorthOfWords.Word guess;
     }
 
-    struct PlayerRound {
-        bytes32 guessCommitment;
-        IWorthOfWords.Word[] guessesToRespondTo;
-    }
+    uint32 private constant NUM_TARGETS = 3;
 
-    uint32 constant NUM_TARGETS = 3;
+    // *************************************************************************
+    // * Modifiers
+    // *************************************************************************
 
     modifier requirePhase(Lobby storage self, IWorthOfWords.Phase phase) {
         if (self.currentPhase != phase) {
@@ -60,6 +59,10 @@ library Lobbies {
         }
         _;
     }
+
+    // *************************************************************************
+    // * Internal mutable functions
+    // *************************************************************************
 
     function initializeLobby(
         Lobby storage self,
@@ -122,11 +125,9 @@ library Lobbies {
                 self.config.secretWordMerkleRoot
             );
         }
-        ShortString name = playerName.toShortString();
 
         // Effects
         Player storage player = self.playersByAddress[msg.sender];
-        player.name = name;
         for (uint32 i = 0; i < secretWordCommitments.length; i++) {
             player.secretWordCommitments.push() = secretWordCommitments[i]
                 ._pubSignals[0];
@@ -178,7 +179,8 @@ library Lobbies {
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId,
         IWorthOfWords.Word guess,
-        uint256 salt
+        uint256 salt,
+        bytes32[] calldata merkleProof
     )
         internal
         requirePhaseOrTransition(
@@ -188,9 +190,38 @@ library Lobbies {
         )
     {
         if (self.currentPhase == IWorthOfWords.Phase.CommittingGuesses) {
+            // We can take this action because we're past the deadline of the
+            // previous phase.
             self._transitionToRevealGuessPhase(lobbyId);
         }
-        // TODO
+
+        // Checks
+        Player storage player = self._validateCurrentPlayer();
+        if (
+            keccak256(abi.encodePacked(guess, salt)) != player.guessCommitment
+        ) {
+            revert IWorthOfWords.InvalidGuessReveal();
+        }
+        // See https://github.com/OpenZeppelin/merkle-tree#leaf-hash
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(guess))));
+        if (
+            !MerkleProof.verifyCalldata(
+                merkleProof,
+                self.config.guessWordMerkleRoot,
+                leaf
+            )
+        ) {
+            revert IWorthOfWords.GuessIsNotAWord();
+        }
+
+        // Effects
+        player.guess = guess;
+        self.numPlayersYetToAct--;
+        emit IWorthOfWords.GuessRevealed(lobbyId, msg.sender, guess.toString());
+
+        if (self.numPlayersYetToAct == 0) {
+            self._transitionToRevealMatchesPhase(lobbyId);
+        }
     }
 
     function revealMatches(
@@ -204,9 +235,18 @@ library Lobbies {
             IWorthOfWords.Phase.RevealingGuesses,
             IWorthOfWords.Phase.RevealingMatches
         )
-    {}
+    {
+        if (self.currentPhase == IWorthOfWords.Phase.CommittingGuesses) {
+            // We can take this action because we're past the deadline of the
+            // previous phase.
+            self._transitionToRevealMatchesPhase(lobbyId);
+        }
 
-    function eliminateUnrevealedPlayers(
+        // Checks
+        Player storage player = self._validateCurrentPlayer();
+    }
+
+    function startNewRound(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId
     ) internal requirePhase(self, IWorthOfWords.Phase.RevealingMatches) {}
@@ -223,6 +263,13 @@ library Lobbies {
         revert("not implemented");
     }
 
+    // *************************************************************************
+    // "Private" mutable functions
+    // *************************************************************************
+
+    // These functions aren't actually private because that means they dont work
+    // with the "using" keyword, but they're not intended for outside use.
+
     function _transitionToRevealGuessPhase(
         Lobby storage self,
         IWorthOfWords.LobbyId lobbyId
@@ -236,6 +283,11 @@ library Lobbies {
 
         self._emitNewPhaseEvent(lobbyId);
     }
+
+    function _transitionToRevealMatchesPhase(
+        Lobby storage self,
+        IWorthOfWords.LobbyId lobbyId
+    ) internal {}
 
     function _setDeadline(Lobby storage self, uint32 timeLimit) internal {
         self.phaseDeadline = uint48(block.timestamp) + uint48(timeLimit);
@@ -252,6 +304,10 @@ library Lobbies {
             self.phaseDeadline
         );
     }
+
+    // *************************************************************************
+    // "Private" view functions
+    // *************************************************************************
 
     function _validateCurrentPlayer(
         Lobby storage self
@@ -335,12 +391,16 @@ library Lobbies {
             uint32(self.livePlayerAddressesByRound[self.roundNumber].length());
     }
 
+    // *************************************************************************
+    // Private pure functions
+    // *************************************************************************
+
     function _chooseRandomishOffsets(
         uint32 playerCount,
         uint32 randomishSeed,
         uint32 roundNumber,
         uint32 numOffsets
-    ) internal pure returns (uint32[] memory) {
+    ) private pure returns (uint32[] memory) {
         uint32[] memory offsets = new uint32[](numOffsets);
         uint32 salt = 0;
         for (uint32 i = 0; i < numOffsets; i++) {
@@ -364,7 +424,7 @@ library Lobbies {
         uint32[] memory array,
         uint32 x,
         uint32 indexBound
-    ) internal pure returns (bool) {
+    ) private pure returns (bool) {
         for (uint32 i = 0; i < indexBound; i++) {
             if (array[i] == x) {
                 return true;
