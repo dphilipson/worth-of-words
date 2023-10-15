@@ -37,7 +37,7 @@ library Lobbies {
         IWorthOfWords.Word[] guessesToRespondTo;
     }
 
-    uint256 constant NUM_TARGETS = 3;
+    uint32 constant NUM_TARGETS = 3;
 
     modifier requirePhase(Lobby storage self, IWorthOfWords.Phase phase) {
         if (self.currentPhase != phase) {
@@ -115,7 +115,7 @@ library Lobbies {
             );
         }
         self._verifyPassword(password);
-        for (uint256 i = 0; i < secretWordCommitments.length; i++) {
+        for (uint32 i = 0; i < secretWordCommitments.length; i++) {
             _verifyValidWord(
                 secretWordCommitments[i],
                 i,
@@ -127,7 +127,7 @@ library Lobbies {
         // Effects
         Player storage player = self.playersByAddress[msg.sender];
         player.name = name;
-        for (uint256 i = 0; i < secretWordCommitments.length; i++) {
+        for (uint32 i = 0; i < secretWordCommitments.length; i++) {
             player.secretWordCommitments.push() = secretWordCommitments[i]
                 ._pubSignals[0];
         }
@@ -142,7 +142,7 @@ library Lobbies {
     ) internal requirePhase(self, IWorthOfWords.Phase.NotStarted) {
         // Checks
         _validateCurrentPlayer(self);
-        uint32 playerCount = uint32(self._getLivePlayerCount());
+        uint32 playerCount = self._getLivePlayerCount();
         if (self._getLivePlayerCount() < self.config.minPlayers) {
             revert IWorthOfWords.NotEnoughPlayers(
                 playerCount,
@@ -230,7 +230,7 @@ library Lobbies {
         self._setDeadline(self.config.maxRevealGuessTime);
         // Only players who committed a guess can act in this phase.
         self.numPlayersYetToAct =
-            uint32(self._getLivePlayerCount()) -
+            self._getLivePlayerCount() -
             self.numPlayersYetToAct;
         self.currentPhase = IWorthOfWords.Phase.RevealingGuesses;
 
@@ -290,7 +290,7 @@ library Lobbies {
 
     function _verifyValidWord(
         IWorthOfWords.ValidWordProof calldata proof,
-        uint256 proofIndex,
+        uint32 proofIndex,
         uint256 secretWordMerkleRoot
     ) internal view {
         if (
@@ -302,18 +302,18 @@ library Lobbies {
                 proof._pubSignals
             )
         ) {
-            revert IWorthOfWords.InvalidSecretWordProof(uint32(proofIndex));
+            revert IWorthOfWords.InvalidSecretWordProof(proofIndex);
         }
     }
 
     function _getTargetOffsets(
         Lobby storage self
-    ) internal view returns (uint256[] memory) {
-        uint256 playerCount = self._getLivePlayerCount();
+    ) internal view returns (uint32[] memory) {
+        uint32 playerCount = self._getLivePlayerCount();
         if (playerCount <= NUM_TARGETS + 1) {
             // All opponents are targets.
-            uint256[] memory offsets = new uint256[](playerCount - 1);
-            for (uint256 i = 0; i < playerCount - 1; i++) {
+            uint32[] memory offsets = new uint32[](playerCount - 1);
+            for (uint32 i = 0; i < playerCount - 1; i++) {
                 offsets[i] = i + 1;
             }
             return offsets;
@@ -330,25 +330,27 @@ library Lobbies {
 
     function _getLivePlayerCount(
         Lobby storage self
-    ) internal view returns (uint256) {
-        return self.livePlayerAddressesByRound[self.roundNumber].length();
+    ) internal view returns (uint32) {
+        return
+            uint32(self.livePlayerAddressesByRound[self.roundNumber].length());
     }
 
     function _chooseRandomishOffsets(
-        uint256 playerCount,
+        uint32 playerCount,
         uint32 randomishSeed,
         uint32 roundNumber,
-        uint256 numOffsets
-    ) internal pure returns (uint256[] memory) {
-        uint256[] memory offsets = new uint256[](numOffsets);
+        uint32 numOffsets
+    ) internal pure returns (uint32[] memory) {
+        uint32[] memory offsets = new uint32[](numOffsets);
         uint32 salt = 0;
-        for (uint256 i = 0; i < numOffsets; i++) {
+        for (uint32 i = 0; i < numOffsets; i++) {
             while (true) {
                 bytes32 randomishHash = keccak256(
                     abi.encodePacked(randomishSeed, roundNumber, salt++)
                 );
-                uint256 offset = (uint256(randomishHash) % (playerCount - 1)) +
-                    1;
+                uint32 offset = uint32(
+                    (uint256(randomishHash) % (playerCount - 1)) + 1
+                );
                 if (!_arrayContainsBeforeIndex(offsets, offset, i)) {
                     offsets[i] = offset;
                     break;
@@ -359,11 +361,11 @@ library Lobbies {
     }
 
     function _arrayContainsBeforeIndex(
-        uint256[] memory array,
-        uint256 x,
-        uint256 indexBound
+        uint32[] memory array,
+        uint32 x,
+        uint32 indexBound
     ) internal pure returns (bool) {
-        for (uint256 i = 0; i < indexBound; i++) {
+        for (uint32 i = 0; i < indexBound; i++) {
             if (array[i] == x) {
                 return true;
             }
