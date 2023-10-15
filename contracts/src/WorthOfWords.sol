@@ -22,6 +22,7 @@ contract WorthOfWords is IWorthOfWords {
         ValidWordProof[] calldata secretWordCommitments
     ) external override {
         _getLobby(lobbyId).addPlayer(
+            lobbyId,
             playerName,
             password,
             secretWordCommitments
@@ -29,31 +30,33 @@ contract WorthOfWords is IWorthOfWords {
     }
 
     function startGame(LobbyId lobbyId) external override {
-        _getLobby(lobbyId).startGame();
+        _getLobby(lobbyId).startGame(lobbyId);
     }
 
     function commitGuess(
         LobbyId lobbyId,
         bytes32 commitment
-    ) external override {}
+    ) external override {
+        _getLobby(lobbyId).commitGuess(lobbyId, commitment);
+    }
 
     function revealGuess(
         LobbyId lobbyId,
         Word guess,
         uint256 salt
     ) external override {
-        _getLobby(lobbyId).revealGuess(guess, salt);
+        _getLobby(lobbyId).revealGuess(lobbyId, guess, salt);
     }
 
     function revealMatches(
         LobbyId lobbyId,
-        ScoreGuessProof calldata proof
+        ScoreGuessProof[] calldata proofs
     ) external override {
-        _getLobby(lobbyId).revealMatches(proof);
+        _getLobby(lobbyId).revealMatches(lobbyId, proofs);
     }
 
     function eliminateUnrevealedPlayers(LobbyId lobbyId) external override {
-        _getLobby(lobbyId).eliminateUnrevealedPlayers();
+        _getLobby(lobbyId).eliminateUnrevealedPlayers(lobbyId);
     }
 
     function getLobbyConfig(

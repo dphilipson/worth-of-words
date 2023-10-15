@@ -76,6 +76,40 @@ interface IWorthOfWords {
         uint256[11] _pubSignals;
     }
 
+    event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
+    event JoinedLobby(LobbyId indexed lobbyId, address indexed player);
+    event GameStarted(LobbyId indexed lobbyId, uint256 playerCount);
+    event NewPhase(
+        LobbyId indexed,
+        uint256 roundNumber,
+        Phase phase,
+        uint48 deadline
+    );
+    event GuessCommitted(LobbyId indexed lobbyId, address indexed player);
+    event GuessRevealed(
+        LobbyId indexed lobbyId,
+        address indexed player,
+        string guess
+    );
+    event MatchesRevealed(LobbyId indexed lobbyId, address indexed player);
+    event SecretWordFound(
+        LobbyId indexed lobbyId,
+        address indexed player,
+        string word,
+        uint256 livesLeft
+    );
+    event PlayerEliminated(
+        LobbyId indexed lobbyId,
+        address indexed player,
+        uint256 finalScore
+    );
+    event UnrevealedPlayersEliminated(
+        LobbyId indexed lobbyId,
+        address indexed caller,
+        uint256 eliminatedPlayerCount
+    );
+    event GameEnded(LobbyId indexed lobbyId, address indexed winner);
+
     // General-purpose errors.
     error LobbyDoesNotExist();
     error PlayerNotInLobby();
@@ -128,7 +162,7 @@ interface IWorthOfWords {
 
     function revealMatches(
         LobbyId lobbyId,
-        ScoreGuessProof calldata proof
+        ScoreGuessProof[] calldata proofs
     ) external;
 
     function eliminateUnrevealedPlayers(LobbyId lobbyId) external;

@@ -19,11 +19,14 @@ library Lobbies {
         EnumerableSet.AddressSet[] playerAddressesWithUnrevealedMatchesByRound;
         uint32 roundNumber;
         uint48 phaseDeadline;
+        uint32 remainingPlayersInRound;
     }
 
     struct Player {
         ShortString name;
         Life[] lives;
+        uint32 currentLife;
+        uint32 score;
     }
 
     struct Life {
@@ -36,8 +39,14 @@ library Lobbies {
         Wow.LetterMatch[5] matches;
     }
 
+    struct PlayerRound {
+        bytes32 guessCommitment;
+        Wow.Word[] guessesToRespondTo;
+    }
+
     function addPlayer(
         Lobby storage self,
+        Wow.LobbyId lobbyId,
         string calldata playerName,
         bytes32 password,
         Wow.ValidWordProof[] calldata secretWordCommitments
@@ -46,22 +55,31 @@ library Lobbies {
         // TODO
     }
 
-    function startGame(Lobby storage self) internal {}
+    function startGame(Lobby storage self, Wow.LobbyId lobbyId) internal {}
 
-    function commitGuess(Lobby storage self, bytes32 commitment) internal {}
+    function commitGuess(
+        Lobby storage self,
+        Wow.LobbyId lobbyId,
+        bytes32 commitment
+    ) internal {}
 
     function revealGuess(
         Lobby storage self,
+        Wow.LobbyId lobbyId,
         Wow.Word guess,
         uint256 salt
     ) internal {}
 
     function revealMatches(
         Lobby storage self,
-        Wow.ScoreGuessProof calldata proof
+        Wow.LobbyId lobbyId,
+        Wow.ScoreGuessProof[] calldata proofs
     ) internal {}
 
-    function eliminateUnrevealedPlayers(Lobby storage self) internal {}
+    function eliminateUnrevealedPlayers(
+        Lobby storage self,
+        Wow.LobbyId lobbyId
+    ) internal {}
 
     function getConfig(
         Lobby storage self
