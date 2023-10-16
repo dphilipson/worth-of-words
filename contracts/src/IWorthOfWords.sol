@@ -6,34 +6,30 @@ interface IWorthOfWords {
     type Word is uint24;
 
     struct LobbyConfig {
+        // Sandwich the fields used for setup between the two merkle root
+        // fields. This ensures the fields used for gameplay start at the start
+        // of a slot and all fit into a single slot.
         uint256 secretWordMerkleRoot;
-        bytes32 guessWordMerkleRoot;
         /**
          * 0 for a public game.
          */
         bytes20 privateGamePublicKey;
         uint32 minPlayers;
         uint32 maxPlayers;
+        bytes32 guessWordMerkleRoot;
         uint32 maxCommitGuessTime;
         uint32 maxRevealGuessTime;
         uint32 maxRevealMatchesTime;
-        uint8 numLives;
         /**
          * 0 for no round limit.
          */
         uint8 maxRounds;
+        uint8 numLives;
         uint8 pointsForYellow;
         uint8 pointsForGreen;
         uint8 pointsForFullWord;
         uint8 pointPenaltyForLosingLife;
         uint8 pointsForDroppedOpponent;
-    }
-
-    struct LobbyState {
-        PlayerInfo[] players;
-        Phase currentPhase;
-        uint8 roundNumber;
-        uint48 phaseDeadline;
     }
 
     enum Phase {
@@ -42,26 +38,6 @@ interface IWorthOfWords {
         RevealingGuesses,
         RevealingMatches,
         GameOver
-    }
-
-    struct PlayerInfo {
-        address playerAddress;
-        string name;
-        PlayerStatus status;
-        uint256 score;
-        string[] revealedWords;
-        Guess[] currentWordGuesses;
-    }
-
-    enum PlayerStatus {
-        PhaseIncomplete,
-        PhaseComplete,
-        Eliminated
-    }
-
-    struct Guess {
-        string word;
-        Color[5] matches;
     }
 
     enum Color {
@@ -74,6 +50,9 @@ interface IWorthOfWords {
         uint256[2] _pA;
         uint256[2][2] _pB;
         uint256[2] _pC;
+        /**
+         * Public signals are [commitment, merkleRoot].
+         */
         uint256[2] _pubSignals;
     }
 
@@ -81,6 +60,9 @@ interface IWorthOfWords {
         uint256[2] _pA;
         uint256[2][2] _pB;
         uint256[2] _pC;
+        /**
+         * Public signals are [commitment, ...scores[5], ...guessLetters[5]].
+         */
         uint256[11] _pubSignals;
     }
 
@@ -127,19 +109,10 @@ interface IWorthOfWords {
         LobbyId indexed lobbyId,
         address indexed player,
         string word,
-        uint256 livesLeft
+        uint32 secretWordIndex
     );
-    event PlayerEliminated(
-        LobbyId indexed lobbyId,
-        address indexed player,
-        uint256 finalScore
-    );
-    event UnrevealedPlayersEliminated(
-        LobbyId indexed lobbyId,
-        address indexed caller,
-        uint256 eliminatedPlayerCount
-    );
-    event GameEnded(LobbyId indexed lobbyId, address indexed winner);
+    event PlayerEliminated(LobbyId indexed lobbyId, address indexed player);
+    event GameEnded(LobbyId indexed lobbyId);
 
     // General-purpose errors.
     error LobbyDoesNotExist();
@@ -182,7 +155,7 @@ interface IWorthOfWords {
     error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
     error InvalidMatchProof(uint32 index, string guess);
 
-    // Errors for startNewRound.
+    // Errors for endRevealMatchesPhase.
     error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
 
     function createLobby(
@@ -212,15 +185,9 @@ interface IWorthOfWords {
         ScoreGuessProof[] calldata proofs
     ) external;
 
-    function startNewRound(LobbyId lobbyId) external;
+    function endRevealMatchesPhase(LobbyId lobbyId) external;
 
     function getLobbyConfig(
         LobbyId lobbyId
     ) external view returns (LobbyConfig memory);
-
-    function getLobbyState(
-        LobbyId lobbyId
-    ) external view returns (LobbyState memory);
-
-    // TODO: expose method for getting opponents for round?
 }

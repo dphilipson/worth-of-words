@@ -3,15 +3,15 @@ pragma solidity ^0.8.13;
 
 import {IWorthOfWords} from "./IWorthOfWords.sol";
 
-library Scoring {
-    using Scoring for Scoring.MatchHistory;
+/**
+ * Representation: the three bits at 3 * i are the maximum colors seen for a
+ * given letter. The five bits at 3 * 26 are whether a green has been seen at
+ * each position.
+ */
+type MatchHistory is uint88;
 
-    /**
-     * Representation: the three bits at 3 * i are the maximum colors seen for
-     * a given letter. The five bits at 3 * 26 are whether a green has been seen
-     * at each position.
-     */
-    type MatchHistory is uint88;
+library Scoring {
+    using Scoring for MatchHistory;
 
     uint32 private constant WORD_LENGTH = 5;
     uint32 private constant SEEN_GREEN_OFFSET = 78; // 26 * 3

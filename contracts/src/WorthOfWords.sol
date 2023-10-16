@@ -2,17 +2,20 @@
 pragma solidity ^0.8.13;
 
 import {IWorthOfWords} from "./IWorthOfWords.sol";
-import {Lobbies} from "./Lobbies.sol";
+import {Lobbies, Lobby} from "./Lobbies.sol";
 
 contract WorthOfWords is IWorthOfWords {
-    using Lobbies for Lobbies.Lobby;
+    using Lobbies for Lobby;
 
-    mapping(LobbyId => Lobbies.Lobby) private _lobbiesById;
+    Lobby[] private _lobbies;
 
     function createLobby(
         LobbyConfig calldata config
     ) external override returns (LobbyId) {
-        revert("not implemented");
+        LobbyId lobbyId = LobbyId.wrap(_lobbies.length);
+        Lobby storage lobby = _lobbies.push();
+        lobby.initializeLobby(lobbyId, config);
+        return lobbyId;
     }
 
     function joinLobby(
@@ -56,29 +59,21 @@ contract WorthOfWords is IWorthOfWords {
         _getLobby(lobbyId).revealMatches(lobbyId, proofs);
     }
 
-    function startNewRound(LobbyId lobbyId) external override {
-        _getLobby(lobbyId).startNewRound(lobbyId);
+    function endRevealMatchesPhase(LobbyId lobbyId) external override {
+        _getLobby(lobbyId).endRevealMatchesPhase(lobbyId);
     }
 
     function getLobbyConfig(
         LobbyId lobbyId
     ) external view override returns (LobbyConfig memory) {
-        return _getLobby(lobbyId).getConfig();
+        return _getLobby(lobbyId).config;
     }
 
-    function getLobbyState(
-        LobbyId lobbyId
-    ) external view override returns (LobbyState memory) {
-        return _getLobby(lobbyId).getState();
-    }
-
-    function _getLobby(
-        LobbyId lobbyId
-    ) private view returns (Lobbies.Lobby storage) {
-        Lobbies.Lobby storage lobby = _lobbiesById[lobbyId];
-        if (lobby.config.secretWordMerkleRoot == 0) {
+    function _getLobby(LobbyId lobbyId) private view returns (Lobby storage) {
+        uint256 lobbyIndex = LobbyId.unwrap(lobbyId);
+        if (_lobbies.length <= lobbyIndex) {
             revert LobbyDoesNotExist();
         }
-        return lobby;
+        return _lobbies[lobbyIndex];
     }
 }
