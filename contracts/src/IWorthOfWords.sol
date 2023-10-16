@@ -1,71 +1,115 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
+type LobbyId is uint256;
+type Word is uint24;
+
+struct LobbyConfig {
+    // Sandwich the fields used for setup between the two merkle root
+    // fields. This ensures the fields used for gameplay start at the start
+    // of a slot and all fit into a single slot.
+    uint256 secretWordMerkleRoot;
+    /**
+     * 0 for a public game.
+     */
+    bytes20 privateGamePublicKey;
+    uint32 minPlayers;
+    uint32 maxPlayers;
+    bytes32 guessWordMerkleRoot;
+    uint32 maxCommitGuessTime;
+    uint32 maxRevealGuessTime;
+    uint32 maxRevealMatchesTime;
+    /**
+     * 0 for no round limit.
+     */
+    uint8 maxRounds;
+    uint8 numLives;
+    uint8 pointsForYellow;
+    uint8 pointsForGreen;
+    uint8 pointsForFullWord;
+    uint8 pointPenaltyForLosingLife;
+    uint8 pointsForDroppedOpponent;
+}
+
+enum Phase {
+    NotStarted,
+    CommittingGuesses,
+    RevealingGuesses,
+    RevealingMatches,
+    GameOver
+}
+
+enum Color {
+    Gray,
+    Yellow,
+    Green
+}
+
+struct ValidWordProof {
+    uint256[2] _pA;
+    uint256[2][2] _pB;
+    uint256[2] _pC;
+    /**
+     * Public signals are [commitment, merkleRoot].
+     */
+    uint256[2] _pubSignals;
+}
+
+struct ScoreGuessProof {
+    uint256[2] _pA;
+    uint256[2][2] _pB;
+    uint256[2] _pC;
+    /**
+     * Public signals are [commitment, ...scores[5], ...guessLetters[5]].
+     */
+    uint256[11] _pubSignals;
+}
+
+// General-purpose errors.
+error LobbyDoesNotExist();
+error PlayerNotInLobby();
+error PlayerIsEliminated();
+error WrongPhase(Phase attemptedPhase, Phase currentPhase);
+
+// Errors for createLobby
+error MissingSecretWordMerkleRoot();
+error MissingGuessWordMerkleRoot();
+error MinPlayerCountTooLow();
+error PlayerCountRangeIsEmpty();
+error NumLivesIsZero();
+
+// Errors for joinLobby.
+error AlreadyInLobby();
+error LobbyIsFull(uint32 playerLimit);
+error IncorrectLobbyPassword();
+error WrongNumberOfSecretWords(uint32 provided, uint32 required);
+error InvalidMerkleProofInSecretWordProof(uint32 proofIndex);
+error InvalidSecretWordProof(uint32 proofIndex);
+
+// Errors for startGame.
+error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
+
+// Errors for commitGuess (none).
+
+// Errors for revealGuess.
+error NoGuessCommitted();
+error GuessDoesNotMatchCommitment(bytes32 commitment);
+error InvalidMerkleProofInGuessReveal();
+
+// Errors for revealMatches.
+error WrongNumberOfMatchReveals(uint32 provided, uint32 required);
+error WrongSecretWordOrSaltInMatchProof(
+    uint32 proofIndex,
+    uint32 secretWordIndex,
+    string guess
+);
+error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
+error InvalidMatchProof(uint32 index, string guess);
+
+// Errors for endRevealMatchesPhase.
+error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
+
 interface IWorthOfWords {
-    type LobbyId is uint256;
-    type Word is uint24;
-
-    struct LobbyConfig {
-        // Sandwich the fields used for setup between the two merkle root
-        // fields. This ensures the fields used for gameplay start at the start
-        // of a slot and all fit into a single slot.
-        uint256 secretWordMerkleRoot;
-        /**
-         * 0 for a public game.
-         */
-        bytes20 privateGamePublicKey;
-        uint32 minPlayers;
-        uint32 maxPlayers;
-        bytes32 guessWordMerkleRoot;
-        uint32 maxCommitGuessTime;
-        uint32 maxRevealGuessTime;
-        uint32 maxRevealMatchesTime;
-        /**
-         * 0 for no round limit.
-         */
-        uint8 maxRounds;
-        uint8 numLives;
-        uint8 pointsForYellow;
-        uint8 pointsForGreen;
-        uint8 pointsForFullWord;
-        uint8 pointPenaltyForLosingLife;
-        uint8 pointsForDroppedOpponent;
-    }
-
-    enum Phase {
-        NotStarted,
-        CommittingGuesses,
-        RevealingGuesses,
-        RevealingMatches,
-        GameOver
-    }
-
-    enum Color {
-        Gray,
-        Yellow,
-        Green
-    }
-
-    struct ValidWordProof {
-        uint256[2] _pA;
-        uint256[2][2] _pB;
-        uint256[2] _pC;
-        /**
-         * Public signals are [commitment, merkleRoot].
-         */
-        uint256[2] _pubSignals;
-    }
-
-    struct ScoreGuessProof {
-        uint256[2] _pA;
-        uint256[2][2] _pB;
-        uint256[2] _pC;
-        /**
-         * Public signals are [commitment, ...scores[5], ...guessLetters[5]].
-         */
-        uint256[11] _pubSignals;
-    }
-
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
     event JoinedLobby(
         LobbyId indexed lobbyId,
@@ -113,50 +157,6 @@ interface IWorthOfWords {
     );
     event PlayerEliminated(LobbyId indexed lobbyId, address indexed player);
     event GameEnded(LobbyId indexed lobbyId);
-
-    // General-purpose errors.
-    error LobbyDoesNotExist();
-    error PlayerNotInLobby();
-    error PlayerIsEliminated();
-    error WrongPhase(Phase attemptedPhase, Phase currentPhase);
-
-    // Errors for createLobby
-    error MissingSecretWordMerkleRoot();
-    error MissingGuessWordMerkleRoot();
-    error MinPlayerCountTooLow();
-    error PlayerCountRangeIsEmpty();
-    error NumLivesIsZero();
-
-    // Errors for joinLobby.
-    error AlreadyInLobby();
-    error LobbyIsFull(uint32 playerLimit);
-    error IncorrectLobbyPassword();
-    error WrongNumberOfSecretWords(uint32 provided, uint32 required);
-    error InvalidMerkleProofInSecretWordProof(uint32 proofIndex);
-    error InvalidSecretWordProof(uint32 proofIndex);
-
-    // Errors for startGame.
-    error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
-
-    // Errors for commitGuess (none).
-
-    // Errors for revealGuess.
-    error NoGuessCommitted();
-    error GuessDoesNotMatchCommitment(bytes32 commitment);
-    error InvalidMerkleProofInGuessReveal();
-
-    // Errors for revealMatches.
-    error WrongNumberOfMatchReveals(uint32 provided, uint32 required);
-    error WrongSecretWordOrSaltInMatchProof(
-        uint32 proofIndex,
-        uint32 secretWordIndex,
-        string guess
-    );
-    error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
-    error InvalidMatchProof(uint32 index, string guess);
-
-    // Errors for endRevealMatchesPhase.
-    error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
 
     function createLobby(
         LobbyConfig calldata config

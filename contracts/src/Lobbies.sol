@@ -4,21 +4,21 @@ pragma solidity ^0.8.13;
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {IWorthOfWords} from "./IWorthOfWords.sol";
+import "./IWorthOfWords.sol";
 import {MatchHistory, Scoring} from "./Scoring.sol";
 import {Words} from "./Words.sol";
 import {ScoreGuessVerifier} from "./generated/ScoreGuessVerifier.sol";
 import {ValidWordVerifier} from "./generated/ValidWordVerifier.sol";
 
 struct Lobby {
-    IWorthOfWords.LobbyConfig config;
+    LobbyConfig config;
     mapping(address => Player) playersByAddress;
     EnumerableSet.AddressSet[] livePlayerAddressesByRound;
     uint48 phaseDeadline;
     uint32 roundNumber;
     uint32 numPlayersYetToAct;
     uint32 randomishSeed;
-    IWorthOfWords.Phase currentPhase;
+    Phase currentPhase;
 }
 
 struct Player {
@@ -28,13 +28,13 @@ struct Player {
     uint32 secretWordIndex;
     uint32 score;
     uint32 roundForGuess;
-    IWorthOfWords.Word guess;
+    Word guess;
 }
 
 library Lobbies {
     using Lobbies for Lobby;
     using Scoring for MatchHistory;
-    using Words for IWorthOfWords.Word;
+    using Words for Word;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     uint32 private constant NUM_TARGETS = 3;
@@ -45,24 +45,24 @@ library Lobbies {
     // * Modifiers
     // *************************************************************************
 
-    modifier requirePhase(Lobby storage self, IWorthOfWords.Phase phase) {
+    modifier requirePhase(Lobby storage self, Phase phase) {
         if (self.currentPhase != phase) {
-            revert IWorthOfWords.WrongPhase(phase, self.currentPhase);
+            revert WrongPhase(phase, self.currentPhase);
         }
         _;
     }
 
     modifier requirePhaseOrTransition(
         Lobby storage self,
-        IWorthOfWords.Phase previousPhase,
-        IWorthOfWords.Phase phase
+        Phase previousPhase,
+        Phase phase
     ) {
         if (
             self.currentPhase != phase &&
             (self.currentPhase != previousPhase ||
                 block.timestamp <= uint256(self.phaseDeadline))
         ) {
-            revert IWorthOfWords.WrongPhase(phase, self.currentPhase);
+            revert WrongPhase(phase, self.currentPhase);
         }
         _;
     }
@@ -73,24 +73,24 @@ library Lobbies {
 
     function initializeLobby(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
-        IWorthOfWords.LobbyConfig calldata config
+        LobbyId lobbyId,
+        LobbyConfig calldata config
     ) internal {
         // Checks
         if (config.secretWordMerkleRoot == 0) {
-            revert IWorthOfWords.MissingSecretWordMerkleRoot();
+            revert MissingSecretWordMerkleRoot();
         }
         if (config.guessWordMerkleRoot == bytes32(0)) {
-            revert IWorthOfWords.MissingGuessWordMerkleRoot();
+            revert MissingGuessWordMerkleRoot();
         }
         if (config.minPlayers < 2) {
-            revert IWorthOfWords.MinPlayerCountTooLow();
+            revert MinPlayerCountTooLow();
         }
         if (config.maxPlayers < config.minPlayers) {
-            revert IWorthOfWords.PlayerCountRangeIsEmpty();
+            revert PlayerCountRangeIsEmpty();
         }
         if (config.numLives == 0) {
-            revert IWorthOfWords.NumLivesIsZero();
+            revert NumLivesIsZero();
         }
 
         // Effects
@@ -103,24 +103,24 @@ library Lobbies {
 
     function addPlayer(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
+        LobbyId lobbyId,
         string calldata playerName,
         bytes32 password,
-        IWorthOfWords.ValidWordProof[] calldata secretWordCommitments
-    ) internal requirePhase(self, IWorthOfWords.Phase.NotStarted) {
+        ValidWordProof[] calldata secretWordCommitments
+    ) internal requirePhase(self, Phase.NotStarted) {
         // Checks
         if (self.livePlayerAddressesByRound[0].contains(msg.sender)) {
-            revert IWorthOfWords.AlreadyInLobby();
+            revert AlreadyInLobby();
         }
         if (
             self.livePlayerAddressesByRound[0].length() >=
             uint256(self.config.maxPlayers)
         ) {
-            revert IWorthOfWords.LobbyIsFull(self.config.maxPlayers);
+            revert LobbyIsFull(self.config.maxPlayers);
         }
         uint32 numCommitments = uint32(secretWordCommitments.length);
         if (numCommitments != self.config.numLives) {
-            revert IWorthOfWords.WrongNumberOfSecretWords(
+            revert WrongNumberOfSecretWords(
                 numCommitments,
                 self.config.numLives
             );
@@ -147,16 +147,13 @@ library Lobbies {
 
     function startGame(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
-    ) internal requirePhase(self, IWorthOfWords.Phase.NotStarted) {
+        LobbyId lobbyId
+    ) internal requirePhase(self, Phase.NotStarted) {
         // Checks
         _validateCurrentPlayer(self);
         uint32 playerCount = self._getLivePlayerCount();
         if (playerCount < self.config.minPlayers) {
-            revert IWorthOfWords.NotEnoughPlayers(
-                playerCount,
-                self.config.minPlayers
-            );
+            revert NotEnoughPlayers(playerCount, self.config.minPlayers);
         }
 
         // Effects
@@ -165,9 +162,9 @@ library Lobbies {
 
     function commitGuess(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
+        LobbyId lobbyId,
         bytes32 commitment
-    ) internal requirePhase(self, IWorthOfWords.Phase.CommittingGuesses) {
+    ) internal requirePhase(self, Phase.CommittingGuesses) {
         // Checks
         Player storage player = _validateCurrentPlayer(self);
         player.guessCommitment = commitment;
@@ -180,19 +177,19 @@ library Lobbies {
 
     function revealGuess(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
-        IWorthOfWords.Word guess,
+        LobbyId lobbyId,
+        Word guess,
         uint256 salt,
         bytes32[] calldata merkleProof
     )
         internal
         requirePhaseOrTransition(
             self,
-            IWorthOfWords.Phase.CommittingGuesses,
-            IWorthOfWords.Phase.RevealingGuesses
+            Phase.CommittingGuesses,
+            Phase.RevealingGuesses
         )
     {
-        if (self.currentPhase == IWorthOfWords.Phase.CommittingGuesses) {
+        if (self.currentPhase == Phase.CommittingGuesses) {
             // We can take this action because we're past the deadline of the
             // previous phase.
             self._transitionToRevealGuessPhase(lobbyId);
@@ -201,14 +198,12 @@ library Lobbies {
         // Checks
         Player storage player = self._validateCurrentPlayer();
         if (uint256(player.guessCommitment) <= uint256(NO_GUESS_COMMITMENT)) {
-            revert IWorthOfWords.NoGuessCommitted();
+            revert NoGuessCommitted();
         }
         if (
             keccak256(abi.encodePacked(guess, salt)) != player.guessCommitment
         ) {
-            revert IWorthOfWords.GuessDoesNotMatchCommitment(
-                player.guessCommitment
-            );
+            revert GuessDoesNotMatchCommitment(player.guessCommitment);
         }
         // See https://github.com/OpenZeppelin/merkle-tree#leaf-hash
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(guess))));
@@ -219,7 +214,7 @@ library Lobbies {
                 leaf
             )
         ) {
-            revert IWorthOfWords.InvalidMerkleProofInGuessReveal();
+            revert InvalidMerkleProofInGuessReveal();
         }
 
         // Effects
@@ -234,17 +229,17 @@ library Lobbies {
 
     function revealMatches(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
-        IWorthOfWords.ScoreGuessProof[] calldata proofs
+        LobbyId lobbyId,
+        ScoreGuessProof[] calldata proofs
     )
         internal
         requirePhaseOrTransition(
             self,
-            IWorthOfWords.Phase.RevealingGuesses,
-            IWorthOfWords.Phase.RevealingMatches
+            Phase.RevealingGuesses,
+            Phase.RevealingMatches
         )
     {
-        if (self.currentPhase == IWorthOfWords.Phase.CommittingGuesses) {
+        if (self.currentPhase == Phase.CommittingGuesses) {
             // We can take this action because we're past the deadline of the
             // previous phase.
             self._transitionToRevealMatchesPhase(lobbyId);
@@ -254,7 +249,7 @@ library Lobbies {
         Player storage player = self._validateCurrentPlayer();
         uint32[] memory offsets = self._getTargetOffsets();
         if (proofs.length != offsets.length) {
-            revert IWorthOfWords.WrongNumberOfMatchReveals(
+            revert WrongNumberOfMatchReveals(
                 uint32(proofs.length),
                 uint32(offsets.length)
             );
@@ -298,10 +293,10 @@ library Lobbies {
 
     function _handleAttack(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
+        LobbyId lobbyId,
         Player storage player,
         uint32 offset,
-        IWorthOfWords.ScoreGuessProof calldata proof,
+        ScoreGuessProof calldata proof,
         uint32 proofIndex,
         MatchHistory accumulatedHistory
     )
@@ -319,7 +314,7 @@ library Lobbies {
         }
         uint32[5] memory guessLetters = attacker.guess.toLetters();
         _verifyMatches(player, proof, proofIndex, attacker.guess, guessLetters);
-        IWorthOfWords.Color[5] memory matches = _getMatchesFromProof(proof);
+        Color[5] memory matches = _getMatchesFromProof(proof);
         (uint32 newYellowCount, uint32 newGreenCount) = player
             .matchHistory
             .scoreMatches(guessLetters, matches);
@@ -353,7 +348,7 @@ library Lobbies {
 
     function _handleSecretWordFound(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId,
+        LobbyId lobbyId,
         Player storage player,
         string memory word
     ) internal returns (bool playerIsEliminated) {
@@ -391,10 +386,10 @@ library Lobbies {
 
     function _transitionToNewRoundOrGameEnd(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
+        LobbyId lobbyId
     ) internal {
         if (self._shouldEndGame()) {
-            self.currentPhase = IWorthOfWords.Phase.GameOver;
+            self.currentPhase = Phase.GameOver;
             emit IWorthOfWords.GameEnded(lobbyId);
         } else {
             self.roundNumber++;
@@ -402,13 +397,10 @@ library Lobbies {
         }
     }
 
-    function _startRound(
-        Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
-    ) internal {
+    function _startRound(Lobby storage self, LobbyId lobbyId) internal {
         self._setDeadline(self.config.maxCommitGuessTime);
         self.numPlayersYetToAct = self._getLivePlayerCount();
-        self.currentPhase = IWorthOfWords.Phase.CommittingGuesses;
+        self.currentPhase = Phase.CommittingGuesses;
         emit IWorthOfWords.NewRound(
             lobbyId,
             self.roundNumber,
@@ -431,10 +423,10 @@ library Lobbies {
 
     function endRevealMatchesPhase(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
-    ) internal requirePhase(self, IWorthOfWords.Phase.RevealingMatches) {
+        LobbyId lobbyId
+    ) internal requirePhase(self, Phase.RevealingMatches) {
         if (block.timestamp <= uint256(self.phaseDeadline)) {
-            revert IWorthOfWords.DeadlineNotExpired(
+            revert DeadlineNotExpired(
                 uint48(block.timestamp),
                 self.phaseDeadline
             );
@@ -451,25 +443,25 @@ library Lobbies {
 
     function _transitionToRevealGuessPhase(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
+        LobbyId lobbyId
     ) internal {
         self._setDeadline(self.config.maxRevealGuessTime);
         // Only players who committed a guess can act in this phase.
         self.numPlayersYetToAct =
             self._getLivePlayerCount() -
             self.numPlayersYetToAct;
-        self.currentPhase = IWorthOfWords.Phase.RevealingGuesses;
+        self.currentPhase = Phase.RevealingGuesses;
 
         self._emitNewPhaseEvent(lobbyId);
     }
 
     function _transitionToRevealMatchesPhase(
         Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
+        LobbyId lobbyId
     ) internal {
         self._setDeadline(self.config.maxRevealMatchesTime);
         self.numPlayersYetToAct = self._getLivePlayerCount();
-        self.currentPhase = IWorthOfWords.Phase.RevealingMatches;
+        self.currentPhase = Phase.RevealingMatches;
 
         self._emitNewPhaseEvent(lobbyId);
     }
@@ -478,10 +470,7 @@ library Lobbies {
         self.phaseDeadline = uint48(block.timestamp) + uint48(timeLimit);
     }
 
-    function _emitNewPhaseEvent(
-        Lobby storage self,
-        IWorthOfWords.LobbyId lobbyId
-    ) internal {
+    function _emitNewPhaseEvent(Lobby storage self, LobbyId lobbyId) internal {
         emit IWorthOfWords.NewPhase(
             lobbyId,
             self.currentPhase,
@@ -499,7 +488,7 @@ library Lobbies {
     ) internal view returns (Player storage) {
         Player storage player = self.playersByAddress[msg.sender];
         if (player.secretWordCommitments.length == 0) {
-            revert IWorthOfWords.PlayerNotInLobby();
+            revert PlayerNotInLobby();
         }
         if (
             player.secretWordIndex == player.secretWordCommitments.length ||
@@ -507,7 +496,7 @@ library Lobbies {
                 msg.sender
             )
         ) {
-            revert IWorthOfWords.PlayerIsEliminated();
+            revert PlayerIsEliminated();
         }
         return player;
     }
@@ -525,7 +514,7 @@ library Lobbies {
             abi.encodePacked(msg.sender)
         );
         if (bytes20(signer) != publicKey) {
-            revert IWorthOfWords.IncorrectLobbyPassword();
+            revert IncorrectLobbyPassword();
         }
     }
 
@@ -589,7 +578,7 @@ library Lobbies {
     }
 
     function _verifyValidWord(
-        IWorthOfWords.ValidWordProof calldata proof,
+        ValidWordProof calldata proof,
         uint32 proofIndex,
         uint256 secretWordMerkleRoot
     ) internal view {
@@ -601,20 +590,18 @@ library Lobbies {
                 proof._pubSignals
             )
         ) {
-            revert IWorthOfWords.InvalidSecretWordProof(proofIndex);
+            revert InvalidSecretWordProof(proofIndex);
         }
         if (proof._pubSignals[1] != secretWordMerkleRoot) {
-            revert IWorthOfWords.InvalidMerkleProofInSecretWordProof(
-                proofIndex
-            );
+            revert InvalidMerkleProofInSecretWordProof(proofIndex);
         }
     }
 
     function _verifyMatches(
         Player storage player,
-        IWorthOfWords.ScoreGuessProof calldata proof,
+        ScoreGuessProof calldata proof,
         uint32 proofIndex,
-        IWorthOfWords.Word guess,
+        Word guess,
         uint32[5] memory guessLetters
     ) internal view {
         if (
@@ -625,16 +612,13 @@ library Lobbies {
                 proof._pubSignals
             )
         ) {
-            revert IWorthOfWords.InvalidMatchProof(
-                proofIndex,
-                guess.toString()
-            );
+            revert InvalidMatchProof(proofIndex, guess.toString());
         }
         if (
             proof._pubSignals[0] !=
             player.secretWordCommitments[player.secretWordIndex]
         ) {
-            revert IWorthOfWords.WrongSecretWordOrSaltInMatchProof(
+            revert WrongSecretWordOrSaltInMatchProof(
                 proofIndex,
                 player.secretWordIndex,
                 guess.toString()
@@ -644,10 +628,7 @@ library Lobbies {
         // to the letters of the guess.
         for (uint32 i = 0; i < 5; i++) {
             if (proof._pubSignals[6 + i] != uint256(guessLetters[i])) {
-                revert IWorthOfWords.WrongGuessInMatchProof(
-                    proofIndex,
-                    guess.toString()
-                );
+                revert WrongGuessInMatchProof(proofIndex, guess.toString());
             }
         }
     }
@@ -695,22 +676,20 @@ library Lobbies {
     }
 
     function _getMatchesFromProof(
-        IWorthOfWords.ScoreGuessProof calldata proof
-    ) private pure returns (IWorthOfWords.Color[5] memory) {
-        IWorthOfWords.Color[5] memory matches;
+        ScoreGuessProof calldata proof
+    ) private pure returns (Color[5] memory) {
+        Color[5] memory matches;
         // Elements at spots [1, 6) of the public signals correspond to the
         // match colors.
         for (uint32 i = 0; i < 5; i++) {
-            matches[i] = IWorthOfWords.Color(proof._pubSignals[1 + i]);
+            matches[i] = Color(proof._pubSignals[1 + i]);
         }
         return matches;
     }
 
-    function _isFullMatch(
-        IWorthOfWords.Color[5] memory matches
-    ) private pure returns (bool) {
+    function _isFullMatch(Color[5] memory matches) private pure returns (bool) {
         for (uint32 i = 0; i < 5; i++) {
-            if (matches[i] != IWorthOfWords.Color.Green) {
+            if (matches[i] != Color.Green) {
                 return false;
             }
         }

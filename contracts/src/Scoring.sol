@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
-import {IWorthOfWords} from "./IWorthOfWords.sol";
+import {Color} from "./IWorthOfWords.sol";
 
 /**
  * Representation: the three bits at 3 * i are the maximum colors seen for a
@@ -19,7 +19,7 @@ library Scoring {
     function scoreMatches(
         MatchHistory self,
         uint32[WORD_LENGTH] memory guess,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) internal pure returns (uint32 newYellowCount, uint32 newGreenCount) {
         newYellowCount = self._getNewYellowCount(guess, matches);
         newGreenCount = self._getNewGreenCount(matches);
@@ -28,7 +28,7 @@ library Scoring {
     function accumulateMatches(
         MatchHistory self,
         uint32[WORD_LENGTH] memory guess,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) internal pure returns (MatchHistory) {
         self = self._updateMaxColorsForLetters(guess, matches);
         return self._updateSeenGreens(matches);
@@ -65,7 +65,7 @@ library Scoring {
     function _getNewYellowCount(
         MatchHistory self,
         uint32[WORD_LENGTH] memory guess,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) internal pure returns (uint32) {
         uint32[WORD_LENGTH] memory colorCounts = _getLetterColorCounts(
             guess,
@@ -86,14 +86,11 @@ library Scoring {
 
     function _getNewGreenCount(
         MatchHistory self,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) internal pure returns (uint32) {
         uint32 count;
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            if (
-                matches[i] == IWorthOfWords.Color.Green &&
-                !self._hasSeenGreenAtPosition(i)
-            ) {
+            if (matches[i] == Color.Green && !self._hasSeenGreenAtPosition(i)) {
                 count++;
             }
         }
@@ -103,7 +100,7 @@ library Scoring {
     function _updateMaxColorsForLetters(
         MatchHistory self,
         uint32[WORD_LENGTH] memory guess,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) internal pure returns (MatchHistory) {
         uint32[WORD_LENGTH] memory colorCounts = _getLetterColorCounts(
             guess,
@@ -133,11 +130,11 @@ library Scoring {
 
     function _updateSeenGreens(
         MatchHistory self,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) internal pure returns (MatchHistory) {
         uint88 h = MatchHistory.unwrap(self);
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            if (matches[i] == IWorthOfWords.Color.Green) {
+            if (matches[i] == Color.Green) {
                 h &= uint88(1 << (SEEN_GREEN_OFFSET + i));
             }
         }
@@ -154,7 +151,7 @@ library Scoring {
      */
     function _getLetterColorCounts(
         uint32[WORD_LENGTH] memory guess,
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) private pure returns (uint32[WORD_LENGTH] memory) {
         uint32[WORD_LENGTH] memory counts;
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
@@ -167,7 +164,7 @@ library Scoring {
                         count = 0;
                         break;
                     }
-                    if (matches[j] != IWorthOfWords.Color.Gray) {
+                    if (matches[j] != Color.Gray) {
                         count++;
                     }
                 }
@@ -178,11 +175,11 @@ library Scoring {
     }
 
     function _getYellowCount(
-        IWorthOfWords.Color[WORD_LENGTH] memory matches
+        Color[WORD_LENGTH] memory matches
     ) private pure returns (uint32) {
         uint32 count;
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            if (matches[i] == IWorthOfWords.Color.Yellow) {
+            if (matches[i] == Color.Yellow) {
                 count++;
             }
         }

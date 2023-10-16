@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
-import {IWorthOfWords} from "./IWorthOfWords.sol";
+import "./IWorthOfWords.sol";
 import {Lobbies, Lobby} from "./Lobbies.sol";
 
 contract WorthOfWords is IWorthOfWords {
