@@ -34,11 +34,20 @@ library Scoring {
         return self._updateSeenGreens(matches);
     }
 
-    function _getMaxColorsForLetter(
+    function getMaxColorsForLetter(
         MatchHistory self,
         uint32 letter
     ) internal pure returns (uint32 count) {
         return uint32((MatchHistory.unwrap(self) >> (3 * letter)) & 7);
+    }
+
+    function hasSeenGreenAtPosition(
+        MatchHistory self,
+        uint32 position
+    ) internal pure returns (bool) {
+        return
+            MatchHistory.unwrap(self) & (1 << (SEEN_GREEN_OFFSET + position)) !=
+            0;
     }
 
     function _setMaxColorsForLetter(
@@ -53,15 +62,6 @@ library Scoring {
             );
     }
 
-    function _hasSeenGreenAtPosition(
-        MatchHistory self,
-        uint32 position
-    ) internal pure returns (bool) {
-        return
-            MatchHistory.unwrap(self) & (1 << (SEEN_GREEN_OFFSET + position)) !=
-            0;
-    }
-
     function _getNewYellowCount(
         MatchHistory self,
         uint32[WORD_LENGTH] memory guess,
@@ -74,7 +74,7 @@ library Scoring {
         uint32 count;
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
             uint32 currentColorCount = colorCounts[i];
-            uint32 previousColorCount = self._getMaxColorsForLetter(guess[i]);
+            uint32 previousColorCount = self.getMaxColorsForLetter(guess[i]);
             if (currentColorCount <= previousColorCount) {
                 continue;
             }
@@ -90,7 +90,7 @@ library Scoring {
     ) internal pure returns (uint32) {
         uint32 count;
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            if (matches[i] == Color.Green && !self._hasSeenGreenAtPosition(i)) {
+            if (matches[i] == Color.Green && !self.hasSeenGreenAtPosition(i)) {
                 count++;
             }
         }
@@ -123,7 +123,7 @@ library Scoring {
         if (count == 0) {
             return self;
         }
-        uint32 current = self._getMaxColorsForLetter(letter);
+        uint32 current = self.getMaxColorsForLetter(letter);
         return
             count > current ? self._setMaxColorsForLetter(letter, count) : self;
     }
@@ -135,7 +135,7 @@ library Scoring {
         uint88 h = MatchHistory.unwrap(self);
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
             if (matches[i] == Color.Green) {
-                h &= uint88(1 << (SEEN_GREEN_OFFSET + i));
+                h |= uint88(1 << (SEEN_GREEN_OFFSET + i));
             }
         }
         return MatchHistory.wrap(h);

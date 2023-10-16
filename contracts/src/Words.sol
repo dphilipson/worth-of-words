@@ -33,12 +33,4 @@ library Words {
         }
         return letters;
     }
-
-    function isNull(Word self) internal pure returns (bool) {
-        return self.equals(NULL_WORD);
-    }
-
-    function equals(Word self, Word other) internal pure returns (bool) {
-        return Word.unwrap(self) == Word.unwrap(other);
-    }
 }
