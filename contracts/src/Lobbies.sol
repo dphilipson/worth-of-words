@@ -28,7 +28,7 @@ library Lobbies {
     struct Player {
         uint256[] secretWordCommitments;
         bytes32 guessCommitment;
-        uint32 currentLife;
+        uint32 secretWordIndex;
         uint32 score;
         IWorthOfWords.Word guess;
     }
@@ -248,9 +248,8 @@ library Lobbies {
             self._transitionToRevealMatchesPhase(lobbyId);
         }
 
-        // Checks
+        // // Checks
         Player storage player = self._validateCurrentPlayer();
-        uint32 playerCount = self._getLivePlayerCount();
         uint32[] memory offsets = self._getTargetOffsets();
         if (proofs.length != offsets.length) {
             revert IWorthOfWords.WrongNumberOfMatchReveals(
@@ -258,8 +257,29 @@ library Lobbies {
                 uint32(offsets.length)
             );
         }
-        for (uint32 i = 0; i < offsets.length; i++) {}
-        // TODO!!!!
+
+        // We weave together checks and effects here as we handle each attacker
+        // in sequence. It had to be done.
+        uint32 playerIndex = self._getCurrentPlayerIndex();
+        for (uint32 i = 0; i < offsets.length; i++) {
+            (address attackerAddress, Player storage attacker) = self
+                ._getAttackerForOffset(playerIndex, offsets[i]);
+            if (attacker.guess.isNull()) {
+                continue;
+            }
+            uint256[5] memory guessLetters = attacker.guess.toLetters();
+            _verifyMatches(
+                proofs[i],
+                i,
+                player.secretWordIndex,
+                player.secretWordCommitments[i],
+                attacker.guess,
+                guessLetters
+            );
+            IWorthOfWords.Color[5] memory matches = _getMatchesFromProof(
+                proofs[i]
+            );
+        }
     }
 
     function startNewRound(
@@ -339,7 +359,7 @@ library Lobbies {
             revert IWorthOfWords.PlayerNotInLobby();
         }
         if (
-            player.currentLife == player.secretWordCommitments.length ||
+            player.secretWordIndex == player.secretWordCommitments.length ||
             !self.livePlayerAddressesByRound[self.roundNumber].contains(
                 msg.sender
             )
@@ -391,8 +411,38 @@ library Lobbies {
     function _getLivePlayerCount(
         Lobby storage self
     ) internal view returns (uint32) {
+        return uint32(self._getLivePlayerAddresses().length());
+    }
+
+    function _getCurrentPlayerIndex(
+        Lobby storage self
+    ) internal view returns (uint32) {
+        // Annoyingly, EnumerableSet doesn't intentionally expose this "indexOf"
+        // operation. Oh well, we'll reach in and take what we want.
         return
-            uint32(self.livePlayerAddressesByRound[self.roundNumber].length());
+            uint32(
+                self._getLivePlayerAddresses()._inner._positions[
+                    bytes32(uint256(uint160(msg.sender)))
+                ] - 1
+            );
+    }
+
+    function _getAttackerForOffset(
+        Lobby storage self,
+        uint256 playerIndex,
+        uint32 offset
+    ) internal view returns (address, Player storage) {
+        uint32 playerCount = self._getLivePlayerCount();
+        address attackerAddress = self._getLivePlayerAddresses().at(
+            uint256((playerIndex + playerCount - offset) % playerCount)
+        );
+        return (attackerAddress, self.playersByAddress[attackerAddress]);
+    }
+
+    function _getLivePlayerAddresses(
+        Lobby storage self
+    ) internal view returns (EnumerableSet.AddressSet storage) {
+        return self.livePlayerAddressesByRound[self.roundNumber];
     }
 
     function _verifyValidWord(
@@ -422,7 +472,8 @@ library Lobbies {
         uint32 proofIndex,
         uint32 secretWordIndex,
         uint256 secretWordCommitment,
-        IWorthOfWords.Word guess
+        IWorthOfWords.Word guess,
+        uint256[5] memory guessLetters
     ) internal view {
         if (
             !ScoreGuessVerifier.verifyProof(
@@ -444,11 +495,15 @@ library Lobbies {
                 guess.toString()
             );
         }
-        if (!guess.equalsPublicSignalSlice(proof._pubSignals)) {
-            revert IWorthOfWords.WrongGuessInMatchProof(
-                proofIndex,
-                guess.toString()
-            );
+        // Elements at spots [6, 11) of the public signals should correspond
+        // to the letters of the guess.
+        for (uint32 i = 0; i < 5; i++) {
+            if (proof._pubSignals[6 + i] != guessLetters[i]) {
+                revert IWorthOfWords.WrongGuessInMatchProof(
+                    proofIndex,
+                    guess.toString()
+                );
+            }
         }
     }
 
@@ -492,5 +547,17 @@ library Lobbies {
             }
         }
         return false;
+    }
+
+    function _getMatchesFromProof(
+        IWorthOfWords.ScoreGuessProof calldata proof
+    ) private pure returns (IWorthOfWords.Color[5] memory) {
+        IWorthOfWords.Color[5] memory matches;
+        // Elements at spots [1, 6) of the public signals correspond to the
+        // match colors.
+        for (uint32 i = 0; i < 5; i++) {
+            matches[i] = IWorthOfWords.Color(proof._pubSignals[1 + i]);
+        }
+        return matches;
     }
 }

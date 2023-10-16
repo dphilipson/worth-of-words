@@ -84,12 +84,6 @@ interface IWorthOfWords {
         uint256[11] _pubSignals;
     }
 
-    struct MatchesLog {
-        address guesser;
-        string guess;
-        Color[5] matches;
-    }
-
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
     event JoinedLobby(
         LobbyId indexed lobbyId,
@@ -121,8 +115,10 @@ interface IWorthOfWords {
     );
     event MatchesRevealed(
         LobbyId indexed lobbyId,
-        address indexed player,
-        MatchesLog[] matches
+        address indexed attacker,
+        address indexed defender,
+        string guess,
+        Color[5] matches
     );
     event SecretWordFound(
         LobbyId indexed lobbyId,

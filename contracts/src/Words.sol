@@ -4,7 +4,11 @@ pragma solidity ^0.8.13;
 import {IWorthOfWords} from "./IWorthOfWords.sol";
 
 library Words {
+    using Words for IWorthOfWords.Word;
+
     uint8 public constant WORD_LENGTH = 5;
+    // Assumes that "AAAAA" isn't a word, which it really shouldn't be.
+    IWorthOfWords.Word public constant NULL_WORD = IWorthOfWords.Word.wrap(0);
     uint8 private constant A_IN_ASCII = 65;
     uint8 private constant PUB_SIGNAL_GUESS_START_INDEX = 6;
 
@@ -20,27 +24,27 @@ library Words {
         return string(outBytes);
     }
 
-    /**
-     * This is very specialized to the one particular case we need it for:
-     * checking that the public signals of a score match proof are indeed
-     * referencing the guess to which it should be responding. In such a proof,
-     * the guess letters are the public signals at indices [6, 11).
-     */
-    function equalsPublicSignalSlice(
-        IWorthOfWords.Word self,
-        uint256[11] calldata pubSignals
-    ) internal pure returns (bool) {
+    function toLetters(
+        IWorthOfWords.Word self
+    ) internal pure returns (uint256[WORD_LENGTH] memory) {
+        uint256[WORD_LENGTH] memory letters;
         uint24 w = IWorthOfWords.Word.unwrap(self);
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            if (
-                pubSignals[
-                    PUB_SIGNAL_GUESS_START_INDEX + WORD_LENGTH - 1 - i
-                ] != uint256(w % 26)
-            ) {
-                return false;
-            }
+            letters[WORD_LENGTH - 1 - i] = uint256(w % 26);
             w /= 26;
         }
-        return true;
+        return letters;
+    }
+
+    function isNull(IWorthOfWords.Word self) internal pure returns (bool) {
+        return self.equals(NULL_WORD);
+    }
+
+    function equals(
+        IWorthOfWords.Word self,
+        IWorthOfWords.Word other
+    ) internal pure returns (bool) {
+        return
+            IWorthOfWords.Word.unwrap(self) == IWorthOfWords.Word.unwrap(other);
     }
 }
