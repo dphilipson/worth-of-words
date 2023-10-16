@@ -13,57 +13,183 @@ library Scoring {
      */
     type MatchHistory is uint88;
 
+    uint32 private constant WORD_LENGTH = 5;
+    uint32 private constant SEEN_GREEN_OFFSET = 78; // 26 * 3
+
     function scoreMatches(
-        MatchHistory initialHistory,
-        uint256[5] memory guess,
-        IWorthOfWords.Color[5] memory matches
-    ) internal pure returns (uint32 newYellowCount, uint32 newGreenCount) {}
+        MatchHistory self,
+        uint32[WORD_LENGTH] memory guess,
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) internal pure returns (uint32 newYellowCount, uint32 newGreenCount) {
+        newYellowCount = self._getNewYellowCount(guess, matches);
+        newGreenCount = self._getNewGreenCount(matches);
+    }
 
     function accumulateMatches(
         MatchHistory self,
-        IWorthOfWords.Color[5] memory matches
-    ) internal pure returns (MatchHistory) {}
+        uint32[WORD_LENGTH] memory guess,
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) internal pure returns (MatchHistory) {
+        self = self._updateMaxColorsForLetters(guess, matches);
+        return self._updateSeenGreens(matches);
+    }
 
     function _getMaxColorsForLetter(
         MatchHistory self,
         uint32 letter
-    ) internal pure returns (uint32 count) {}
+    ) internal pure returns (uint32 count) {
+        return uint32((MatchHistory.unwrap(self) >> (3 * letter)) & 7);
+    }
 
     function _setMaxColorsForLetter(
         MatchHistory self,
         uint32 letter,
         uint32 count
-    ) internal pure returns (MatchHistory) {}
+    ) internal pure returns (MatchHistory) {
+        return
+            MatchHistory.wrap(
+                (MatchHistory.unwrap(self) & uint88(~(7 << (3 * letter)))) |
+                    (count << (3 * letter))
+            );
+    }
 
     function _hasSeenGreenAtPosition(
         MatchHistory self,
         uint32 position
-    ) internal pure returns (bool) {}
+    ) internal pure returns (bool) {
+        return
+            MatchHistory.unwrap(self) & (1 << (SEEN_GREEN_OFFSET + position)) !=
+            0;
+    }
 
-    function _updateMaxColorsForLetter(
+    function _getNewYellowCount(
+        MatchHistory self,
+        uint32[WORD_LENGTH] memory guess,
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) internal pure returns (uint32) {
+        uint32[WORD_LENGTH] memory colorCounts = _getLetterColorCounts(
+            guess,
+            matches
+        );
+        uint32 count;
+        for (uint32 i = 0; i < WORD_LENGTH; i++) {
+            uint32 currentColorCount = colorCounts[i];
+            uint32 previousColorCount = self._getMaxColorsForLetter(guess[i]);
+            if (currentColorCount <= previousColorCount) {
+                continue;
+            }
+            uint32 yellowCount = _getYellowCount(matches);
+            count += _min(currentColorCount - previousColorCount, yellowCount);
+        }
+        return count;
+    }
+
+    function _getNewGreenCount(
+        MatchHistory self,
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) internal pure returns (uint32) {
+        uint32 count;
+        for (uint32 i = 0; i < WORD_LENGTH; i++) {
+            if (
+                matches[i] == IWorthOfWords.Color.Green &&
+                !self._hasSeenGreenAtPosition(i)
+            ) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    function _updateMaxColorsForLetters(
+        MatchHistory self,
+        uint32[WORD_LENGTH] memory guess,
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) internal pure returns (MatchHistory) {
+        uint32[WORD_LENGTH] memory colorCounts = _getLetterColorCounts(
+            guess,
+            matches
+        );
+        for (uint32 i = 0; i < WORD_LENGTH; i++) {
+            self = self._updateMaxColorsForSingleLetter(
+                guess[i],
+                colorCounts[i]
+            );
+        }
+        return self;
+    }
+
+    function _updateMaxColorsForSingleLetter(
         MatchHistory self,
         uint32 letter,
         uint32 count
     ) internal pure returns (MatchHistory) {
+        if (count == 0) {
+            return self;
+        }
         uint32 current = self._getMaxColorsForLetter(letter);
         return
             count > current ? self._setMaxColorsForLetter(letter, count) : self;
     }
 
-    function _updateHasSeenGreenAtPosition(
+    function _updateSeenGreens(
         MatchHistory self,
-        IWorthOfWords.Color[5] memory matches
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
     ) internal pure returns (MatchHistory) {
         uint88 h = MatchHistory.unwrap(self);
-        for (uint32 i = 0; i < 5; i++) {
+        for (uint32 i = 0; i < WORD_LENGTH; i++) {
             if (matches[i] == IWorthOfWords.Color.Green) {
-                h &= uint88(1 << (78 + i));
+                h &= uint88(1 << (SEEN_GREEN_OFFSET + i));
             }
         }
         return MatchHistory.wrap(h);
     }
 
+    /**
+     * Returns how many times each letter of the guess appears as yellow or
+     * green, stored at the *first* occurrance of the letter (even if that
+     * occurance is gray). For example, if the guess is "MAMMA" and the last
+     * three letters are hits, then the output would be 21000, since M is
+     * colored twice which is stored at the position of the first M, likewise
+     * for A.
+     */
     function _getLetterColorCounts(
-        uint256[5] memory guess
-    ) internal pure returns (uint32) {}
+        uint32[WORD_LENGTH] memory guess,
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) private pure returns (uint32[WORD_LENGTH] memory) {
+        uint32[WORD_LENGTH] memory counts;
+        for (uint32 i = 0; i < WORD_LENGTH; i++) {
+            uint32 count = 0;
+            for (uint32 j = 0; j < WORD_LENGTH; j++) {
+                if (guess[i] == guess[j]) {
+                    if (j < i) {
+                        // The letter at i appeared earlier in the word and had
+                        // its colors counted then.
+                        count = 0;
+                        break;
+                    }
+                    if (matches[j] != IWorthOfWords.Color.Gray) {
+                        count++;
+                    }
+                }
+            }
+            counts[i] = count;
+        }
+        return counts;
+    }
+
+    function _getYellowCount(
+        IWorthOfWords.Color[WORD_LENGTH] memory matches
+    ) private pure returns (uint32) {
+        uint32 count;
+        for (uint32 i = 0; i < WORD_LENGTH; i++) {
+            if (matches[i] == IWorthOfWords.Color.Yellow) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    function _min(uint32 a, uint32 b) private pure returns (uint32) {
+        return a < b ? a : b;
+    }
 }

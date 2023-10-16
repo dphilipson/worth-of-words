@@ -267,7 +267,7 @@ library Lobbies {
             if (attacker.guess.isNull()) {
                 continue;
             }
-            uint256[5] memory guessLetters = attacker.guess.toLetters();
+            uint32[5] memory guessLetters = attacker.guess.toLetters();
             _verifyMatches(
                 proofs[i],
                 i,
@@ -473,7 +473,7 @@ library Lobbies {
         uint32 secretWordIndex,
         uint256 secretWordCommitment,
         IWorthOfWords.Word guess,
-        uint256[5] memory guessLetters
+        uint32[5] memory guessLetters
     ) internal view {
         if (
             !ScoreGuessVerifier.verifyProof(
@@ -498,7 +498,7 @@ library Lobbies {
         // Elements at spots [6, 11) of the public signals should correspond
         // to the letters of the guess.
         for (uint32 i = 0; i < 5; i++) {
-            if (proof._pubSignals[6 + i] != guessLetters[i]) {
+            if (proof._pubSignals[6 + i] != uint256(guessLetters[i])) {
                 revert IWorthOfWords.WrongGuessInMatchProof(
                     proofIndex,
                     guess.toString()

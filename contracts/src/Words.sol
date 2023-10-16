@@ -26,11 +26,11 @@ library Words {
 
     function toLetters(
         IWorthOfWords.Word self
-    ) internal pure returns (uint256[WORD_LENGTH] memory) {
-        uint256[WORD_LENGTH] memory letters;
+    ) internal pure returns (uint32[WORD_LENGTH] memory) {
+        uint32[WORD_LENGTH] memory letters;
         uint24 w = IWorthOfWords.Word.unwrap(self);
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            letters[WORD_LENGTH - 1 - i] = uint256(w % 26);
+            letters[WORD_LENGTH - 1 - i] = uint32(w % 26);
             w /= 26;
         }
         return letters;

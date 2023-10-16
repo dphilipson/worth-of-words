@@ -118,7 +118,10 @@ interface IWorthOfWords {
         address indexed attacker,
         address indexed defender,
         string guess,
-        Color[5] matches
+        Color[5] matches,
+        uint32 newYellowCount,
+        uint32 newGreenCount,
+        uint32 pointsAwarded
     );
     event SecretWordFound(
         LobbyId indexed lobbyId,
