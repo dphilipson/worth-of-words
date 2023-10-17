@@ -2,11 +2,9 @@
 pragma solidity ^0.8.13;
 
 import "./IWorthOfWords.sol";
-import {Lobbies, Lobby} from "./Lobbies.sol";
+import {Lobbies} from "./Lobbies.sol";
 
-contract WorthOfWords is IWorthOfWords {
-    using Lobbies for Lobby;
-
+contract WorthOfWords is IWorthOfWords, Lobbies {
     Lobby[] private _lobbies;
 
     function createLobby(
@@ -14,7 +12,7 @@ contract WorthOfWords is IWorthOfWords {
     ) external override returns (LobbyId) {
         LobbyId lobbyId = LobbyId.wrap(_lobbies.length);
         Lobby storage lobby = _lobbies.push();
-        lobby.initializeLobby(lobbyId, config);
+        _initializeLobby(lobby, lobbyId, config);
         return lobbyId;
     }
 
@@ -24,7 +22,8 @@ contract WorthOfWords is IWorthOfWords {
         bytes32 password,
         ValidWordProof[] calldata secretWordCommitments
     ) external override {
-        _getLobby(lobbyId).addPlayer(
+        _addPlayer(
+            _getLobby(lobbyId),
             lobbyId,
             playerName,
             password,
@@ -33,14 +32,14 @@ contract WorthOfWords is IWorthOfWords {
     }
 
     function startGame(LobbyId lobbyId) external override {
-        _getLobby(lobbyId).startGame(lobbyId);
+        _startGame(_getLobby(lobbyId), lobbyId);
     }
 
     function commitGuess(
         LobbyId lobbyId,
         bytes32 commitment
     ) external override {
-        _getLobby(lobbyId).commitGuess(lobbyId, commitment);
+        _commitGuess(_getLobby(lobbyId), lobbyId, commitment);
     }
 
     function revealGuess(
@@ -49,18 +48,18 @@ contract WorthOfWords is IWorthOfWords {
         uint256 salt,
         bytes32[] calldata merkleProof
     ) external override {
-        _getLobby(lobbyId).revealGuess(lobbyId, guess, salt, merkleProof);
+        _revealGuess(_getLobby(lobbyId), lobbyId, guess, salt, merkleProof);
     }
 
     function revealMatches(
         LobbyId lobbyId,
         ScoreGuessProof[] calldata proofs
     ) external override {
-        _getLobby(lobbyId).revealMatches(lobbyId, proofs);
+        _revealMatches(_getLobby(lobbyId), lobbyId, proofs);
     }
 
     function endRevealMatchesPhase(LobbyId lobbyId) external override {
-        _getLobby(lobbyId).endRevealMatchesPhase(lobbyId);
+        _endRevealMatchesPhase(_getLobby(lobbyId), lobbyId);
     }
 
     function getLobbyConfig(

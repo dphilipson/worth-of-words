@@ -109,7 +109,7 @@ error InvalidMatchProof(uint32 index, string guess);
 // Errors for endRevealMatchesPhase.
 error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
 
-interface IWorthOfWords {
+interface WorthOfWordsEvents {
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
     event JoinedLobby(
         LobbyId indexed lobbyId,
@@ -157,7 +157,9 @@ interface IWorthOfWords {
     );
     event PlayerEliminated(LobbyId indexed lobbyId, address indexed player);
     event GameEnded(LobbyId indexed lobbyId);
+}
 
+interface IWorthOfWords is WorthOfWordsEvents {
     function createLobby(
         LobbyConfig calldata config
     ) external returns (LobbyId);
