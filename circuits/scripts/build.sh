@@ -21,8 +21,9 @@ build_circuit() {
   mkdir -p $CONTRACTS_PATH
   DEST_NAME=$CONTRACTS_PATH/${CONTRACT_NAME}Verifier.sol
   cp dist/${CIRCUIT_NAME}_verifier.sol $DEST_NAME
-  sed -i "" "s/contract Groth16Verifier/library ${CONTRACT_NAME}Verifier/g" $DEST_NAME
-  sed -i "" 's/public view/internal view/g' $DEST_NAME
+  sed -i "" "s/Groth16Verifier/${CONTRACT_NAME}Verifier/g" $DEST_NAME
+  sed -i "" "s/verifyProof/verify${2}Proof/g" $DEST_NAME
+  sed -i "" "s/constant/private constant/g" $DEST_NAME
 }
 
 rm -rf dist/*

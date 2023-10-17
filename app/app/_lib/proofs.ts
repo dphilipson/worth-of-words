@@ -83,11 +83,11 @@ export function useProveScoreGuess(
   });
 }
 
-const getValidWordProver = newOneTimeLoader(() =>
+export const getValidWordProver = newOneTimeLoader(() =>
   newProver<ValidWordInput>("valid_word")
 );
 
-const getScoreGuessProver = newOneTimeLoader(() =>
+export const getScoreGuessProver = newOneTimeLoader(() =>
   newProver<ScoreGuessInput>("score_guess")
 );
 

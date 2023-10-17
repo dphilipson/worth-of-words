@@ -78,8 +78,15 @@ library Scoring {
             if (currentColorCount <= previousColorCount) {
                 continue;
             }
-            uint32 yellowCount = _getYellowCount(matches);
-            count += _min(currentColorCount - previousColorCount, yellowCount);
+            uint32 yellowCountForLetter = _getYellowCountForLetter(
+                guess,
+                matches,
+                guess[i]
+            );
+            count += _min(
+                currentColorCount - previousColorCount,
+                yellowCountForLetter
+            );
         }
         return count;
     }
@@ -174,12 +181,13 @@ library Scoring {
         return counts;
     }
 
-    function _getYellowCount(
-        Color[WORD_LENGTH] memory matches
-    ) private pure returns (uint32) {
-        uint32 count;
+    function _getYellowCountForLetter(
+        uint32[WORD_LENGTH] memory guess,
+        Color[WORD_LENGTH] memory matches,
+        uint32 letter
+    ) private pure returns (uint32 count) {
         for (uint32 i = 0; i < WORD_LENGTH; i++) {
-            if (matches[i] == Color.Yellow) {
+            if (guess[i] == letter && matches[i] == Color.Yellow) {
                 count++;
             }
         }

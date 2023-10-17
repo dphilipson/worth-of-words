@@ -6,6 +6,8 @@ import { configureChains, createConfig, WagmiConfig } from "wagmi";
 import { localhost } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 
+import { printTestData } from "../_lib/testData";
+
 const queryClient = new QueryClient();
 const { publicClient, webSocketPublicClient } = configureChains(
   [localhost],
@@ -31,3 +33,5 @@ export default function AppWrapper({
     </QueryClientProvider>
   );
 }
+
+printTestData();

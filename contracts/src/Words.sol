@@ -7,8 +7,6 @@ library Words {
     using Words for Word;
 
     uint8 public constant WORD_LENGTH = 5;
-    // Assumes that "AAAAA" isn't a word, which it really shouldn't be.
-    Word public constant NULL_WORD = Word.wrap(0);
     uint8 private constant A_IN_ASCII = 65;
     uint8 private constant PUB_SIGNAL_GUESS_START_INDEX = 6;
 

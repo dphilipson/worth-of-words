@@ -1,3 +1,4 @@
+import { StandardMerkleTree } from "@openzeppelin/merkle-tree";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 import { newOneTimeLoader } from "./loading";
@@ -15,11 +16,13 @@ export const getSecretWordMerkleTree = newOneTimeLoader(
   async (): Promise<MerkleTree> => {
     const [wordlist, tree] = await Promise.all([
       getSecretWordlist(),
-      loadTree(),
+      loadSecretTree(),
     ]);
     return new MerkleTree(wordlist, tree);
   }
 );
+
+export const getGuessWordMerkleTree = newOneTimeLoader(loadGuessTree);
 
 export interface MerkleProof {
   proofHashes: string[];
@@ -39,11 +42,11 @@ export class MerkleTree {
     this.tree = tree;
   }
 
-  public getIndex(word: string): number | undefined {
-    return this.indexesByWord.get(word);
-  }
-
-  public getProof(index: number): MerkleProof {
+  public getProof(word: string): MerkleProof | undefined {
+    const index = this.indexesByWord.get(word);
+    if (index === undefined) {
+      return undefined;
+    }
     const proofHashes: string[] = [];
     const proofOrderings: number[] = [];
     for (let i = index + this.tree.length / 2; i > 1; i >>= 1) {
@@ -54,7 +57,13 @@ export class MerkleTree {
   }
 }
 
-async function loadTree(): Promise<string[]> {
+async function loadSecretTree(): Promise<string[]> {
   const response = await fetch("./generated/secret-wordlist-tree.json");
   return response.json();
+}
+
+async function loadGuessTree(): Promise<StandardMerkleTree<[number]>> {
+  const response = await fetch("./generated/guess-wordlist-tree.json");
+  const json = await response.json();
+  return StandardMerkleTree.load(json);
 }

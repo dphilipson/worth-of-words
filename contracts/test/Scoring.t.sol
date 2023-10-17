@@ -13,50 +13,60 @@ contract ScoringTest is Test {
             [uint32(1), 1, 2, 3, 4],
             [Color.Yellow, Color.Yellow, Color.Gray, Color.Gray, Color.Gray]
         );
-        // One more yellow (went from two to three).
         (newYellowCount, ) = history.scoreMatches(
             [uint32(0), 1, 0, 1, 1],
             [Color.Gray, Color.Yellow, Color.Gray, Color.Yellow, Color.Yellow]
         );
-        assertEq(newYellowCount, 1);
-        // Same thing (but one of the new ones is green).
+        assertEq(newYellowCount, 1, "one more yellow");
         (newYellowCount, ) = history.scoreMatches(
             [uint32(0), 1, 0, 1, 1],
             [Color.Gray, Color.Yellow, Color.Gray, Color.Yellow, Color.Green]
         );
-        assertEq(newYellowCount, 1);
-        // Two different new letters
+        assertEq(newYellowCount, 1, "one more yellow, but also a new green");
         (newYellowCount, ) = history.scoreMatches(
             [uint32(0), 1, 2, 1, 1],
             [Color.Yellow, Color.Yellow, Color.Yellow, Color.Green, Color.Gray]
         );
-        assertEq(newYellowCount, 2);
+        assertEq(newYellowCount, 2, "two different new letters");
+        // This next case tests a bugfix.
+        (newYellowCount, ) = history.scoreMatches(
+            [uint32(5), 5, 6, 0, 0],
+            [Color.Yellow, Color.Green, Color.Yellow, Color.Gray, Color.Gray]
+        );
+        assertEq(
+            newYellowCount,
+            2,
+            "a new yellow and green in one letter, yellow in another"
+        );
     }
 
-    function testScoringNewGreens() public {
+    function test_scoringNewGreens() public {
         uint32 newGreenCount;
         MatchHistory history = MatchHistory.wrap(0).accumulateMatches(
             [uint32(1), 1, 2, 3, 4],
             [Color.Yellow, Color.Green, Color.Gray, Color.Gray, Color.Gray]
         );
-        // One more green.
         (, newGreenCount) = history.scoreMatches(
             [uint32(0), 1, 0, 1, 1],
             [Color.Green, Color.Green, Color.Gray, Color.Yellow, Color.Yellow]
         );
-        assertEq(newGreenCount, 1);
+        assertEq(newGreenCount, 1, "one more green");
         // Same thing but the original green isn't green anymore.
         (, newGreenCount) = history.scoreMatches(
             [uint32(0), 1, 0, 1, 1],
             [Color.Green, Color.Yellow, Color.Gray, Color.Gray, Color.Gray]
         );
-        assertEq(newGreenCount, 1);
+        assertEq(
+            newGreenCount,
+            1,
+            "one more green, but first green isn't anymore"
+        );
         // Everything green (four new discoveries).
         (, newGreenCount) = history.scoreMatches(
             [uint32(0), 1, 2, 1, 1],
             [Color.Green, Color.Green, Color.Green, Color.Green, Color.Green]
         );
-        assertEq(newGreenCount, 4);
+        assertEq(newGreenCount, 4, "everything is green!");
     }
 
     function test_accumulateMatches() public {

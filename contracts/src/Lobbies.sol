@@ -10,7 +10,7 @@ import {Words} from "./Words.sol";
 import {ScoreGuessVerifier} from "./generated/ScoreGuessVerifier.sol";
 import {ValidWordVerifier} from "./generated/ValidWordVerifier.sol";
 
-contract Lobbies is WorthOfWordsEvents {
+contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
     using Scoring for MatchHistory;
     using Words for Word;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -32,7 +32,9 @@ contract Lobbies is WorthOfWordsEvents {
         MatchHistory matchHistory;
         uint32 secretWordIndex;
         uint32 score;
-        uint32 roundForGuess;
+        // Plus one so the initial value of 0 doesn't indicate a guess has
+        // already been made.
+        uint32 roundForGuessPlusOne;
         Word guess;
     }
 
@@ -220,7 +222,7 @@ contract Lobbies is WorthOfWordsEvents {
 
         // Effects
         player.guess = guess;
-        player.roundForGuess = self.roundNumber;
+        player.roundForGuessPlusOne = self.roundNumber + 1;
         emit GuessRevealed(lobbyId, msg.sender, guess.toString());
 
         if (--self.numPlayersYetToAct == 0) {
@@ -367,7 +369,7 @@ contract Lobbies is WorthOfWordsEvents {
             address attackerAddress,
             Player storage attacker
         ) = _getAttackerForOffset(self, _getCurrentPlayerIndex(self), offset);
-        if (attacker.roundForGuess != self.roundNumber) {
+        if (attacker.roundForGuessPlusOne != self.roundNumber + 1) {
             // Attacker didn't reveal a guess this round.
             return (accumulatedHistory, "");
         }
@@ -568,7 +570,7 @@ contract Lobbies is WorthOfWordsEvents {
         uint256 secretWordMerkleRoot
     ) private view {
         if (
-            !ValidWordVerifier.verifyProof(
+            !this.verifyValidWordProof(
                 proof._pA,
                 proof._pB,
                 proof._pC,
@@ -590,7 +592,7 @@ contract Lobbies is WorthOfWordsEvents {
         uint32[5] memory guessLetters
     ) private view {
         if (
-            !ScoreGuessVerifier.verifyProof(
+            !this.verifyScoreGuessProof(
                 proof._pA,
                 proof._pB,
                 proof._pC,

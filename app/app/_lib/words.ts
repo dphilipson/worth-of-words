@@ -17,7 +17,7 @@ export function wordToNumber(word: string): number {
 export function wordToLetters(word: string): number[] {
   const out = new Array(word.length);
   for (let i = 0; i < word.length; i++) {
-    out.push(word.charCodeAt(i) - A_CHAR_CODE);
+    out[i] = word.charCodeAt(i) - A_CHAR_CODE;
   }
   return out;
 }
