@@ -83,8 +83,8 @@ library Lobbies {
         if (config.guessWordMerkleRoot == bytes32(0)) {
             revert MissingGuessWordMerkleRoot();
         }
-        if (config.minPlayers < 2) {
-            revert MinPlayerCountTooLow();
+        if (config.maxPlayers < 2) {
+            revert MaxPlayerCountTooLow();
         }
         if (config.maxPlayers < config.minPlayers) {
             revert PlayerCountRangeIsEmpty();
@@ -152,8 +152,9 @@ library Lobbies {
         // Checks
         _validateCurrentPlayer(self);
         uint32 playerCount = self._getLivePlayerCount();
-        if (playerCount < self.config.minPlayers) {
-            revert NotEnoughPlayers(playerCount, self.config.minPlayers);
+        uint32 minPlayers = self._getMinPlayerCount();
+        if (playerCount < minPlayers) {
+            revert NotEnoughPlayers(playerCount, minPlayers);
         }
 
         // Effects
@@ -631,6 +632,13 @@ library Lobbies {
                 revert WrongGuessInMatchProof(proofIndex, guess.toString());
             }
         }
+    }
+
+    function _getMinPlayerCount(
+        Lobby storage lobby
+    ) internal view returns (uint32) {
+        uint32 count = lobby.config.minPlayers;
+        return count < 2 ? 2 : count;
     }
 
     // *************************************************************************

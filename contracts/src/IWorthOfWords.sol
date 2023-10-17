@@ -74,7 +74,7 @@ error WrongPhase(Phase attemptedPhase, Phase currentPhase);
 // Errors for createLobby
 error MissingSecretWordMerkleRoot();
 error MissingGuessWordMerkleRoot();
-error MinPlayerCountTooLow();
+error MaxPlayerCountTooLow();
 error PlayerCountRangeIsEmpty();
 error NumLivesIsZero();
 
