@@ -9,6 +9,8 @@ export interface PlayerListItemProps {
   score: number;
   maxLives: number;
   livesLeft: number;
+  isCurrentPlayer: boolean;
+  isThinking: boolean;
   isEliminated: boolean;
 }
 
@@ -19,22 +21,33 @@ export default memo(function PlayerListItem({
   score,
   maxLives,
   livesLeft,
+  isCurrentPlayer,
+  isThinking,
   isEliminated,
 }: PlayerListItemProps): ReactNode {
   return (
     <div
       className={clsx(
-        "border-1 flex h-20 w-full max-w-sm items-center justify-between bg-base-100 px-4",
+        "border-1 flex h-20 w-full max-w-sm items-center justify-between px-6",
+        isEliminated ? "bg-gray-200 text-gray-400" : "bg-base-100",
+        isCurrentPlayer && "border-l-8 border-l-primary pl-4",
         className,
       )}
     >
       <div className="flex-col">
-        <div className="text-2xl">{name}</div>
+        <div className="text-2xl">
+          {name}
+          {isThinking && (
+            <span className="loading loading-bars loading-xs ml-2 opacity-30" />
+          )}
+        </div>
         <div className="text-xs text-gray-400">{ellipsizeAddress(address)}</div>
       </div>
       <div className="flex-col text-right">
         <div className="text-3xl">{score}</div>
-        <div className="text-sm">{getLivesText(maxLives, livesLeft)}</div>
+        <div className="text-sm">
+          {getLivesText(maxLives, livesLeft, isEliminated)}
+        </div>
       </div>
     </div>
   );
@@ -44,9 +57,14 @@ function ellipsizeAddress(address: string): string {
   return address.slice(0, 9) + "…";
 }
 
-function getLivesText(maxLives: number, livesLeft: number): string {
+function getLivesText(
+  maxLives: number,
+  livesLeft: number,
+  isEliminated: boolean,
+): string {
+  const lifeIcon = isEliminated ? "💔" : "❤️";
   return (
-    repeatString("🩶", maxLives - livesLeft) + repeatString("❤️", livesLeft)
+    repeatString("🩶", maxLives - livesLeft) + repeatString(lifeIcon, livesLeft)
   );
 }
 

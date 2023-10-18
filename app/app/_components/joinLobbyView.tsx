@@ -4,8 +4,8 @@ import { memo, ReactNode, useCallback, useState } from "react";
 import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
-import TextInput from "@/app/_components/textInput";
-import { WORD_LENGTH } from "@/app/_lib/constants";
+import { WORD_LENGTH } from "../_lib/constants";
+import TextInput from "./textInput";
 
 export interface JoinLobbyViewProps {
   numSecrets: number;
