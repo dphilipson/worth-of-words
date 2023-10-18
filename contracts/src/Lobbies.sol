@@ -126,7 +126,9 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
                 lobby.config.numLives
             );
         }
-        _verifyPassword(lobby, password);
+        if (!_isValidPassword(lobby, password)) {
+            revert IncorrectLobbyPassword();
+        }
         for (uint32 i = 0; i < secretWordCommitments.length; i++) {
             _verifyValidWord(
                 secretWordCommitments[i],
@@ -310,7 +312,26 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
     }
 
     // *************************************************************************
-    // Private mutable functions
+    // * Internal view functions
+    // *************************************************************************
+
+    function _isValidPassword(
+        Lobby storage lobby,
+        bytes32 password
+    ) internal view returns (bool) {
+        bytes20 publicKey = lobby.config.privateGamePublicKey;
+        if (publicKey == bytes20(0)) {
+            return true;
+        }
+        (address signer, , ) = ECDSA.tryRecover(
+            password,
+            abi.encodePacked(msg.sender)
+        );
+        return bytes20(signer) == publicKey;
+    }
+
+    // *************************************************************************
+    // * Private mutable functions
     // *************************************************************************
 
     function _startRound(Lobby storage lobby, LobbyId lobbyId) private {
@@ -486,23 +507,6 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
             revert PlayerIsEliminated();
         }
         return player;
-    }
-
-    function _verifyPassword(
-        Lobby storage lobby,
-        bytes32 password
-    ) private view {
-        bytes20 publicKey = lobby.config.privateGamePublicKey;
-        if (publicKey == bytes20(0)) {
-            return;
-        }
-        (address signer, , ) = ECDSA.tryRecover(
-            password,
-            abi.encodePacked(msg.sender)
-        );
-        if (bytes20(signer) != publicKey) {
-            revert IncorrectLobbyPassword();
-        }
     }
 
     function _getTargetOffsets(

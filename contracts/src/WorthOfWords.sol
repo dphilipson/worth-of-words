@@ -68,6 +68,13 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
         return _getLobby(lobbyId).config;
     }
 
+    function isValidLobbyPassword(
+        LobbyId lobbyId,
+        bytes32 password
+    ) external view override returns (bool) {
+        return _isValidPassword(_getLobby(lobbyId), password);
+    }
+
     function _getLobby(LobbyId lobbyId) private view returns (Lobby storage) {
         uint256 lobbyIndex = LobbyId.unwrap(lobbyId);
         if (_lobbies.length <= lobbyIndex) {

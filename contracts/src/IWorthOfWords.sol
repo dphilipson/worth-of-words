@@ -192,4 +192,9 @@ interface IWorthOfWords is WorthOfWordsEvents {
     function getLobbyConfig(
         LobbyId lobbyId
     ) external view returns (LobbyConfig memory);
+
+    function isValidLobbyPassword(
+        LobbyId lobbyId,
+        bytes32 password
+    ) external view returns (bool);
 }
