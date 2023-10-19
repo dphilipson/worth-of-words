@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 import { GuessRowProps } from "../_components/guessGrid";
 import GuessingView from "../_components/guessingView";
@@ -9,7 +9,7 @@ import PlayerList, {
 } from "../_components/playerList";
 import {} from "../_components/playerListItem";
 import WaitingRoomView from "../_components/waitingRoomView";
-import { Color } from "../_lib/colors";
+import { Color } from "../_lib/gameLogic";
 
 const playerData: PlayerListItemPropsInList[] = [
   {
@@ -58,6 +58,15 @@ const rows: GuessRowProps[] = [
 ];
 
 export default function Lobby(): ReactNode {
+  const hasRun = useRef(false);
+
+  useEffect(() => {
+    if (!hasRun.current) {
+      hasRun.current = true;
+      console.log("Here we go");
+    }
+  }, []);
+
   return (
     <main className="flex min-h-screen flex-col items-center pt-24">
       {/* <PlayerList

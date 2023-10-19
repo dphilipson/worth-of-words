@@ -344,6 +344,7 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
             _getTargetOffsets(lobby),
             lobby.numPlayersYetToAct
         );
+        _emitNewPhaseEvent(lobby, lobbyId);
     }
 
     function _transitionToRevealGuessPhase(

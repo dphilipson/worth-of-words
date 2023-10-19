@@ -1,7 +1,6 @@
 import ColoredKeyboard from "./_components/coloredKeyboard";
 import CreateLobbyView from "./_components/createLobbyView";
 import GuessGrid from "./_components/guessGrid";
-import { Color } from "./_lib/colors";
 
 export default function Home() {
   return (

@@ -1,8 +1,4 @@
-export enum Color {
-  GRAY,
-  YELLOW,
-  GREEN,
-}
+import { Color } from "./gameLogic";
 
 export function backgroundClassForColor(color: Color | undefined): string {
   switch (color) {

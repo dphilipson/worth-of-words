@@ -118,13 +118,13 @@ interface WorthOfWordsEvents {
     );
     event GameStarted(LobbyId indexed lobbyId, uint32 playerCount);
     event NewRound(
-        LobbyId indexed,
+        LobbyId indexed lobbyId,
         uint32 roundNumber,
         uint32[] targetOffsets,
         uint32 remainingPlayerCount
     );
     event NewPhase(
-        LobbyId indexed,
+        LobbyId indexed lobbyId,
         Phase indexed phase,
         uint32 roundNumber,
         uint48 deadline

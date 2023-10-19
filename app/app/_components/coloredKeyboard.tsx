@@ -1,7 +1,7 @@
 import { memo, ReactNode } from "react";
 import { chainFrom } from "transducist";
 
-import { Color } from "../_lib/colors";
+import { Color } from "../_lib/gameLogic";
 
 export interface ColoredKeyboardProps {
   colorsByLetter: Map<string, (Color | undefined)[]>;
