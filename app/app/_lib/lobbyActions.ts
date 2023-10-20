@@ -134,11 +134,10 @@ export class LobbyActionsImpl implements LobbyActions {
   }
 
   public async revealMatches(): Promise<void> {
-    const { state } = this.stateBox;
-    const attackers = getAttackers(state, this.wallet.address);
+    const attackers = getAttackers(this.state, this.wallet.address);
     const currentWordIndex =
-      state.config.numLives -
-      state.playersByAddress.get(this.wallet.address)!.livesLeft;
+      this.state.config.numLives -
+      this.state.playersByAddress.get(this.wallet.address)!.livesLeft;
     const proofs = await Promise.all(
       attackers.map(async (attacker) => {
         if (attacker.revealedGuess === undefined) {

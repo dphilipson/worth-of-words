@@ -1,40 +1,88 @@
 "use client";
-import { memo, ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
+import { memo, ReactNode, useCallback, useState } from "react";
+import { Hex, zeroAddress } from "viem";
+import { useMutation } from "wagmi";
 
-import TextInput from "./textInput";
+import { useCreateLobby } from "../_lib/createLobby";
+import { LobbyConfig } from "../_lib/gameLogic";
+import {
+  getGuessWordMerkleTree,
+  getSecretWordMerkleTree,
+} from "../_lib/merkle";
 
-export interface CreateLobbyViewProps {}
+export default memo(function CreateLobbyView(): ReactNode {
+  const createLobby = useCreateLobby();
+  const navigateToLobby = useNavigateToLobby();
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const config = await getLobbyConfig();
+      return createLobby!(config);
+    },
+    onSuccess: navigateToLobby,
+  });
+  const onClickCreateLobby = useCallback(() => mutation.mutate(), [mutation]);
 
-export default memo(function CreateLobbyView(
-  props: CreateLobbyViewProps,
-): ReactNode {
-  const [password, setPassword] = useState("");
+  const buttonText = (() => {
+    if (!createLobby) {
+      return "Loading";
+    } else if (mutation.isLoading) {
+      return "Creating lobby";
+    } else {
+      return "Create lobby";
+    }
+  })();
+
+  const isEnabled = createLobby && !mutation.isLoading && !mutation.isSuccess;
 
   return (
     <div className="card w-full max-w-xl bg-base-100 shadow-xl">
       <div className="card-body">
         <h2 className="card-title">Create a lobby</h2>
-        <p>
-          Create a lobby, then find some opponents to play! You can set a
-          password if you want to be sure only your friends can join.
-        </p>
+        <p>Create a lobby, then find some opponents to play!</p>
         <div className="h-4" />
-        <div className="form-control max-w-xs">
-          <label className="label">
-            <span className="label-text">Password (optional)</span>
-          </label>
-          <TextInput
-            className="input input-bordered"
-            type="password"
-            placeholder="********"
-            value={password}
-            onValueChange={setPassword}
-          />
-        </div>
         <div className="card-actions justify-end">
-          <button className="btn btn-primary">Create lobby</button>
+          <button
+            className="btn btn-primary"
+            disabled={!isEnabled}
+            onClick={onClickCreateLobby}
+          >
+            {buttonText}
+          </button>
         </div>
       </div>
     </div>
   );
 });
+
+async function getLobbyConfig(): Promise<LobbyConfig> {
+  const [secretTree, guessTree] = await Promise.all([
+    getSecretWordMerkleTree(),
+    getGuessWordMerkleTree(),
+  ]);
+  const secretWordMerkleRoot = secretTree.root;
+  const guessWordMerkleRoot = guessTree.root as Hex;
+  return {
+    secretWordMerkleRoot,
+    privateGamePublicKey: zeroAddress,
+    minPlayers: 0,
+    maxPlayers: 1000,
+    guessWordMerkleRoot,
+    maxCommitGuessTime: 300,
+    maxRevealGuessTime: 60,
+    maxRevealMatchesTime: 60,
+    maxRounds: 0,
+    numLives: 3,
+    pointsForYellow: 2,
+    pointsForGreen: 5,
+    pointsForFullWord: 10,
+  };
+}
+
+function useNavigateToLobby(): (lobbyId: bigint) => void {
+  const router = useRouter();
+  return useCallback(
+    (lobbyId: bigint) => router.push(`/lobby#${lobbyId}`),
+    [router],
+  );
+}

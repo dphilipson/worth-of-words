@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { Address } from "viem";
+import { Address, Hex } from "viem";
 
 import { LobbyEvent } from "./events";
 
@@ -49,10 +49,10 @@ export enum Phase {
 
 export interface LobbyConfig {
   secretWordMerkleRoot: bigint;
-  privateGamePublicKey: string;
+  privateGamePublicKey: Address;
   minPlayers: number;
   maxPlayers: number;
-  guessWordMerkleRoot: string;
+  guessWordMerkleRoot: Hex;
   maxCommitGuessTime: number;
   maxRevealGuessTime: number;
   maxRevealMatchesTime: number;

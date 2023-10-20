@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createWalletClient, Hex, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
-import { localhost } from "viem/chains";
+import { foundry } from "viem/chains";
 
 import { WORTH_OF_WORDS_ADDRESS } from "./constants";
 import { WalletLike } from "./lobbyActions";
@@ -24,7 +24,7 @@ export function useLocalWallet(): WalletLike | undefined {
         throw new Error("Invalid index");
       }
       const client = createWalletClient({
-        chain: localhost,
+        chain: foundry,
         transport: http(),
       });
       const account = privateKeyToAccount(privateKey);
