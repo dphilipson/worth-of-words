@@ -1,9 +1,12 @@
 "use client";
+import { ConnectKitButton } from "connectkit";
 import { ReactNode, useEffect, useRef } from "react";
+import { useAccount } from "wagmi";
 
 import { GuessRowProps } from "../_components/guessGrid";
 import GuessingView from "../_components/guessingView";
 import JoinLobbyView from "../_components/joinLobbyView";
+import LobbyWrapper from "../_components/lobbyWrapper";
 import PlayerList, {
   PlayerListItemPropsInList,
 } from "../_components/playerList";
@@ -58,42 +61,36 @@ const rows: GuessRowProps[] = [
 ];
 
 export default function Lobby(): ReactNode {
-  const hasRun = useRef(false);
-
-  useEffect(() => {
-    if (!hasRun.current) {
-      hasRun.current = true;
-      console.log("Here we go");
-    }
-  }, []);
-
   return (
-    <main className="flex min-h-screen flex-col items-center pt-24">
-      {/* <PlayerList
+    <LobbyWrapper>
+      <main className="flex min-h-screen flex-col items-center pt-24">
+        <ConnectKitButton />
+        {/* <PlayerList
         players={playerData}
         maxLives={3}
         currentPlayerAddress="0x696532E83Dd722eaCA2AA611fE381DfAAD143e6d"
       /> */}
-      {/* <JoinLobbyView
+        {/* <JoinLobbyView
         numSecrets={3}
         needsPassword={true}
         allowedWords={new Set(["PERIL", "IMAMS"])}
         allKnownWords={new Set(["PERIL", "IMAMS", "FARTY"])}
         onJoin={console.log}
       /> */}
-      {/* <WaitingRoomView
+        {/* <WaitingRoomView
         players={playerData}
         maxLives={3}
         currentPlayerAddress="0x696532E83Dd722eaCA2AA611fE381DfAAD143e6d"
         minPlayerCount={2}
         onStartGame={() => {}}
       /> */}
-      <GuessingView
-        opponents={playerData.map((data) => ({ ...data, rows }))}
-        maxLives={3}
-        validGuesses={new Set(["PERIL", "IMAMS", "FARTY"])}
-        onSubmitGuess={console.log}
-      />
-    </main>
+        <GuessingView
+          opponents={playerData.map((data) => ({ ...data, rows }))}
+          maxLives={3}
+          validGuesses={new Set(["PERIL", "IMAMS", "FARTY"])}
+          onSubmitGuess={console.log}
+        />
+      </main>
+    </LobbyWrapper>
   );
 }

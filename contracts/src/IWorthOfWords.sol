@@ -27,8 +27,6 @@ struct LobbyConfig {
     uint8 pointsForYellow;
     uint8 pointsForGreen;
     uint8 pointsForFullWord;
-    uint8 pointPenaltyForLosingLife;
-    uint8 pointsForDroppedOpponent;
 }
 
 enum Phase {
@@ -65,51 +63,7 @@ struct ScoreGuessProof {
     uint256[11] _pubSignals;
 }
 
-// General-purpose errors.
-error LobbyDoesNotExist();
-error PlayerNotInLobby();
-error PlayerIsEliminated();
-error WrongPhase(Phase attemptedPhase, Phase currentPhase);
-
-// Errors for createLobby
-error MissingSecretWordMerkleRoot();
-error MissingGuessWordMerkleRoot();
-error MaxPlayerCountTooLow();
-error PlayerCountRangeIsEmpty();
-error NumLivesIsZero();
-
-// Errors for joinLobby.
-error AlreadyInLobby();
-error LobbyIsFull(uint32 playerLimit);
-error IncorrectLobbyPassword();
-error WrongNumberOfSecretWords(uint32 provided, uint32 required);
-error InvalidMerkleProofInSecretWordProof(uint32 proofIndex);
-error InvalidSecretWordProof(uint32 proofIndex);
-
-// Errors for startGame.
-error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
-
-// Errors for commitGuess (none).
-
-// Errors for revealGuess.
-error NoGuessCommitted();
-error GuessDoesNotMatchCommitment(bytes32 commitment);
-error InvalidMerkleProofInGuessReveal();
-
-// Errors for revealMatches.
-error WrongNumberOfMatchReveals(uint32 provided, uint32 required);
-error WrongSecretWordOrSaltInMatchProof(
-    uint32 proofIndex,
-    uint32 secretWordIndex,
-    string guess
-);
-error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
-error InvalidMatchProof(uint32 index, string guess);
-
-// Errors for endRevealMatchesPhase.
-error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
-
-interface WorthOfWordsEvents {
+interface WorthOfWordsTypes {
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
     event JoinedLobby(
         LobbyId indexed lobbyId,
@@ -157,9 +111,53 @@ interface WorthOfWordsEvents {
     );
     event PlayerEliminated(LobbyId indexed lobbyId, address indexed player);
     event GameEnded(LobbyId indexed lobbyId);
+
+    // General-purpose errors.
+    error LobbyDoesNotExist();
+    error PlayerNotInLobby();
+    error PlayerIsEliminated();
+    error WrongPhase(Phase attemptedPhase, Phase currentPhase);
+
+    // Errors for createLobby
+    error MissingSecretWordMerkleRoot();
+    error MissingGuessWordMerkleRoot();
+    error MaxPlayerCountTooLow();
+    error PlayerCountRangeIsEmpty();
+    error NumLivesIsZero();
+
+    // Errors for joinLobby.
+    error AlreadyInLobby();
+    error LobbyIsFull(uint32 playerLimit);
+    error IncorrectLobbyPassword();
+    error WrongNumberOfSecretWords(uint32 provided, uint32 required);
+    error InvalidMerkleProofInSecretWordProof(uint32 proofIndex);
+    error InvalidSecretWordProof(uint32 proofIndex);
+
+    // Errors for startGame.
+    error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
+
+    // Errors for commitGuess (none).
+
+    // Errors for revealGuess.
+    error NoGuessCommitted();
+    error GuessDoesNotMatchCommitment(bytes32 commitment);
+    error InvalidMerkleProofInGuessReveal();
+
+    // Errors for revealMatches.
+    error WrongNumberOfMatchReveals(uint32 provided, uint32 required);
+    error WrongSecretWordOrSaltInMatchProof(
+        uint32 proofIndex,
+        uint32 secretWordIndex,
+        string guess
+    );
+    error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
+    error InvalidMatchProof(uint32 index, string guess);
+
+    // Errors for endRevealMatchesPhase.
+    error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
 }
 
-interface IWorthOfWords is WorthOfWordsEvents {
+interface IWorthOfWords is WorthOfWordsTypes {
     function createLobby(
         LobbyConfig calldata config
     ) external returns (LobbyId);
@@ -167,7 +165,7 @@ interface IWorthOfWords is WorthOfWordsEvents {
     function joinLobby(
         LobbyId lobbyId,
         string calldata playerName,
-        bytes32 password,
+        bytes calldata password,
         ValidWordProof[] calldata secretWordCommitments
     ) external;
 
@@ -195,6 +193,6 @@ interface IWorthOfWords is WorthOfWordsEvents {
 
     function isValidLobbyPassword(
         LobbyId lobbyId,
-        bytes32 password
+        bytes calldata password
     ) external view returns (bool);
 }

@@ -29,7 +29,9 @@ const ColoredKeyboardRow = memo(function ColoredKeyboardRow({
   return (
     <div className="flex justify-center space-x-2">
       {chainFrom(letters)
-        .map((letter) => <ColoredKey key={letter} letter={letter} />)
+        .map((letter) => (
+          <ColoredKey key={letter} letter={letter} colors={[]} />
+        ))
         .toArray()}
     </div>
   );

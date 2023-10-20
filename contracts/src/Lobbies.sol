@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./IWorthOfWords.sol";
@@ -10,7 +11,7 @@ import {Words} from "./Words.sol";
 import {ScoreGuessVerifier} from "./generated/ScoreGuessVerifier.sol";
 import {ValidWordVerifier} from "./generated/ValidWordVerifier.sol";
 
-contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
+contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
     using Scoring for MatchHistory;
     using Words for Word;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -53,17 +54,31 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
         _;
     }
 
-    modifier requirePhaseOrTransition(
+    modifier kindlyRequirePhase(Lobby storage lobby, Phase phase) {
+        if (lobby.currentPhase != phase) {
+            return;
+        }
+        _;
+    }
+
+    modifier requireInOrReadyForPhase(
         Lobby storage lobby,
         Phase previousPhase,
         Phase phase
     ) {
-        if (
-            lobby.currentPhase != phase &&
-            (lobby.currentPhase != previousPhase ||
-                block.timestamp <= uint256(lobby.phaseDeadline))
-        ) {
+        if (!_isInOrReadyForPhase(lobby, previousPhase, phase)) {
             revert WrongPhase(phase, lobby.currentPhase);
+        }
+        _;
+    }
+
+    modifier kindlyRequireInOrReadyForPhase(
+        Lobby storage lobby,
+        Phase previousPhase,
+        Phase phase
+    ) {
+        if (!_isInOrReadyForPhase(lobby, previousPhase, phase)) {
+            return;
         }
         _;
     }
@@ -106,7 +121,7 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
         Lobby storage lobby,
         LobbyId lobbyId,
         string calldata playerName,
-        bytes32 password,
+        bytes calldata password,
         ValidWordProof[] calldata secretWordCommitments
     ) internal requirePhase(lobby, Phase.NotStarted) {
         // Checks
@@ -151,7 +166,7 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
     function _startGame(
         Lobby storage lobby,
         LobbyId lobbyId
-    ) internal requirePhase(lobby, Phase.NotStarted) {
+    ) internal kindlyRequirePhase(lobby, Phase.NotStarted) {
         // Checks
         _validateCurrentPlayer(lobby);
         uint32 playerCount = _getLivePlayerCount(lobby);
@@ -188,7 +203,7 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
         bytes32[] calldata merkleProof
     )
         internal
-        requirePhaseOrTransition(
+        requireInOrReadyForPhase(
             lobby,
             Phase.CommittingGuesses,
             Phase.RevealingGuesses
@@ -238,7 +253,7 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
         ScoreGuessProof[] calldata proofs
     )
         internal
-        requirePhaseOrTransition(
+        requireInOrReadyForPhase(
             lobby,
             Phase.RevealingGuesses,
             Phase.RevealingMatches
@@ -301,7 +316,7 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
     function _endRevealMatchesPhase(
         Lobby storage lobby,
         LobbyId lobbyId
-    ) internal requirePhase(lobby, Phase.RevealingMatches) {
+    ) internal kindlyRequirePhase(lobby, Phase.RevealingMatches) {
         if (block.timestamp <= uint256(lobby.phaseDeadline)) {
             revert DeadlineNotExpired(
                 uint48(block.timestamp),
@@ -317,15 +332,17 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
 
     function _isValidPassword(
         Lobby storage lobby,
-        bytes32 password
+        bytes calldata password
     ) internal view returns (bool) {
         bytes20 publicKey = lobby.config.privateGamePublicKey;
         if (publicKey == bytes20(0)) {
             return true;
         }
         (address signer, , ) = ECDSA.tryRecover(
-            password,
-            abi.encodePacked(msg.sender)
+            MessageHashUtils.toEthSignedMessageHash(
+                abi.encodePacked(msg.sender)
+            ),
+            password
         );
         return bytes20(signer) == publicKey;
     }
@@ -491,6 +508,17 @@ contract Lobbies is WorthOfWordsEvents, ScoreGuessVerifier, ValidWordVerifier {
     // *************************************************************************
     // * Private view functions
     // *************************************************************************
+
+    function _isInOrReadyForPhase(
+        Lobby storage lobby,
+        Phase previousPhase,
+        Phase phase
+    ) private view returns (bool) {
+        return
+            lobby.currentPhase == phase ||
+            (lobby.currentPhase == previousPhase &&
+                block.timestamp > uint256(lobby.phaseDeadline));
+    }
 
     function _validateCurrentPlayer(
         Lobby storage lobby

@@ -19,7 +19,7 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
     function joinLobby(
         LobbyId lobbyId,
         string calldata playerName,
-        bytes32 password,
+        bytes calldata password,
         ValidWordProof[] calldata secretWordCommitments
     ) external override {
         _addPlayer(
@@ -70,7 +70,7 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
 
     function isValidLobbyPassword(
         LobbyId lobbyId,
-        bytes32 password
+        bytes calldata password
     ) external view override returns (bool) {
         return _isValidPassword(_getLobby(lobbyId), password);
     }

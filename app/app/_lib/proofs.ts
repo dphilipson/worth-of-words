@@ -8,12 +8,12 @@ import { newOneTimeLoader, waitForGlobal } from "./loading";
 export type Prover<T> = (input: T) => Promise<ProofCallData>;
 
 export type Pair<T> = [T, T];
-export type ProofCallData = [
-  Pair<bigint>,
-  Pair<Pair<bigint>>,
-  Pair<bigint>,
-  any, // bigint[], but needs any to satisfy varying fixed array types
-];
+export type ProofCallData = {
+  _pA: Pair<bigint>;
+  _pB: Pair<Pair<bigint>>;
+  _pC: Pair<bigint>;
+  _pubSignals: any;
+};
 
 interface ProverOut {
   proof: Groth16Proof;
@@ -33,22 +33,23 @@ export interface ScoreGuessInput {
   guess: number[];
 }
 
-function proofAsCallData({ proof, publicSignals }: ProverOut): ProofCallData {
+function proofAsViemParam({ proof, publicSignals }: ProverOut): ProofCallData {
   const { pi_a, pi_b, pi_c } = proof;
   const n = BigInt;
-  return [
-    [n(pi_a[0]), n(pi_a[1])],
-    [
+  return {
+    _pA: [n(pi_a[0]), n(pi_a[1])],
+    _pB: [
+      // The following line is the reverse of what you'd expect. No idea why.
       [n(pi_b[0][1]), n(pi_b[0][0])],
       [n(pi_b[1][1]), n(pi_b[1][0])],
     ],
-    [n(pi_c[0]), n(pi_c[1])],
-    publicSignals.map(n),
-  ];
+    _pC: [n(pi_c[0]), n(pi_c[1])],
+    _pubSignals: publicSignals.map(n),
+  };
 }
 
 export function useProveValidWord(
-  input: ValidWordInput | undefined
+  input: ValidWordInput | undefined,
 ): UseQueryResult<ProofCallData> {
   return useQuery({
     queryKey: ["prove-valid-word", input],
@@ -66,7 +67,7 @@ export function useProveValidWord(
 }
 
 export function useProveScoreGuess(
-  input: ScoreGuessInput | undefined
+  input: ScoreGuessInput | undefined,
 ): UseQueryResult<ProofCallData> {
   return useQuery({
     queryKey: ["prove-score-guess", input],
@@ -84,11 +85,11 @@ export function useProveScoreGuess(
 }
 
 export const getValidWordProver = newOneTimeLoader(() =>
-  newProver<ValidWordInput>("valid_word")
+  newProver<ValidWordInput>("valid_word"),
 );
 
 export const getScoreGuessProver = newOneTimeLoader(() =>
-  newProver<ScoreGuessInput>("score_guess")
+  newProver<ScoreGuessInput>("score_guess"),
 );
 
 async function newProver<T>(circuitName: string): Promise<Prover<T>> {
@@ -100,10 +101,10 @@ async function newProver<T>(circuitName: string): Promise<Prover<T>> {
   return async (input) => {
     const witness: Uint8Array = await witnessCalculator.calculateWTNSBin(
       input,
-      0
+      0,
     );
     const proof = await snarkjs.groth16.prove(zkey, witness);
-    return proofAsCallData(proof);
+    return proofAsViemParam(proof);
   };
 }
 

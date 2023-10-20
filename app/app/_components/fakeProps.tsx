@@ -34,9 +34,9 @@ export const fakePlayerListProps: PlayerListProps = {
   currentPlayerAddress: "0x696532E83Dd722eaCA2AA611fE381DfAAD143e6d",
 };
 
-export const fakeJoinLobbyData: JoinLobbyViewProps = {
-  numSecrets: 3,
-  needsPassword: true,
-  allowedWords: new Set(["PERIL", "IMAMS"]),
-  allKnownWords:
-}
+// export const fakeJoinLobbyData: JoinLobbyViewProps = {
+//   numSecrets: 3,
+//   needsPassword: true,
+//   allowedWords: new Set(["PERIL", "IMAMS"]),
+//   allKnownWords: new Set(["PERIL", "IMAMS", "FARTY"]),
+// };

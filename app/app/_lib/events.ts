@@ -1,13 +1,4 @@
-import {
-  Address,
-  createTestClient,
-  decodeEventLog,
-  Hex,
-  http,
-  publicActions,
-  walletActions,
-} from "viem";
-import { foundry } from "viem/chains";
+import { Address, decodeEventLog, Hex } from "viem";
 import { PublicClient } from "wagmi";
 
 import { iWorthOfWordsABI } from "../_generated/wagmi";
@@ -25,7 +16,7 @@ const fakeEvent =
 
 export type LobbyEvent = typeof fakeEvent;
 
-export function getLogsNowAndForever(
+export function getEventsNowAndForever(
   client: PublicClient,
   address: Address,
   lobbyId: bigint,

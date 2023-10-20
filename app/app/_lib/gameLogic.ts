@@ -1,13 +1,14 @@
 import { produce } from "immer";
 import { Address } from "viem";
 
-import { LobbyEvent } from "./logs";
+import { LobbyEvent } from "./events";
 
 export interface LobbyState {
   config: LobbyConfig;
   playersByAddress: Map<Address, Player>;
   currentRoundPlayerOrder: Address[];
   nextRoundPlayerSet: Set<Address>;
+  targetOffsets: number[];
   roundNumber: number;
   currentPhase: Phase;
   phaseDeadline: number;
@@ -62,9 +63,25 @@ export interface LobbyConfig {
   pointsForFullWord: number;
 }
 
+export function newLobbyState(config: LobbyConfig): LobbyState {
+  return {
+    config,
+    playersByAddress: new Map(),
+    currentRoundPlayerOrder: [],
+    nextRoundPlayerSet: new Set(),
+    targetOffsets: [],
+    roundNumber: 0,
+    currentPhase: Phase.NOT_STARTED,
+    phaseDeadline: 0,
+  };
+}
+
 export const getUpdatedLobbyState = produce(mutateLobbyState);
 
-function mutateLobbyState(state: LobbyState, events: LobbyEvent[]): void {
+export function mutateLobbyState(
+  state: LobbyState,
+  events: LobbyEvent[],
+): void {
   for (const event of events) {
     mutateLobbyStateSingleEvent(state, event);
   }
@@ -118,6 +135,7 @@ function mutateLobbyStateSingleEvent(
     case "GameStarted":
       return;
     case "NewRound": {
+      const { targetOffsets } = event.args;
       for (const [address, player] of state.playersByAddress) {
         mutateIfFullyGuessedSecret(address, player);
         if (!state.nextRoundPlayerSet.has(address)) {
@@ -131,6 +149,7 @@ function mutateLobbyStateSingleEvent(
       state.currentRoundPlayerOrder = [...state.nextRoundPlayerSet];
       state.nextRoundPlayerSet.clear();
       state.roundNumber++;
+      state.targetOffsets = targetOffsets as number[];
       return;
     }
     case "NewPhase": {
@@ -157,23 +176,12 @@ function mutateLobbyStateSingleEvent(
         matches: rawMatches,
         pointsAwarded,
       } = event.args;
-      // TODO: add guess and matches into the defender's history.
-      // add points to the attacker.
-      // Add the defender into next round's stuff if they're not eliminated.
-      // DON'T advance the defender to the next word if it's fully guessed: we still need
-      // to display the old one while other people guess against it.
-      // So where do we remove their word? We'll have to do it in round started, which
-      // differs from the backend logic, which removes it upon reveal.
-      // How do we tell if a player is eliminated in the round start transition? We can check the
-      // three most recent things in their match history and see if any are full green.
-      // (we need to do that word-advancement logic in GameEnded too).
-
-      // Problem. We get multiple MatchesRevealed for a single defender.
-      // If none of them eliminate the defender we want to add them to the next round.
-      // but we need them added to the next round in the order that these matches were revealed.
-      // we could add them all to the set, then remove them if their word is revealed.
-      // okay, that's the plan.
-
+      // Differs from the backend logic by updating the player's current word
+      // and removing them at the start of the next round instead of immediately
+      // upon reveal if their word is fully guessed. This is because we want to
+      // continue to show information about the current word and, unlike the
+      // backend, the guesses are revealed in separate events for each attacker
+      // instead of all in one transaction.
       getPlayer(attacker).score += pointsAwarded;
       const matches = rawMatches as unknown as Color[];
       const defender = getPlayer(defenderAddress);
@@ -198,4 +206,43 @@ function mutateLobbyStateSingleEvent(
       // "Assert never," check exhaustiveness.
       ((_: never) => 0)(event);
   }
+}
+
+export function getAttackers(state: LobbyState, defender: Address): Player[] {
+  const defenderIndex = getPlayerIndex(state, defender);
+  return state.targetOffsets.map((offset) =>
+    getPlayerAtOffset(state, defenderIndex, -offset),
+  );
+}
+
+export function getDefenders(state: LobbyState, attacker: Address): Player[] {
+  const attackerIndex = getPlayerIndex(state, attacker);
+  return state.targetOffsets.map((offset) =>
+    getPlayerAtOffset(state, attackerIndex, offset),
+  );
+}
+
+function getPlayerIndex(state: LobbyState, playerAddress: Address): number {
+  const index = state.currentRoundPlayerOrder.indexOf(playerAddress);
+  if (index === -1) {
+    throw new Error("Player not in current round: " + playerAddress);
+  }
+  return index;
+}
+
+function getPlayerAtOffset(
+  state: LobbyState,
+  playerIndex: number,
+  offset: number,
+): Player {
+  const numPlayers = state.currentRoundPlayerOrder.length;
+  const address =
+    state.currentRoundPlayerOrder[
+      (playerIndex + numPlayers + offset) % numPlayers
+    ];
+  const player = state.playersByAddress.get(address);
+  if (player === undefined) {
+    throw new Error("Player was in current round, but not in map: " + address);
+  }
+  return player;
 }

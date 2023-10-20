@@ -2,8 +2,9 @@ import clsx from "clsx";
 import { memo, ReactNode } from "react";
 import { chainFrom, range } from "transducist";
 
-import { backgroundClassForColor, Color } from "../_lib/colors";
+import { backgroundClassForColor } from "../_lib/colors";
 import { WORD_LENGTH } from "../_lib/constants";
+import { Color } from "../_lib/gameLogic";
 
 export interface GuessGridProps {
   rows: GuessRowProps[];

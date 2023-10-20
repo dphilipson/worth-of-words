@@ -18,9 +18,9 @@ contract LobbiesTest is Test, Lobbies {
         ValidWordProof[]
             memory secretWordCommitments = getMammaSecretWordCommitments();
         vm.prank(ALICE);
-        this.addPlayer("Alice", bytes32(0), secretWordCommitments);
+        this.addPlayer("Alice", bytes(""), secretWordCommitments);
         vm.prank(BOB);
-        this.addPlayer("Bob", bytes32(0), secretWordCommitments);
+        this.addPlayer("Bob", bytes(""), secretWordCommitments);
         vm.prank(ALICE);
         this.startGame();
         Word imams = WordTestUtils.fromString("IMAMS");
@@ -51,7 +51,7 @@ contract LobbiesTest is Test, Lobbies {
 
     function addPlayer(
         string calldata playerName,
-        bytes32 password,
+        bytes calldata password,
         ValidWordProof[] calldata secretWordCommitments
     ) external {
         _addPlayer(
@@ -100,9 +100,7 @@ contract LobbiesTest is Test, Lobbies {
                 numLives: 2,
                 pointsForYellow: 1,
                 pointsForGreen: 10,
-                pointsForFullWord: 100,
-                pointPenaltyForLosingLife: 1,
-                pointsForDroppedOpponent: 200
+                pointsForFullWord: 100
             });
     }
 
