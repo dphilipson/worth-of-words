@@ -1,7 +1,7 @@
 import { memo, ReactNode, useCallback, useState } from "react";
 
 import { WORD_LENGTH } from "../_lib/constants";
-import GuessGrid, { GuessRowProps } from "./guessGrid";
+import GuessGrid, { ScoredRowProps } from "./guessGrid";
 import KeyboardCapture from "./keyboardCapture";
 import { PlayerListItemPropsInList } from "./playerList";
 import PlayerListItem from "./playerListItem";
@@ -14,7 +14,7 @@ export interface GuessingViewProps {
 }
 
 export interface Opponent extends PlayerListItemPropsInList {
-  rows: GuessRowProps[];
+  rows: ScoredRowProps[];
 }
 
 export default memo(function GuessingView({

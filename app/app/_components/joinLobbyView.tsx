@@ -5,31 +5,25 @@ import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
 import { WORD_LENGTH } from "../_lib/constants";
+import LoadingButton from "./loadingButton";
 import TextInput from "./textInput";
 
 export interface JoinLobbyViewProps {
   numSecrets: number;
-  needsPassword: boolean;
-  allowedWords: Set<string>;
-  allKnownWords: Set<string>;
-  onJoin(payload: JoinLobbyPayload): void;
-}
-
-export interface JoinLobbyPayload {
-  playerName: string;
-  password: string;
-  words: string[];
+  validSecretWords: Set<string>;
+  validGuessWords: Set<string>;
+  isJoining: boolean;
+  onJoin(playerName: string, words: string[]): void;
 }
 
 export default memo(function JoinLobbyView({
   numSecrets,
-  needsPassword,
-  allowedWords,
-  allKnownWords,
+  validSecretWords,
+  validGuessWords,
+  isJoining,
   onJoin,
 }: JoinLobbyViewProps): ReactNode {
   const [playerName, setPlayerName] = useState("");
-  const [password, setPassword] = useState("");
   const [words, updateWords] = useImmer(() =>
     chainFrom(repeat("", numSecrets)).toArray(),
   );
@@ -46,14 +40,14 @@ export default memo(function JoinLobbyView({
   const wordsAreValid = words.every(
     (word) =>
       word.length === WORD_LENGTH &&
-      !getError(word, allowedWords, allKnownWords),
+      !getError(word, validSecretWords, validGuessWords),
   );
 
   const onConfirmClicked = useCallback(() => {
     if (playerName.length > 0 && wordsAreValid) {
-      onJoin({ playerName, password, words });
+      onJoin(playerName, words);
     }
-  }, [wordsAreValid, onJoin, playerName, password, words]);
+  }, [wordsAreValid, onJoin, playerName, words]);
 
   return (
     <div className="card w-full max-w-sm bg-base-100 shadow-xl">
@@ -69,20 +63,6 @@ export default memo(function JoinLobbyView({
             value={playerName}
             onValueChange={setPlayerName}
           />
-          {needsPassword && (
-            <>
-              <label className="label">
-                <span className="label-text">Lobby password</span>
-              </label>
-              <TextInput
-                className="input input-bordered"
-                type="password"
-                placeholder="********"
-                value={password}
-                onValueChange={setPassword}
-              />
-            </>
-          )}
           <h2 className="card-title mt-4">Secret words</h2>
           <p className="mb-4">
             Choose your secret words. Other players will try to guess these!
@@ -91,8 +71,8 @@ export default memo(function JoinLobbyView({
             .map((i) => (
               <SecretInput
                 key={i}
-                allowedWords={allowedWords}
-                allKnownWords={allKnownWords}
+                validSecretWords={validSecretWords}
+                validGuessWords={validGuessWords}
                 index={i}
                 value={words[i]}
                 onChange={onChange}
@@ -101,13 +81,14 @@ export default memo(function JoinLobbyView({
             .toArray()}
         </div>
         <div className="card-actions justify-end">
-          <button
+          <LoadingButton
             className="btn btn-primary"
+            isLoading={isJoining}
             disabled={!wordsAreValid}
             onClick={onConfirmClicked}
           >
-            Confirm
-          </button>
+            {isJoining ? "Joining lobby" : "Join lobby"}
+          </LoadingButton>
         </div>
       </div>
     </div>
@@ -115,16 +96,16 @@ export default memo(function JoinLobbyView({
 });
 
 interface SecretInputProps {
-  allowedWords: Set<string>;
-  allKnownWords: Set<string>;
+  validSecretWords: Set<string>;
+  validGuessWords: Set<string>;
   index: number;
   value: string;
   onChange(value: string, index: number): void;
 }
 
 const SecretInput = memo(function SecretInput({
-  allowedWords,
-  allKnownWords,
+  validSecretWords,
+  validGuessWords,
   index,
   value,
   onChange,
@@ -138,7 +119,7 @@ const SecretInput = memo(function SecretInput({
     [onChange, index],
   );
 
-  const error = getError(value, allowedWords, allKnownWords);
+  const error = getError(value, validSecretWords, validGuessWords);
   const isValid = !error && value.length === WORD_LENGTH;
 
   return (
@@ -170,12 +151,12 @@ function isValidCharacters(s: string): boolean {
 
 function getError(
   s: string,
-  allowedWords: Set<string>,
-  allKnownWords: Set<string>,
+  validSecretWords: Set<string>,
+  validGuessWords: Set<string>,
 ): string | undefined {
-  if (s.length !== WORD_LENGTH || allowedWords.has(s)) {
+  if (s.length !== WORD_LENGTH || validSecretWords.has(s)) {
     return undefined;
-  } else if (allKnownWords.has(s)) {
+  } else if (validGuessWords.has(s)) {
     return "Too hard. Word is a valid guess, but not a valid secret.";
   } else {
     return "Not a word.";

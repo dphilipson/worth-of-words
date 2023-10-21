@@ -15,6 +15,7 @@ export interface LobbyState {
 }
 
 export interface Player {
+  address: Address;
   name: string;
   score: number;
   livesLeft: number;
@@ -31,6 +32,9 @@ export interface ScoredGuess {
   attacker: Address;
   guess: string;
   matches: Color[];
+  newYellowCount: number;
+  newGreenCount: number;
+  pointsAwarded: number;
 }
 
 export enum Color {
@@ -100,7 +104,7 @@ function mutateLobbyStateSingleEvent(
   }
 
   // Run this **before** setting the player order for the next round.
-  function mutateIfFullyGuessedSecret(address: Address, player: Player): void {
+  function mutateIfFullyGuessedSecret(player: Player): void {
     if (player.fullyRevealedSecret === undefined) {
       return;
     }
@@ -108,7 +112,7 @@ function mutateLobbyStateSingleEvent(
     player.livesLeft--;
     if (player.livesLeft === 0) {
       player.isEliminated = true;
-      state.nextRoundPlayerSet.delete(address);
+      state.nextRoundPlayerSet.delete(player.address);
     }
   }
 
@@ -118,6 +122,7 @@ function mutateLobbyStateSingleEvent(
     case "JoinedLobby": {
       const { player, playerName } = event.args;
       state.playersByAddress.set(player, {
+        address: player,
         name: playerName,
         score: 0,
         livesLeft: state.config.numLives,
@@ -129,16 +134,16 @@ function mutateLobbyStateSingleEvent(
         hasRevealedMatches: false,
         fullyRevealedSecret: undefined,
       });
-      state.currentRoundPlayerOrder.push(player);
+      state.nextRoundPlayerSet.add(player);
       return;
     }
     case "GameStarted":
       return;
     case "NewRound": {
       const { targetOffsets } = event.args;
-      for (const [address, player] of state.playersByAddress) {
-        mutateIfFullyGuessedSecret(address, player);
-        if (!state.nextRoundPlayerSet.has(address)) {
+      for (const player of state.playersByAddress.values()) {
+        mutateIfFullyGuessedSecret(player);
+        if (!state.nextRoundPlayerSet.has(player.address)) {
           player.isEliminated = true;
         }
         player.hasCommittedGuess = false;
@@ -174,6 +179,8 @@ function mutateLobbyStateSingleEvent(
         defender: defenderAddress,
         guess,
         matches: rawMatches,
+        newYellowCount,
+        newGreenCount,
         pointsAwarded,
       } = event.args;
       // Differs from the backend logic by updating the player's current word
@@ -189,6 +196,9 @@ function mutateLobbyStateSingleEvent(
         attacker,
         guess,
         matches,
+        newYellowCount,
+        newGreenCount,
+        pointsAwarded,
       });
       if (matches.every((color) => color === Color.GREEN)) {
         defender.fullyRevealedSecret = guess;
@@ -222,6 +232,16 @@ export function getDefenders(state: LobbyState, attacker: Address): Player[] {
   );
 }
 
+export function getPlayer(state: LobbyState, playerAddress: Address): Player {
+  const player = state.playersByAddress.get(playerAddress);
+  if (player === undefined) {
+    throw new Error(
+      "Lobby did not contain player with address: " + playerAddress,
+    );
+  }
+  return player;
+}
+
 function getPlayerIndex(state: LobbyState, playerAddress: Address): number {
   const index = state.currentRoundPlayerOrder.indexOf(playerAddress);
   if (index === -1) {
@@ -240,9 +260,5 @@ function getPlayerAtOffset(
     state.currentRoundPlayerOrder[
       (playerIndex + numPlayers + offset) % numPlayers
     ];
-  const player = state.playersByAddress.get(address);
-  if (player === undefined) {
-    throw new Error("Player was in current round, but not in map: " + address);
-  }
-  return player;
+  return getPlayer(state, address);
 }

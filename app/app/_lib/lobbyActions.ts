@@ -212,7 +212,7 @@ export class LobbyActionsImpl implements LobbyActions {
   }
 
   private fullKey(key: string): string {
-    return `lobby:${this.lobbyId}:${key}`;
+    return `lobby:${this.lobbyId}:player:${this.wallet.address}:${key}`;
   }
 }
 

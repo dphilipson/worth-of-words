@@ -21,7 +21,7 @@ async function createLobby(
   config: LobbyConfig,
 ): Promise<bigint> {
   // TODO: Timeout or something if it goes too long.
-  const promise = new Promise((resolve, reject) => {
+  const promise = new Promise<bigint>((resolve, reject) => {
     const stopWatching = publicClient.watchContractEvent({
       abi: iWorthOfWordsABI,
       address: WORTH_OF_WORDS_ADDRESS,

@@ -2,10 +2,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
-import { ReactNode } from "react";
-import { configureChains, createConfig, WagmiConfig } from "wagmi";
+import { enableMapSet } from "immer";
+import { ReactNode, useEffect } from "react";
+import { createConfig, WagmiConfig } from "wagmi";
 import { foundry } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +24,22 @@ export default function AppWrapper({
 }: {
   children: ReactNode;
 }): ReactNode {
+  useEffect(() => {
+    enableMapSet();
+
+    // https://github.com/wagmi-dev/viem/discussions/781
+    const orig = window.console.error;
+    window.console.error = (...args) => {
+      if (args[0]?.name === "ChainDoesNotSupportContract") {
+        return;
+      }
+      orig.apply(window.console, args);
+    };
+    return () => {
+      window.console.error = orig;
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiConfig config={config}>

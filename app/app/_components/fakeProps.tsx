@@ -1,3 +1,4 @@
+import { Color } from "../_lib/gameLogic";
 import { JoinLobbyViewProps } from "./joinLobbyView";
 import { PlayerListItemPropsInList, PlayerListProps } from "./playerList";
 
@@ -40,3 +41,17 @@ export const fakePlayerListProps: PlayerListProps = {
 //   allowedWords: new Set(["PERIL", "IMAMS"]),
 //   allKnownWords: new Set(["PERIL", "IMAMS", "FARTY"]),
 // };
+
+const mockColorsByLetter: Map<string, Color>[] = (() => {
+  const maps = [new Map(), new Map(), new Map()];
+  maps[0].set("U", Color.GRAY);
+  maps[0].set("A", Color.GREEN);
+  maps[0].set("G", Color.GREEN);
+  maps[1].set("A", Color.GRAY);
+  maps[1].set("G", Color.GREEN);
+  maps[1].set("I", Color.YELLOW);
+  maps[2].set("X", Color.GRAY);
+  maps[2].set("G", Color.GRAY);
+  maps[2].set("A", Color.YELLOW);
+  return maps;
+})();

@@ -7,39 +7,50 @@ import { WORD_LENGTH } from "../_lib/constants";
 import { Color } from "../_lib/gameLogic";
 
 export interface GuessGridProps {
-  rows: GuessRowProps[];
-  input: string | undefined;
-  isInvalidWord: boolean;
+  scoredRows: ScoredRowProps[];
+  inputRows: InputRowProps[];
+}
+
+export interface ScoredRowProps {
+  word: string;
+  colors: Color[];
+  isFromCurrentPlayer: boolean;
+}
+
+export interface InputRowProps {
+  letters: string;
+  inputIsInvalid: boolean;
+  isFromCurrentPlayer: boolean;
 }
 
 export default memo(function GuessGrid({
-  rows,
-  input,
-  isInvalidWord,
+  scoredRows,
+  inputRows,
 }: GuessGridProps): ReactNode {
   return (
     <div className="select-none flex-col space-y-1.5 text-3xl font-bold">
-      {rows.map((row, i) => (
+      {scoredRows.map((row, i) => (
         <GuessRow key={i} {...row} />
       ))}
-      {input !== undefined && (
-        <InputRow letters={input} isInvalidWord={isInvalidWord} />
-      )}
+      {inputRows.map((row, i) => (
+        <InputRow key={i} {...row} />
+      ))}
     </div>
   );
 });
 
-export interface GuessRowProps {
-  word: string;
-  colors: Color[];
-}
-
 const GuessRow = memo(function GuessRow({
   word,
   colors,
-}: GuessRowProps): ReactNode {
+  isFromCurrentPlayer,
+}: ScoredRowProps): ReactNode {
   return (
-    <div className="flex space-x-1.5">
+    <div
+      className={clsx(
+        "flex space-x-1.5",
+        isFromCurrentPlayer && "border-l-8 border-l-primary pl-4",
+      )}
+    >
       {colors.map((color, i) => (
         <GuessSquare key={i} letter={word[i]} color={color} />
       ))}
@@ -47,20 +58,21 @@ const GuessRow = memo(function GuessRow({
   );
 });
 
-interface InputRowProps {
-  letters: string;
-  isInvalidWord: boolean;
-}
-
 const InputRow = memo(function InputRow({
   letters,
-  isInvalidWord,
+  inputIsInvalid,
+  isFromCurrentPlayer,
 }: InputRowProps): ReactNode {
   return (
-    <div className="flex space-x-1.5">
+    <div
+      className={clsx(
+        "flex space-x-1.5",
+        isFromCurrentPlayer && "border-l-8 border-l-primary pl-4",
+      )}
+    >
       {chainFrom(range(WORD_LENGTH))
         .map((i) => (
-          <InputSquare key={i} letter={letters[i]} isInvalid={isInvalidWord} />
+          <InputSquare key={i} letter={letters[i]} isInvalid={inputIsInvalid} />
         ))
         .toArray()}
     </div>

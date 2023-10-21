@@ -1,29 +1,31 @@
-import { memo, ReactNode } from "react";
+import { memo, ReactNode, useCallback, useState } from "react";
 
-import PlayerList, { PlayerListProps } from "./playerList";
+import { useLobby } from "../_lib/useLobby";
+import ConnectedPlayerList from "./connectedPlayerList";
+import LoadingButton from "./loadingButton";
 
-export interface WaitingRoomViewProps extends PlayerListProps {
-  minPlayerCount: number;
-  onStartGame(): void;
-}
+export default memo(function WaitingRoomView(): ReactNode {
+  const { lobby, actions } = useLobby();
+  const [isStarting, setIsStarting] = useState(false);
+  const hasEnoughPlayers =
+    lobby.playersByAddress.size > Math.max(1, lobby.config.minPlayers);
 
-export default memo(function WaitingRoomView({
-  minPlayerCount,
-  onStartGame,
-  ...playerListProps
-}: WaitingRoomViewProps): ReactNode {
-  const canStartGame = playerListProps.players.length >= minPlayerCount;
+  const onStartClick = useCallback(() => {
+    setIsStarting(true);
+    actions.startGame();
+  }, [setIsStarting, actions]);
 
   return (
     <div className="flex w-full flex-col items-center space-y-20">
-      <PlayerList {...playerListProps} />
-      <button
+      <ConnectedPlayerList />
+      <LoadingButton
         className="btn btn-primary"
-        disabled={!canStartGame}
-        onClick={canStartGame ? onStartGame : undefined}
+        disabled={!hasEnoughPlayers}
+        isLoading={isStarting}
+        onClick={onStartClick}
       >
-        {canStartGame ? "Start game" : "Waiting for players"}
-      </button>
+        {hasEnoughPlayers ? "Start game" : "Waiting for players"}
+      </LoadingButton>
     </div>
   );
 });

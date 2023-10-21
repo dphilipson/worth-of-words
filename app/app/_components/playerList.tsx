@@ -48,7 +48,7 @@ function comparator(a: PlayerListItemProps, b: PlayerListItemProps): number {
     return b.livesLeft - a.livesLeft;
   }
   if (a.isCurrentPlayer !== b.isCurrentPlayer) {
-    return a.isCurrentPlayer ? 1 : -1;
+    return a.isCurrentPlayer ? -1 : 1;
   }
   const nameCompare = compareStrings(a.name, b.name);
   if (nameCompare !== 0) {

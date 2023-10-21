@@ -10,6 +10,7 @@ import {
   getGuessWordMerkleTree,
   getSecretWordMerkleTree,
 } from "../_lib/merkle";
+import LoadingButton from "./loadingButton";
 
 export default memo(function CreateLobbyView(): ReactNode {
   const createLobby = useCreateLobby();
@@ -42,13 +43,14 @@ export default memo(function CreateLobbyView(): ReactNode {
         <p>Create a lobby, then find some opponents to play!</p>
         <div className="h-4" />
         <div className="card-actions justify-end">
-          <button
+          <LoadingButton
             className="btn btn-primary"
             disabled={!isEnabled}
+            isLoading={mutation.isLoading}
             onClick={onClickCreateLobby}
           >
             {buttonText}
-          </button>
+          </LoadingButton>
         </div>
       </div>
     </div>

@@ -1,10 +1,12 @@
 import { memo, ReactNode, useEffect, useRef, useState } from "react";
 
 export interface CountdownProps {
+  className?: string;
   deadline: number;
 }
 
 export const Countdown = memo(function Countdown({
+  className,
   deadline,
 }: CountdownProps): ReactNode {
   const [remainingTime, setRemainingTime] = useState(
@@ -33,7 +35,9 @@ export const Countdown = memo(function Countdown({
     };
   }, [deadline]);
 
-  return <span>{toMinuteSecondString(remainingTime)}</span>;
+  return (
+    <span className={className}>{toMinuteSecondString(remainingTime)}</span>
+  );
 });
 
 function toMinuteSecondString(ms: number): string {

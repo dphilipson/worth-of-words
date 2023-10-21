@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { getContract } from "viem";
+import { Address, getContract } from "viem";
 import { usePublicClient } from "wagmi";
 
 import { iWorthOfWordsABI } from "../_generated/wagmi";
@@ -50,6 +50,7 @@ export function useLobby(): LobbyContext {
 }
 
 export interface LobbyContext {
+  playerAddress: Address;
   lobby: LobbyState;
   validSecretWords: Set<string>;
   validGuessWords: Set<string>;
@@ -87,6 +88,7 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     actionsRef.current.setLobbyState(lobby);
   }
   return {
+    playerAddress: wallet.address,
     lobby,
     validSecretWords,
     validGuessWords,
@@ -119,11 +121,15 @@ function useLobbyState(lobbyId: bigint): LobbyState | undefined {
           const initialState = newLobbyState(config);
           mutateLobbyState(initialState, initialEvents);
           setState(initialState);
+          console.log("Initial state:", initialState);
         },
         (newEvents) => {
-          setState((currentState) =>
-            getUpdatedLobbyState(currentState!, newEvents),
-          );
+          setState((currentState) => {
+            const updatedState = getUpdatedLobbyState(currentState!, newEvents);
+            console.log("Events:", newEvents);
+            console.log("Updated state:", updatedState);
+            return updatedState;
+          });
         },
       );
     })();

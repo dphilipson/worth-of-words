@@ -17,27 +17,39 @@ const ANVIL_PRIVATE_KEYS: Hex[] = [
 export function useLocalWallet(): WalletLike | undefined {
   const [wallet, setWallet] = useState<WalletLike>();
 
+  function createAndSetWallet(privateKey: Hex): void {
+    const client = createWalletClient({
+      chain: foundry,
+      transport: http(),
+    });
+    const account = privateKeyToAccount(privateKey);
+    setWallet({
+      address: account.address,
+      send: async (data) => {
+        await client.sendTransaction({
+          account,
+          to: WORTH_OF_WORDS_ADDRESS,
+          data,
+        });
+      },
+    });
+    console.log("Using Anvil address:", account.address);
+  }
+
   useEffect(() => {
+    const savedPrivateKey = loadPrivateKey();
+    if (savedPrivateKey !== null) {
+      createAndSetWallet(savedPrivateKey);
+      return;
+    }
+
     (window as any).useAnvilAccount = (index: number) => {
       const privateKey = ANVIL_PRIVATE_KEYS[index];
       if (privateKey === undefined) {
         throw new Error("Invalid index");
       }
-      const client = createWalletClient({
-        chain: foundry,
-        transport: http(),
-      });
-      const account = privateKeyToAccount(privateKey);
-      setWallet({
-        address: account.address,
-        send: async (data) => {
-          await client.sendTransaction({
-            account,
-            to: WORTH_OF_WORDS_ADDRESS,
-            data,
-          });
-        },
-      });
+      storePrivateKey(privateKey);
+      createAndSetWallet(privateKey);
       delete (window as any).useAnvilAccount;
     };
     return () => {
@@ -46,4 +58,14 @@ export function useLocalWallet(): WalletLike | undefined {
   }, []);
 
   return wallet;
+}
+
+const PRIVATE_KEY_KEY = "privateKey";
+
+function storePrivateKey(privateKey: Hex): void {
+  sessionStorage.setItem(PRIVATE_KEY_KEY, privateKey);
+}
+
+function loadPrivateKey(): Hex | null {
+  return sessionStorage.getItem(PRIVATE_KEY_KEY) as Hex | null;
 }
