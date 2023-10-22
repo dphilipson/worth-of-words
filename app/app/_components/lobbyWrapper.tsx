@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { memo, ReactNode, useEffect, useState } from "react";
+import { memo, ReactNode, useEffect } from "react";
 
 import { useUrlHash } from "../_lib/hooks";
 import { LobbyProvider } from "../_lib/useLobby";

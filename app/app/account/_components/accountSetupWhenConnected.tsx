@@ -1,13 +1,13 @@
 import { useRouter } from "next/navigation";
 import { memo, ReactNode, useCallback, useEffect, useState } from "react";
-import { Address, Hex, keccak256, parseEther } from "viem";
+import { Address, Hex, keccak256, parseEther, zeroAddress } from "viem";
 import { privateKeyToAddress } from "viem/accounts";
 import { useSignMessage, useWaitForTransaction } from "wagmi";
 
 import LoadingButton from "@/app/_components/loadingButton";
 import {
   useMinionAccountFactoryCreateAccount,
-  useMinionAccountFactoryHasDeployed,
+  useMinionAccountFactoryGetAddressIfDeployed,
 } from "@/app/_generated/wagmi";
 import {
   MINION_FACTORY_ADDRESS,
@@ -15,6 +15,10 @@ import {
   SECRET_GENERATING_MESSAGE,
 } from "@/app/_lib/constants";
 import { useUrlHash } from "@/app/_lib/hooks";
+import {
+  loadMinionPrivateKey,
+  storeMinionPrivateKey,
+} from "@/app/_lib/minions";
 
 export interface AccountSetupWhenConnectedProps {
   address: Address;
@@ -23,25 +27,29 @@ export interface AccountSetupWhenConnectedProps {
 export default memo(function AccountSetupWhenConnected({
   address,
 }: AccountSetupWhenConnectedProps): ReactNode {
-  const [secretKey, setSecretKey] = useState(loadSecretKey(address));
+  const [privateKey, setPrivateKey] = useState(loadMinionPrivateKey(address));
 
-  const reallyStoreSecretKey = useCallback(
-    (secretKey: Hex) => {
-      setSecretKey(secretKey);
-      storeSecretKey(address, secretKey);
+  const reallyStorePrivateKey = useCallback(
+    (privateKey: Hex) => {
+      setPrivateKey(privateKey);
+      storeMinionPrivateKey(address, privateKey);
     },
     [address],
   );
 
-  const { data: factoryHasDeployed } = useMinionAccountFactoryHasDeployed({
-    address: MINION_FACTORY_ADDRESS,
-    args: [address],
-  });
+  const { data: deployedAddress } = useMinionAccountFactoryGetAddressIfDeployed(
+    {
+      address: MINION_FACTORY_ADDRESS,
+      args: [address],
+    },
+  );
+  const hasDeployed =
+    deployedAddress === undefined ? undefined : deployedAddress !== zeroAddress;
 
   const { signMessage, isLoading: isSigning } = useSignMessage({
     message: SECRET_GENERATING_MESSAGE,
     onSuccess: (signedMesage: Hex) =>
-      reallyStoreSecretKey(keccak256(signedMesage)),
+      reallyStorePrivateKey(keccak256(signedMesage)),
   });
   const onClickSign = useCallback(() => signMessage(), [signMessage]);
 
@@ -62,21 +70,29 @@ export default memo(function AccountSetupWhenConnected({
   const urlHash = useUrlHash();
 
   const isAllReady =
-    (secretKey !== undefined && factoryHasDeployed) || transactionSucceeded;
+    (privateKey !== undefined && hasDeployed) || transactionSucceeded;
 
   useEffect(() => {
+    if (urlHash === undefined) {
+      return;
+    }
     if (isAllReady) {
       if (!urlHash) {
-        router.push("/");
+        router.replace("/");
+        return;
+      }
+      const params = new URLSearchParams(urlHash);
+      const redirect = params.get("redirect");
+      if (redirect?.startsWith("/")) {
+        router.replace(redirect);
       } else {
-        const redirectTarget = decodeURIComponent(urlHash);
-        router.push("/" + redirectTarget);
+        router.replace("/");
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAllReady]);
+  }, [isAllReady, urlHash]);
 
-  if (!secretKey) {
+  if (!privateKey) {
     return (
       <>
         <h3>Time to generate your secret</h3>
@@ -92,10 +108,10 @@ export default memo(function AccountSetupWhenConnected({
         </div>
       </>
     );
-  } else if (factoryHasDeployed === undefined) {
+  } else if (hasDeployed === undefined) {
     return <p>Checking if account exists</p>;
-  } else if (!factoryHasDeployed) {
-    const publicKey = privateKeyToAddress(secretKey);
+  } else if (!hasDeployed) {
+    const publicKey = privateKeyToAddress(privateKey);
     const createAccount = () => write({ args: [publicKey] });
     return (
       <>
@@ -120,15 +136,3 @@ export default memo(function AccountSetupWhenConnected({
     return <p>Logged in! Redirecting…</p>;
   }
 });
-
-function storeSecretKey(address: Address, key: Hex): void {
-  localStorage.setItem(getSecretKeyKey(address), key);
-}
-
-function loadSecretKey(address: Address): Hex | null {
-  return localStorage.getItem(getSecretKeyKey(address)) as Hex | null;
-}
-
-function getSecretKeyKey(address: Address): string {
-  return `worth-of-words:secret-key:${address}`;
-}

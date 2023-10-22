@@ -4,14 +4,13 @@ import { PublicClient, usePublicClient } from "wagmi";
 import { iWorthOfWordsABI } from "../_generated/wagmi";
 import { POLL_INTERVAL_MS, WORTH_OF_WORDS_ADDRESS } from "./constants";
 import { LobbyConfig } from "./gameLogic";
-import { WalletLike } from "./lobbyActions";
-import { useLocalWallet } from "./localWallet";
+import { useWallet, WalletLike } from "./useWallet";
 
 export function useCreateLobby():
   | ((config: LobbyConfig) => Promise<bigint>)
   | undefined {
   const publicClient = usePublicClient();
-  const wallet = useLocalWallet();
+  const wallet = useWallet();
   return wallet && ((config) => createLobby(publicClient, wallet, config));
 }
 

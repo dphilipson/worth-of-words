@@ -15,6 +15,11 @@ contract MinionAccountFactory {
     function createAccount(
         address publicKey
     ) external payable returns (MinionAccount minion) {
+        address addr = getAddress(msg.sender);
+        uint codeSize = addr.code.length;
+        if (codeSize > 0) {
+            return MinionAccount(payable(addr));
+        }
         minion = MinionAccount(
             payable(
                 Clones.cloneDeterministic(
@@ -34,7 +39,12 @@ contract MinionAccountFactory {
             );
     }
 
-    function hasDeployed(address owner) external view returns (bool) {
-        return getAddress(owner).code.length > 0;
+    function getAddressIfDeployed(
+        address owner
+    ) external view returns (address addr) {
+        addr = getAddress(owner);
+        if (addr.code.length == 0) {
+            addr = address(0);
+        }
     }
 }

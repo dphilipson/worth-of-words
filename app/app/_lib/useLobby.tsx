@@ -25,7 +25,7 @@ import {
 } from "./gameLogic";
 import { useSetDeadline } from "./hooks";
 import { LobbyActions, LobbyActionsImpl } from "./lobbyActions";
-import { useLocalWallet } from "./localWallet";
+import { useWallet } from "./useWallet";
 import { getGuessWordlist, getSecretWordlist } from "./words";
 
 const LobbyContext = createContext<LobbyContext>(undefined!);
@@ -65,7 +65,7 @@ export interface LobbyContext {
 // TODO: better (or any) error handling.
 
 function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
-  const wallet = useLocalWallet();
+  const wallet = useWallet();
   const lobby = useLobbyState(lobbyId);
   const { data: validSecretWords } = useQuery({
     queryKey: ["valid-secret-words-set"],

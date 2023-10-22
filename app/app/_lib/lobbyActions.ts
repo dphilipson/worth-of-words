@@ -1,10 +1,4 @@
-import {
-  Address,
-  encodeFunctionData,
-  encodePacked,
-  Hex,
-  keccak256,
-} from "viem";
+import { encodeFunctionData, encodePacked, Hex, keccak256 } from "viem";
 
 import { iWorthOfWordsABI } from "../_generated/wagmi";
 import { getAttackers, LobbyState } from "./gameLogic";
@@ -16,24 +10,20 @@ import {
   ProofCallData,
 } from "./proofs";
 import { randomUint256 } from "./random";
+import { WalletLike } from "./useWallet";
 import { wordToLetters, wordToNumber } from "./words";
 
 export interface LobbyActions {
   joinLobby(
     playerName: string,
     secretWords: string[],
-    lobbySecretKey: Hex | undefined,
+    lobbyPrivateKey: Hex | undefined,
   ): Promise<void>;
   startGame(): Promise<void>;
   commitGuess(guess: string): Promise<void>;
   revealGuess(): Promise<void>;
   revealMatches(): Promise<void>;
   endRevealMatchesPhase(): Promise<void>;
-}
-
-export interface WalletLike {
-  address: Address;
-  send(callData: Hex): Promise<void>;
 }
 
 interface SecretAndSalt {

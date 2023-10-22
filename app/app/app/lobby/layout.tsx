@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ReactNode } from "react";
 
-import LobbyWrapper from "../_components/lobbyWrapper";
+import LobbyWrapper from "@/app/_components/lobbyWrapper";
 
 export const metadata: Metadata = {
   title: "Worth of Words - Lobby",
@@ -10,8 +11,9 @@ export const metadata: Metadata = {
 
 export default function LobbyLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="flex min-h-screen flex-col items-center pt-24">
+    <>
       <LobbyWrapper>{children}</LobbyWrapper>
-    </main>
+      <Script src="/snarkjs.min.js" />
+    </>
   );
 }

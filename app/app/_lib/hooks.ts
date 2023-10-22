@@ -49,15 +49,22 @@ export function usePrintChanges<T>(x: T): void {
   }
 }
 
-// Very lazy, but probably good enough. Need `useEffect` so Next doesn't try to
-// render this before the url has changed, or something.
+/**
+ * Initially undefined we don't have NextJS preload the page with an empty hash
+ * or some nonsense like that.
+ */
 export function useUrlHash(): string | undefined {
   const [hash, setHash] = useState<string>();
-
   useEffect(() => {
     setHash(window.location.hash.slice(1));
+    const handleHashChange = () => {
+      setHash(window.location.hash.slice(1));
+    };
+    window.addEventListener("hashchange", handleHashChange);
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
   }, []);
-
   return hash;
 }
 

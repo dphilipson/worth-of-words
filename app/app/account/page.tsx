@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { memo, ReactNode } from "react";
 import { useAccount } from "wagmi";
 
@@ -29,6 +30,9 @@ export default memo(function AccountPage(): ReactNode {
       <Card className="max-w-xl">
         <div className="prose">{contents}</div>
       </Card>
+      <Link className="mt-5 text-lg text-blue-900 hover:underline" href="/">
+        Return home
+      </Link>
     </main>
   );
 });

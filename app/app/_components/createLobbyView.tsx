@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { memo, ReactNode, useCallback, useState } from "react";
+import { memo, ReactNode, useCallback } from "react";
 import { Hex, zeroAddress } from "viem";
 import { useMutation } from "wagmi";
 
@@ -84,7 +84,7 @@ async function getLobbyConfig(): Promise<LobbyConfig> {
 function useNavigateToLobby(): (lobbyId: bigint) => void {
   const router = useRouter();
   return useCallback(
-    (lobbyId: bigint) => router.push(`/lobby#${lobbyId}`),
+    (lobbyId: bigint) => router.push(`/app/lobby#${lobbyId}`),
     [router],
   );
 }

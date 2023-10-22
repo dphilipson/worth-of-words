@@ -29,7 +29,6 @@ export default function RootLayout({
       >
         <AppWrapper>{children}</AppWrapper>
       </body>
-      <Script src="./snarkjs.min.js" />
     </html>
   );
 }
