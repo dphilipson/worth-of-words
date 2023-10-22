@@ -61,8 +61,11 @@ export default memo(function AccountSetupWhenConnected({
   const router = useRouter();
   const urlHash = useUrlHash();
 
+  const isAllReady =
+    (secretKey !== undefined && factoryHasDeployed) || transactionSucceeded;
+
   useEffect(() => {
-    if (transactionSucceeded) {
+    if (isAllReady) {
       if (!urlHash) {
         router.push("/");
       } else {
@@ -70,7 +73,8 @@ export default memo(function AccountSetupWhenConnected({
         router.push("/" + redirectTarget);
       }
     }
-  }, [transactionSucceeded, urlHash, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAllReady]);
 
   if (!secretKey) {
     return (
@@ -95,7 +99,7 @@ export default memo(function AccountSetupWhenConnected({
     const createAccount = () => write({ args: [publicKey] });
     return (
       <>
-        <h3>Last step! Deploy your account</h3>
+        <h3>Last step! Deploy your account!</h3>
         <p>Deploy and fund the account you will use to play Worth of Words.</p>
         <p>
           Funds sent to this account can only be used to pay for gas, and you
@@ -112,6 +116,8 @@ export default memo(function AccountSetupWhenConnected({
         </div>
       </>
     );
+  } else {
+    return <p>Logged in! Redirecting…</p>;
   }
 });
 
@@ -124,5 +130,5 @@ function loadSecretKey(address: Address): Hex | null {
 }
 
 function getSecretKeyKey(address: Address): string {
-  return `secret-key:${address}`;
+  return `worth-of-words:secret-key:${address}`;
 }

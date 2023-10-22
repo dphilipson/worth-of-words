@@ -9,6 +9,7 @@
   },
   "scripts": {
     "anvil": "anvil",
+    "deploy-for-real": "script/deploy-for-real.sh",
     "deploy-to-anvil": "forge script script/Deploy.s.sol:DeployScript --fork-url http://localhost:8545 --broadcast"
   },
   "repository": {

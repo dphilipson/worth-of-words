@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.21;
 
 import {Clones} from "@openzeppelin/contracts/proxy/Clones.sol";
 import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";

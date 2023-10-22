@@ -9,7 +9,9 @@ import {
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
 import { createConfig, WagmiConfig } from "wagmi";
-import { foundry } from "wagmi/chains";
+import { foundry, polygonMumbai } from "wagmi/chains";
+
+import { USE_ANVIL } from "../_lib/constants";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +21,7 @@ const config = createConfig(
     walletConnectProjectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
     appName: "Worth of Words",
     appUrl: "https://worthofwords.com",
-    chains: [foundry],
+    chains: [USE_ANVIL ? foundry : polygonMumbai],
   }),
 );
 

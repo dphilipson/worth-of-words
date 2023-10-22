@@ -2,6 +2,14 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+solc = "0.8.21"
+evm_version = "paris"
 via_ir = true
+
+[rpc_endpoints]
+mumbai = "${MUMBAI_RPC_URL}"
+
+[etherscan]
+mumbai = { key = "${ETHERSCAN_API_KEY}" }
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/crates/config
