@@ -1,5 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-
 import { newOneTimeLoader } from "./loading";
 
 const A_CHAR_CODE = "A".charCodeAt(0);

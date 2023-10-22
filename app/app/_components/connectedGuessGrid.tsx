@@ -28,8 +28,8 @@ export default memo(function ConnectedGuessGrid({
   }));
   const inputRows: InputRowProps[] = (() => {
     if (
-      lobby.currentPhase === Phase.COMMITING_GUESSES ||
-      (lobby.currentPhase === Phase.REVEALING_GUESSES &&
+      lobby.phase === Phase.COMMITING_GUESSES ||
+      (lobby.phase === Phase.REVEALING_GUESSES &&
         getPlayer(lobby, currentPlayerAddress).hasCommittedGuess)
     ) {
       return [

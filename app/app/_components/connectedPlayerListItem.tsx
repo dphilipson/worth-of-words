@@ -1,7 +1,7 @@
 import { memo, ReactNode } from "react";
 import { Address } from "viem";
 
-import { LobbyState, Phase, Player } from "../_lib/gameLogic";
+import { playerIsThinking } from "../_lib/gameLogic";
 import { LobbyContext, useLobby } from "../_lib/useLobby";
 import PlayerListItem, { PlayerListItemProps } from "./playerListItem";
 
@@ -13,7 +13,12 @@ export default memo(function ConnectedPlayerListItem({
   playerAddress,
 }: ConnectedPlayerListItemProps): ReactNode {
   const context = useLobby();
-  return <PlayerListItem {...playerPropsFromContext(context, playerAddress)} />;
+  return (
+    <PlayerListItem
+      className="rounded-lg shadow-xl"
+      {...playerPropsFromContext(context, playerAddress)}
+    />
+  );
 });
 
 export function playerPropsFromContext(
@@ -32,27 +37,7 @@ export function playerPropsFromContext(
     maxLives: lobby.config.numLives,
     livesLeft: player.livesLeft,
     isCurrentPlayer: playerAddress === currentPlayerAddress,
-    isThinking: isThinking(lobby, player),
+    isThinking: playerIsThinking(lobby, player),
     isEliminated: player.isEliminated,
   };
-}
-
-function isThinking(lobby: LobbyState, player: Player): boolean {
-  if (player.isEliminated) {
-    return false;
-  }
-  switch (lobby.currentPhase) {
-    case Phase.COMMITING_GUESSES:
-      return !player.hasCommittedGuess;
-    case Phase.REVEALING_GUESSES:
-      return player.hasCommittedGuess && !player.revealedGuess;
-    case Phase.REVEALING_MATCHES:
-      return !player.hasRevealedMatches;
-    case Phase.NOT_STARTED:
-    case Phase.GAME_OVER:
-      return false;
-    default:
-      // Assert never.
-      throw ((_: never) => 0)(lobby.currentPhase);
-  }
 }

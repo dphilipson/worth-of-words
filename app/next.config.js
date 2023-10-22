@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
+  reactStrictMode: false,
   webpack: (config, context) => {
     config.resolve.fallback = { fs: false, net: false, tls: false };
     if (config.plugins) {

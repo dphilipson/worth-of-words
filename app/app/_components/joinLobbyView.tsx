@@ -37,17 +37,19 @@ export default memo(function JoinLobbyView({
     [updateWords],
   );
 
-  const wordsAreValid = words.every(
-    (word) =>
-      word.length === WORD_LENGTH &&
-      !getError(word, validSecretWords, validGuessWords),
-  );
+  const inputsAreValid =
+    playerName.length > 0 &&
+    words.every(
+      (word) =>
+        word.length === WORD_LENGTH &&
+        !getError(word, validSecretWords, validGuessWords),
+    );
 
   const onConfirmClicked = useCallback(() => {
-    if (playerName.length > 0 && wordsAreValid) {
+    if (inputsAreValid) {
       onJoin(playerName, words);
     }
-  }, [wordsAreValid, onJoin, playerName, words]);
+  }, [inputsAreValid, onJoin, playerName, words]);
 
   return (
     <div className="card w-full max-w-sm bg-base-100 shadow-xl">
@@ -84,7 +86,7 @@ export default memo(function JoinLobbyView({
           <LoadingButton
             className="btn btn-primary"
             isLoading={isJoining}
-            disabled={!wordsAreValid}
+            disabled={!inputsAreValid}
             onClick={onConfirmClicked}
           >
             {isJoining ? "Joining lobby" : "Join lobby"}

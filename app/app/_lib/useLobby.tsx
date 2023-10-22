@@ -11,14 +11,19 @@ import { Address, getContract } from "viem";
 import { usePublicClient } from "wagmi";
 
 import { iWorthOfWordsABI } from "../_generated/wagmi";
-import { WORTH_OF_WORDS_ADDRESS } from "./constants";
+import {
+  POST_DEADLINE_WAIT_TIME_MS,
+  WORTH_OF_WORDS_ADDRESS,
+} from "./constants";
 import { getEventsNowAndForever as getLobbyEventsNowAndForever } from "./events";
 import {
   getUpdatedLobbyState,
   LobbyState,
   mutateLobbyState,
   newLobbyState,
+  Phase,
 } from "./gameLogic";
+import { useSetDeadline } from "./hooks";
 import { LobbyActions, LobbyActionsImpl } from "./lobbyActions";
 import { useLocalWallet } from "./localWallet";
 import { getGuessWordlist, getSecretWordlist } from "./words";
@@ -79,20 +84,85 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     staleTime: Number.POSITIVE_INFINITY,
   });
   const actionsRef = useRef<LobbyActionsImpl>();
-  if (!wallet || !lobby || !validSecretWords || !validGuessWords) {
+  const setDeadline = useSetDeadline();
+
+  if (wallet && lobby) {
+    if (actionsRef.current === undefined) {
+      actionsRef.current = new LobbyActionsImpl(lobbyId, wallet, lobby);
+    } else {
+      actionsRef.current.setLobbyState(lobby);
+    }
+  }
+  const actions = actionsRef.current;
+  const playerAddress = wallet?.address;
+  const player =
+    lobby && playerAddress && lobby.playersByAddress.get(playerAddress);
+  const hasRevealedGuess = player?.revealedGuess !== undefined;
+
+  // When the player has finished a phase, set a timeout to move on to the next
+  // phase when the deadline ends.
+  useEffect(() => {
+    if (!lobby || !actions || !player) {
+      return;
+    }
+    const deadline = lobby.phaseDeadline + POST_DEADLINE_WAIT_TIME_MS;
+    if (lobby.phase === Phase.COMMITING_GUESSES && player.hasCommittedGuess) {
+      return setDeadline(() => actions.revealGuess(), deadline);
+    } else if (lobby.phase === Phase.REVEALING_GUESSES && hasRevealedGuess) {
+      return setDeadline(() => actions.revealMatches(), deadline);
+    } else if (
+      lobby.phase === Phase.REVEALING_MATCHES &&
+      player.hasRevealedMatches
+    ) {
+      return setDeadline(() => actions.endRevealMatchesPhase(), deadline);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    actions,
+    lobby?.phaseDeadline,
+    lobby?.phase,
+    player?.hasCommittedGuess,
+    hasRevealedGuess,
+    player?.hasRevealedMatches,
+  ]);
+
+  // When the phase has advanced, take the automated phase action if we haven't
+  // already.
+  useEffect(() => {
+    if (!lobby || !actions || !player) {
+      return;
+    }
+    if (
+      lobby.phase === Phase.REVEALING_GUESSES &&
+      player.hasCommittedGuess &&
+      !hasRevealedGuess
+    ) {
+      actions.revealGuess();
+    } else if (
+      lobby.phase === Phase.REVEALING_MATCHES &&
+      !player.hasRevealedMatches
+    ) {
+      actions.revealMatches();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    actions,
+    lobby?.phase,
+    player?.hasCommittedGuess,
+    hasRevealedGuess,
+    player?.hasRevealedMatches,
+  ]);
+
+  if (!wallet || !lobby || !validSecretWords || !validGuessWords || !actions) {
     return undefined;
   }
-  if (actionsRef.current === undefined) {
-    actionsRef.current = new LobbyActionsImpl(lobbyId, wallet, lobby);
-  } else {
-    actionsRef.current.setLobbyState(lobby);
-  }
+
   return {
     playerAddress: wallet.address,
     lobby,
     validSecretWords,
     validGuessWords,
-    actions: actionsRef.current,
+    actions,
   };
 }
 

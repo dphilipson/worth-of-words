@@ -103,6 +103,10 @@ interface WorthOfWordsTypes {
         uint32 newGreenCount,
         uint32 pointsAwarded
     );
+    event PlayerAdvancedWithNoAttackers(
+        LobbyId indexed lobbyId,
+        address indexed player
+    );
     event SecretWordFound(
         LobbyId indexed lobbyId,
         address indexed player,

@@ -1,4 +1,5 @@
 import { produce } from "immer";
+import { chainFrom } from "transducist";
 import { Address, Hex } from "viem";
 
 import { LobbyEvent } from "./events";
@@ -10,7 +11,7 @@ export interface LobbyState {
   nextRoundPlayerSet: Set<Address>;
   targetOffsets: number[];
   roundNumber: number;
-  currentPhase: Phase;
+  phase: Phase;
   phaseDeadline: number;
 }
 
@@ -75,7 +76,7 @@ export function newLobbyState(config: LobbyConfig): LobbyState {
     nextRoundPlayerSet: new Set(),
     targetOffsets: [],
     roundNumber: 0,
-    currentPhase: Phase.NOT_STARTED,
+    phase: Phase.NOT_STARTED,
     phaseDeadline: 0,
   };
 }
@@ -116,6 +117,22 @@ function mutateLobbyStateSingleEvent(
     }
   }
 
+  function finishRound(): void {
+    for (const player of state.playersByAddress.values()) {
+      mutateIfFullyGuessedSecret(player);
+      if (!state.nextRoundPlayerSet.has(player.address)) {
+        player.isEliminated = true;
+      }
+      player.hasCommittedGuess = false;
+      player.revealedGuess = undefined;
+      player.hasRevealedMatches = false;
+      player.fullyRevealedSecret = undefined;
+    }
+    state.currentRoundPlayerOrder = [...state.nextRoundPlayerSet];
+    state.nextRoundPlayerSet.clear();
+    state.roundNumber++;
+  }
+
   switch (event.eventName) {
     case "LobbyCreated":
       return;
@@ -141,25 +158,13 @@ function mutateLobbyStateSingleEvent(
       return;
     case "NewRound": {
       const { targetOffsets } = event.args;
-      for (const player of state.playersByAddress.values()) {
-        mutateIfFullyGuessedSecret(player);
-        if (!state.nextRoundPlayerSet.has(player.address)) {
-          player.isEliminated = true;
-        }
-        player.hasCommittedGuess = false;
-        player.revealedGuess = undefined;
-        player.hasRevealedMatches = false;
-        player.fullyRevealedSecret = undefined;
-      }
-      state.currentRoundPlayerOrder = [...state.nextRoundPlayerSet];
-      state.nextRoundPlayerSet.clear();
-      state.roundNumber++;
+      finishRound();
       state.targetOffsets = targetOffsets as number[];
       return;
     }
     case "NewPhase": {
       const { phase, deadline } = event.args;
-      state.currentPhase = phase;
+      state.phase = phase;
       state.phaseDeadline = deadline * 1000;
       return;
     }
@@ -175,7 +180,7 @@ function mutateLobbyStateSingleEvent(
     }
     case "MatchesRevealed": {
       const {
-        attacker,
+        attacker: attackerAddress,
         defender: defenderAddress,
         guess,
         matches: rawMatches,
@@ -189,11 +194,13 @@ function mutateLobbyStateSingleEvent(
       // continue to show information about the current word and, unlike the
       // backend, the guesses are revealed in separate events for each attacker
       // instead of all in one transaction.
-      getPlayer(attacker).score += pointsAwarded;
+      const attacker = getPlayer(attackerAddress);
+      attacker.hasRevealedMatches = true;
+      attacker.score += pointsAwarded;
       const matches = rawMatches as unknown as Color[];
       const defender = getPlayer(defenderAddress);
       defender.matchHistory.push({
-        attacker,
+        attacker: attackerAddress,
         guess,
         matches,
         newYellowCount,
@@ -206,10 +213,18 @@ function mutateLobbyStateSingleEvent(
       state.nextRoundPlayerSet.add(defenderAddress);
       return;
     }
+    case "PlayerAdvancedWithNoAttackers": {
+      const { player } = event.args;
+      getPlayer(player).hasRevealedMatches = true;
+      state.nextRoundPlayerSet.add(player);
+      return;
+    }
     case "SecretWordFound":
     case "PlayerEliminated":
       return;
     case "GameEnded": {
+      finishRound();
+      state.phase = Phase.GAME_OVER;
       return;
     }
     default:
@@ -261,4 +276,35 @@ function getPlayerAtOffset(
       (playerIndex + numPlayers + offset) % numPlayers
     ];
   return getPlayer(state, address);
+}
+
+export function playerIsThinking(lobby: LobbyState, player: Player): boolean {
+  if (player.isEliminated) {
+    return false;
+  }
+  switch (lobby.phase) {
+    case Phase.COMMITING_GUESSES:
+      return !player.hasCommittedGuess;
+    case Phase.REVEALING_GUESSES:
+      return player.hasCommittedGuess && !player.revealedGuess;
+    case Phase.REVEALING_MATCHES:
+      return !player.hasRevealedMatches;
+    case Phase.NOT_STARTED:
+    case Phase.GAME_OVER:
+      return false;
+    default:
+      // Assert never.
+      throw ((_: never) => 0)(lobby.phase);
+  }
+}
+
+export function getPlayersDoneWithPhaseCount(lobby: LobbyState): number {
+  return chainFrom(lobby.currentRoundPlayerOrder)
+    .map((address) => getPlayer(lobby, address))
+    .filter((player) => !playerIsThinking(lobby, player))
+    .count();
+}
+
+export function getLivePlayerCount(lobby: LobbyState): number {
+  return lobby.currentRoundPlayerOrder.length;
 }

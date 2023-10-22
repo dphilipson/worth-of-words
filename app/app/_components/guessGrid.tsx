@@ -48,7 +48,7 @@ const GuessRow = memo(function GuessRow({
     <div
       className={clsx(
         "flex space-x-1.5",
-        isFromCurrentPlayer && "border-l-8 border-l-primary pl-4",
+        isFromCurrentPlayer && "-ml-2 border-l-4 border-l-primary pl-1",
       )}
     >
       {colors.map((color, i) => (
@@ -91,7 +91,7 @@ const GuessSquare = memo(function GuessSquare({
   const bgColor = backgroundClassForColor(color);
   return (
     <div
-      className={`flex h-12 w-12 items-center justify-center text-base-100 ${bgColor}`}
+      className={`flex h-12 w-12 items-center justify-center text-base-100 ${bgColor} shadow-sm`}
     >
       {letter}
     </div>
@@ -120,7 +120,7 @@ const InputSquare = memo(function InputSquare({
   return (
     <div
       className={clsx(
-        "flex h-12 w-12 items-center justify-center border-2 bg-base-100",
+        "flex h-12 w-12 items-center justify-center border-2 bg-base-100 shadow-lg",
         borderColor,
         textColor,
       )}

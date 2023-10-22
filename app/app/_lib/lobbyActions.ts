@@ -10,7 +10,11 @@ import { iWorthOfWordsABI } from "../_generated/wagmi";
 import { getAttackers, LobbyState } from "./gameLogic";
 import { getGuessWordMerkleTree, getSecretWordMerkleTree } from "./merkle";
 import { getLobbyPassword } from "./password";
-import { getScoreGuessProver, getValidWordProver } from "./proofs";
+import {
+  getScoreGuessProver,
+  getValidWordProver,
+  ProofCallData,
+} from "./proofs";
 import { randomUint256 } from "./random";
 import { wordToLetters, wordToNumber } from "./words";
 
@@ -67,19 +71,19 @@ export class LobbyActionsImpl implements LobbyActions {
       word,
       salt: randomUint256(),
     }));
-    const proofs = await Promise.all(
-      secrets.map(({ word, salt }) => {
-        const merkleProof = tree.getProof(word);
-        if (merkleProof === undefined) {
-          throw new Error("Could not generate proof. Invalid word: " + word);
-        }
-        return prover({
-          word: wordToNumber(word),
-          salt: salt.toString(),
-          ...merkleProof,
-        });
-      }),
-    );
+    const proofs: ProofCallData[] = [];
+    for (const { word, salt } of secrets) {
+      const merkleProof = tree.getProof(word);
+      if (merkleProof === undefined) {
+        throw new Error("Could not generate proof. Invalid word: " + word);
+      }
+      const proof = await prover({
+        word: wordToNumber(word),
+        salt: salt.toString(),
+        ...merkleProof,
+      });
+      proofs.push(proof);
+    }
     this.storeSecretWordsAndSalts(secrets);
     return this.wallet.send(
       encodeFunctionData({
@@ -138,29 +142,37 @@ export class LobbyActionsImpl implements LobbyActions {
     const currentWordIndex =
       this.state.config.numLives -
       this.state.playersByAddress.get(this.wallet.address)!.livesLeft;
-    const proofs = await Promise.all(
-      attackers.map(async (attacker) => {
-        if (attacker.revealedGuess === undefined) {
-          const o = BigInt(0);
-          return {
-            _pA: [o, o],
-            _pB: [
-              [o, o],
-              [o, o],
-            ],
-            _pC: [o, o],
-            _pubSignals: [o, o, o, o, o, o, o, o, o, o, o],
-          } as const;
-        }
-        const prover = await getScoreGuessProver();
-        const { word, salt } = this.loadSecretWordsAndSalts()[currentWordIndex];
-        return prover({
-          word: wordToLetters(word),
-          salt: salt.toString(),
-          guess: wordToLetters(attacker.revealedGuess),
+    // Do NOT compute proofs concurrently. The prover will give bad results.
+    const proofs: ProofCallData[] = [];
+    for (const attacker of attackers) {
+      // const proofs = await Promise.all(
+      //   attackers.map(async (attacker) => {
+      if (attacker.revealedGuess === undefined) {
+        const o = BigInt(0);
+        proofs.push({
+          _pA: [o, o],
+          _pB: [
+            [o, o],
+            [o, o],
+          ],
+          _pC: [o, o],
+          _pubSignals: [o, o, o, o, o, o, o, o, o, o, o],
         });
-      }),
-    );
+        continue;
+      }
+      const prover = await getScoreGuessProver();
+      const { word, salt } = this.loadSecretWordsAndSalts()[currentWordIndex];
+
+      const proof = await prover({
+        word: wordToLetters(word),
+        salt: salt.toString(),
+        guess: wordToLetters(attacker.revealedGuess),
+      });
+      console.log({ word, salt, guess: attacker.revealedGuess, proof });
+      // return proof;
+      proofs.push(proof);
+    }
+    console.log({ proofs });
     this.wallet.send(
       encodeFunctionData({
         abi: iWorthOfWordsABI,

@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   description: "It's a word-guessing battle royale!",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return <LobbyWrapper>{children}</LobbyWrapper>;
+export default function LobbyLayout({ children }: { children: ReactNode }) {
+  return (
+    <main className="flex min-h-screen flex-col items-center pt-24">
+      <LobbyWrapper>{children}</LobbyWrapper>
+    </main>
+  );
 }

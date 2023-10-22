@@ -7,20 +7,24 @@ import ConnectedPlayerListItem from "./connectedPlayerListItem";
 
 export interface TargetsViewProps {
   currentInput: string;
+  onHoverChange(index: number | undefined): void;
 }
 
 export default memo(function TargetsView({
   currentInput,
+  onHoverChange,
 }: TargetsViewProps): ReactNode {
   const { playerAddress, lobby } = useLobby();
   const defenders = getDefenders(lobby, playerAddress);
   return (
-    <div className="flex w-full justify-around">
-      {defenders.map((defender) => {
+    <div className="flex w-full justify-between">
+      {defenders.map((defender, i) => {
         return (
           <div
             key={defender.address}
             className="flex w-full max-w-xs flex-col items-center space-y-4"
+            onMouseEnter={() => onHoverChange(i)}
+            onMouseLeave={() => onHoverChange(undefined)}
           >
             <ConnectedPlayerListItem playerAddress={defender.address} />
             <ConnectedGuessGrid

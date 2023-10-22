@@ -39,6 +39,13 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         Word guess;
     }
 
+    // Used in-memory to avoid a stack-too-deep error.
+    struct AttackAccumulator {
+        MatchHistory history;
+        string revealedSecretWord;
+        bool wasAttacked;
+    }
+
     uint32 private constant NUM_TARGETS = 3;
     // Sentinel value to save gas by not repeatedly setting to zero and back.
     bytes32 private constant NO_GUESS_COMMITMENT = bytes32(uint256(1));
@@ -276,33 +283,33 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         }
 
         // Handle each attacker in sequence.
-        MatchHistory accumulatedHistory = player.matchHistory;
-        string memory revealedSecretWord;
+        AttackAccumulator memory accumulator = AttackAccumulator({
+            history: player.matchHistory,
+            revealedSecretWord: "",
+            wasAttacked: false
+        });
         for (uint32 i = 0; i < offsets.length; i++) {
-            (
-                MatchHistory newAccumulatedHistory,
-                string memory newRevealedSecretWord
-            ) = _handleAttack(
-                    lobby,
-                    lobbyId,
-                    player,
-                    offsets[i],
-                    proofs[i],
-                    i,
-                    accumulatedHistory
-                );
-            accumulatedHistory = newAccumulatedHistory;
-            if (bytes(newRevealedSecretWord).length > 0) {
-                revealedSecretWord = newRevealedSecretWord;
-            }
+            _handleAttack(
+                lobby,
+                lobbyId,
+                player,
+                offsets[i],
+                proofs[i],
+                i,
+                accumulator
+            );
+        }
+        player.matchHistory = accumulator.history;
+        if (!accumulator.wasAttacked) {
+            emit PlayerAdvancedWithNoAttackers(lobbyId, msg.sender);
         }
         bool playerIsEliminated;
-        if (bytes(revealedSecretWord).length > 0) {
+        if (bytes(accumulator.revealedSecretWord).length > 0) {
             playerIsEliminated = _handleSecretWordFound(
                 lobby,
                 lobbyId,
                 player,
-                revealedSecretWord
+                accumulator.revealedSecretWord
             );
         }
         if (!playerIsEliminated) {
@@ -396,22 +403,17 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         uint32 offset,
         ScoreGuessProof calldata proof,
         uint32 proofIndex,
-        MatchHistory accumulatedHistory
-    )
-        private
-        returns (
-            MatchHistory newAccumulatedHistory,
-            string memory revealedSecretWord
-        )
-    {
+        AttackAccumulator memory accumulator
+    ) private {
         (
             address attackerAddress,
             Player storage attacker
         ) = _getAttackerForOffset(lobby, _getCurrentPlayerIndex(lobby), offset);
         if (attacker.roundForGuessPlusOne != lobby.roundNumber + 1) {
             // Attacker didn't reveal a guess this round.
-            return (accumulatedHistory, "");
+            return;
         }
+        accumulator.wasAttacked = true;
         uint32[5] memory guessLetters = attacker.guess.toLetters();
         _verifyMatches(player, proof, proofIndex, attacker.guess, guessLetters);
         Color[5] memory matches = _getMatchesFromProof(proof);
@@ -425,9 +427,9 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         string memory guessAsString = attacker.guess.toString();
         if (_isFullMatch(matches)) {
             reward += lobby.config.pointsForFullWord;
-            revealedSecretWord = guessAsString;
+            accumulator.revealedSecretWord = guessAsString;
         }
-        newAccumulatedHistory = accumulatedHistory.accumulateMatches(
+        accumulator.history = accumulator.history.accumulateMatches(
             guessLetters,
             matches
         );

@@ -114,7 +114,7 @@ const ColoredKey = memo(function ColoredKey({
     return (
       <div
         className={clsx(
-          "flex h-14 w-11 cursor-pointer items-center justify-center rounded-lg text-white",
+          "flex h-14 w-11 cursor-pointer items-center justify-center rounded-lg text-white shadow-xl",
           backgroundClassForColor(fullColor),
         )}
         onClick={onClick}
@@ -125,7 +125,7 @@ const ColoredKey = memo(function ColoredKey({
   } else {
     return (
       <div
-        className="relative flex h-14 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-gray-300 text-black"
+        className="relative flex h-14 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-gray-300 text-black shadow-xl"
         onClick={onClick}
       >
         <div className="absolute top-0 flex w-full space-x-0.5">
@@ -159,7 +159,7 @@ const MetaKey = memo(function MetaKey({
   const onClick = useCallback(() => onKey(keyCode), [onKey, keyCode]);
   return (
     <div
-      className="flex h-14 w-24 cursor-pointer items-center justify-center rounded-lg bg-gray-300 text-black"
+      className="flex h-14 w-24 cursor-pointer items-center justify-center rounded-lg bg-gray-300 text-black shadow-xl"
       onClick={onClick}
     >
       {text}
