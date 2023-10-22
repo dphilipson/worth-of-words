@@ -1,7 +1,11 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ConnectKitProvider, getDefaultConfig } from "connectkit";
+import {
+  ConnectKitButton,
+  ConnectKitProvider,
+  getDefaultConfig,
+} from "connectkit";
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
 import { createConfig, WagmiConfig } from "wagmi";
@@ -44,6 +48,9 @@ export default function AppWrapper({
     <QueryClientProvider client={queryClient}>
       <WagmiConfig config={config}>
         <ConnectKitProvider>
+          <div className="absolute right-4 top-4">
+            <ConnectKitButton />
+          </div>
           {children}
           <ReactQueryDevtools initialIsOpen={false} />
         </ConnectKitProvider>

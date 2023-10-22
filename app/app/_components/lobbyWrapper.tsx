@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { memo, ReactNode, useEffect, useState } from "react";
 
+import { useUrlHash } from "../_lib/hooks";
 import { LobbyProvider } from "../_lib/useLobby";
 
 export interface LobbyWrapperProps {
@@ -31,18 +32,6 @@ export default memo(function LobbyWrapper({
     </LobbyProvider>
   );
 });
-
-// Very lazy, but probably good enough. Need `useEffect` so Next doesn't try to
-// render this before the url has changed, or something.
-function useUrlHash(): string | undefined {
-  const [hash, setHash] = useState<string>();
-
-  useEffect(() => {
-    setHash(window.location.hash.slice(1));
-  }, []);
-
-  return hash;
-}
 
 function parseBigInt(s: string | undefined): bigint | undefined {
   if (s === undefined || s.length === 0) {

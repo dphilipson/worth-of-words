@@ -26,11 +26,15 @@ contract MinionAccountFactory {
         minion.initialize{value: msg.value}(msg.sender, publicKey);
     }
 
-    function getAddressForOwner(address owner) external view returns (address) {
+    function getAddress(address owner) public view returns (address) {
         return
             Clones.predictDeterministicAddress(
                 address(accountImplementation),
                 bytes32(uint256(uint160(owner)))
             );
+    }
+
+    function hasDeployed(address owner) external view returns (bool) {
+        return getAddress(owner).code.length > 0;
     }
 }

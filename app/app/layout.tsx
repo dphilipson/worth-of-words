@@ -23,7 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={clsx(
-          "bg-gradient-to-br from-purple-400 to-blue-400",
+          "min-h-screen bg-gradient-to-br from-purple-400 to-blue-400",
           inter.className,
         )}
       >

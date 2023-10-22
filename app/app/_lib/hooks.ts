@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export function useSetDeadline(): (
   fn: () => void,
@@ -47,4 +47,29 @@ export function usePrintChanges<T>(x: T): void {
   if (previous !== x) {
     console.log("Change:", previous, x);
   }
+}
+
+// Very lazy, but probably good enough. Need `useEffect` so Next doesn't try to
+// render this before the url has changed, or something.
+export function useUrlHash(): string | undefined {
+  const [hash, setHash] = useState<string>();
+
+  useEffect(() => {
+    setHash(window.location.hash.slice(1));
+  }, []);
+
+  return hash;
+}
+
+/**
+ * Returns true after the first render. Used as a hack to hide elements from SSR
+ * if it doesn't make sense to render them into the page (e.g. if they look very
+ * different depending on client-side state).
+ */
+export function useHasMounted(): boolean {
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+  return hasMounted;
 }
