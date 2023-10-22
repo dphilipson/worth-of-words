@@ -17,7 +17,7 @@ export default memo(function TargetsView({
   const { playerAddress, lobby } = useLobby();
   const defenders = getDefenders(lobby, playerAddress);
   return (
-    <div className="flex w-full justify-between">
+    <div className="flex w-full justify-around">
       {defenders.map((defender, i) => {
         return (
           <div

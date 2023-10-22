@@ -111,6 +111,7 @@ function mutateLobbyStateSingleEvent(
     }
     player.revealedSecrets.push(player.fullyRevealedSecret);
     player.livesLeft--;
+    player.matchHistory = [];
     if (player.livesLeft === 0) {
       player.isEliminated = true;
       state.nextRoundPlayerSet.delete(player.address);

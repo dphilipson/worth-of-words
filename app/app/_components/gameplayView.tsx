@@ -88,7 +88,7 @@ export default memo(function GameplayView(): ReactNode {
   return (
     <>
       {isInputtingGuess && <KeyboardCapture onKey={onKey} />}
-      <div className="min-h-[400px]">
+      <div className="min-h-[400px] w-full">
         <TargetsView
           currentInput={input}
           onHoverChange={setSelectedTargetIndex}
