@@ -28,7 +28,7 @@ export const MINION_FACTORY_ADDRESS = USE_ANVIL
   : DEPLOYED_MINION_FACTORY_ADDRESS;
 export const POST_DEADLINE_WAIT_TIME_MS = 4000;
 export const SECRET_GENERATING_MESSAGE =
-  "Grant this website permission to make Worth of Words moves on your behalf?";
+  "Grant this website permission to make Worth of Words moves on your behalf.";
 export const PREFUND_VALUE = "0.2";
 // Default is 50. Make this big so demo runs smoothly, since we don't have real
 // error handling.

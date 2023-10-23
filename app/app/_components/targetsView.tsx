@@ -1,6 +1,6 @@
-import { memo, ReactNode } from "react";
+import { memo, ReactNode, useMemo } from "react";
 
-import { getDefenders } from "../_lib/gameLogic";
+import { getDefenders, Player } from "../_lib/gameLogic";
 import { useLobby } from "../_lib/useLobby";
 import ConnectedGuessGrid from "./connectedGuessGrid";
 import ConnectedPlayerListItem from "./connectedPlayerListItem";
@@ -15,10 +15,14 @@ export default memo(function TargetsView({
   onHoverChange,
 }: TargetsViewProps): ReactNode {
   const { playerAddress, lobby } = useLobby();
-  const defenders = getDefenders(lobby, playerAddress);
+  const sortedDefenders = useMemo(() => {
+    const defenders = getDefenders(lobby, playerAddress);
+    defenders.sort(defenderComparator);
+    return defenders;
+  }, [lobby, playerAddress]);
   return (
     <div className="flex w-full justify-around">
-      {defenders.map((defender, i) => {
+      {sortedDefenders.map((defender, i) => {
         return (
           <div
             key={defender.address}
@@ -38,3 +42,10 @@ export default memo(function TargetsView({
     </div>
   );
 });
+
+function defenderComparator(a: Player, b: Player): number {
+  if (a.name !== b.name) {
+    return a.name < b.name ? -1 : 1;
+  }
+  return a.address < b.address ? -1 : 1;
+}
