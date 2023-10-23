@@ -1,10 +1,12 @@
 "use client";
 import clsx from "clsx";
-import { memo, ReactNode, useCallback, useState } from "react";
+import { memo, ReactNode, useCallback, useMemo, useState } from "react";
 import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
+import { copyToClipboard } from "../_lib/clipboard";
 import { WORD_LENGTH } from "../_lib/constants";
+import Card from "./card";
 import LoadingButton from "./loadingButton";
 import TextInput from "./textInput";
 
@@ -26,6 +28,12 @@ export default memo(function JoinLobbyView({
   const [playerName, setPlayerName] = useState("");
   const [words, updateWords] = useImmer(() =>
     chainFrom(repeat("", numSecrets)).toArray(),
+  );
+  const [copiedInvite, setCopiedInvite] = useState(false);
+
+  const validSecretWordlist = useMemo(
+    () => [...validSecretWords],
+    [validSecretWords],
   );
 
   const onChange = useCallback(
@@ -51,46 +59,59 @@ export default memo(function JoinLobbyView({
     }
   }, [inputsAreValid, onJoin, playerName, words]);
 
+  const copyInviteLink = useCallback(() => {
+    copyToClipboard(location.href);
+    setCopiedInvite(true);
+  }, []);
+
   return (
-    <div className="card w-full max-w-sm bg-base-100 shadow-xl">
-      <div className="card-body">
-        <h2 className="card-title">Join Lobby</h2>
-        <div className="form-control max-w-xs">
-          <label className="label">
-            <span className="label-text">Player name</span>
-          </label>
-          <TextInput
-            className="input input-bordered"
-            placeholder="Ana Steele"
-            value={playerName}
-            onValueChange={setPlayerName}
-          />
-          <h2 className="card-title mt-4">Secret words</h2>
-          <p className="mb-4">
-            Choose your secret words. Other players will try to guess these!
-          </p>
-          {chainFrom(range(numSecrets))
-            .map((i) => (
-              <SecretInput
-                key={i}
-                validSecretWords={validSecretWords}
-                validGuessWords={validGuessWords}
-                index={i}
-                value={words[i]}
-                onChange={onChange}
-              />
-            ))
-            .toArray()}
-        </div>
-        <div className="card-actions justify-end">
-          <LoadingButton
-            className="btn btn-primary"
-            isLoading={isJoining}
-            disabled={!inputsAreValid}
-            onClick={onConfirmClicked}
-          >
-            {isJoining ? "Joining lobby" : "Join lobby"}
-          </LoadingButton>
+    <div className="flex w-full flex-col items-center space-y-10">
+      <Card className="w-full max-w-xl px-2 py-2">
+        <button className="btn btn-ghost text-primary" onClick={copyInviteLink}>
+          {copiedInvite ? "Copied invite!" : "Copy lobby invite link"}
+        </button>
+      </Card>
+      <div className="card w-full max-w-sm bg-base-100 shadow-xl">
+        <div className="card-body">
+          <h2 className="card-title">Join Lobby</h2>
+          <div className="form-control max-w-xs">
+            <label className="label">
+              <span className="label-text">Player name</span>
+            </label>
+            <TextInput
+              className="input input-bordered"
+              placeholder="Ana Steele"
+              value={playerName}
+              onValueChange={setPlayerName}
+            />
+            <h2 className="card-title mt-4">Secret words</h2>
+            <p className="mb-4">
+              Choose your secret words. Other players will try to guess these!
+            </p>
+            {chainFrom(range(numSecrets))
+              .map((i) => (
+                <SecretInput
+                  key={i}
+                  validSecretWords={validSecretWords}
+                  validGuessWords={validGuessWords}
+                  validSecretWordlist={validSecretWordlist}
+                  index={i}
+                  value={words[i]}
+                  onChange={onChange}
+                />
+              ))
+              .toArray()}
+          </div>
+          <div className="card-actions justify-end">
+            <LoadingButton
+              className="btn btn-primary"
+              isLoading={isJoining}
+              disabled={!inputsAreValid}
+              onClick={onConfirmClicked}
+            >
+              {isJoining ? "Joining lobby" : "Join lobby"}
+            </LoadingButton>
+          </div>
         </div>
       </div>
     </div>
@@ -100,6 +121,7 @@ export default memo(function JoinLobbyView({
 interface SecretInputProps {
   validSecretWords: Set<string>;
   validGuessWords: Set<string>;
+  validSecretWordlist: string[];
   index: number;
   value: string;
   onChange(value: string, index: number): void;
@@ -108,6 +130,7 @@ interface SecretInputProps {
 const SecretInput = memo(function SecretInput({
   validSecretWords,
   validGuessWords,
+  validSecretWordlist,
   index,
   value,
   onChange,
@@ -121,21 +144,34 @@ const SecretInput = memo(function SecretInput({
     [onChange, index],
   );
 
+  const useRandom = useCallback(
+    () => onValueChange(chooseRandom(validSecretWordlist)),
+    [onValueChange, validSecretWordlist],
+  );
+
   const error = getError(value, validSecretWords, validGuessWords);
   const isValid = !error && value.length === WORD_LENGTH;
 
   return (
     <>
-      <TextInput
-        placeholder={`Secret word ${index + 1}`}
-        className={clsx(
-          "input input-bordered font-medium",
-          error && "border-error text-red-700",
-          isValid && "border-success text-green-700",
-        )}
-        value={value}
-        onValueChange={onValueChange}
-      />
+      <div className="flex items-center space-x-2">
+        <TextInput
+          placeholder={`Secret word ${index + 1}`}
+          className={clsx(
+            "input input-bordered font-medium",
+            error && "border-error text-red-700",
+            isValid && "border-success text-green-700",
+          )}
+          value={value}
+          onValueChange={onValueChange}
+        />
+        <button
+          className="btn btn-ghost btn-sm text-gray-500"
+          onClick={useRandom}
+        >
+          Random
+        </button>
+      </div>
       <label className="label">
         <span
           className={clsx("label-text-alt text-error", !error && "invisible")}
@@ -163,4 +199,10 @@ function getError(
   } else {
     return "Not a word.";
   }
+}
+
+// Assumes `xs` is not empty.
+function chooseRandom<T>(xs: T[]): T {
+  const index = (Math.random() * xs.length) | 0;
+  return xs[index];
 }

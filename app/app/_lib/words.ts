@@ -24,7 +24,7 @@ export function wordToLetters(word: string): number[] {
 
 function newWordlistLoader(listName: string): () => Promise<string[]> {
   return newOneTimeLoader(async () => {
-    const response = await fetch(`./${listName}.txt`);
+    const response = await fetch(`/${listName}.txt`);
     const text = await response.text();
     return text.split("\n").filter((s) => s.length > 0);
   });

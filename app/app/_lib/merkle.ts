@@ -19,7 +19,7 @@ export const getSecretWordMerkleTree = newOneTimeLoader(
       loadSecretTree(),
     ]);
     return new MerkleTree(wordlist, tree);
-  }
+  },
 );
 
 export const getGuessWordMerkleTree = newOneTimeLoader(loadGuessTree);
@@ -58,12 +58,12 @@ export class MerkleTree {
 }
 
 async function loadSecretTree(): Promise<string[]> {
-  const response = await fetch("./generated/secret-wordlist-tree.json");
+  const response = await fetch("/generated/secret-wordlist-tree.json");
   return response.json();
 }
 
 async function loadGuessTree(): Promise<StandardMerkleTree<[number]>> {
-  const response = await fetch("./generated/guess-wordlist-tree.json");
+  const response = await fetch("/generated/guess-wordlist-tree.json");
   const json = await response.json();
   return StandardMerkleTree.load(json);
 }
