@@ -196,10 +196,10 @@ function mutateLobbyStateSingleEvent(
       // backend, the guesses are revealed in separate events for each attacker
       // instead of all in one transaction.
       const attacker = getPlayer(attackerAddress);
-      attacker.hasRevealedMatches = true;
       attacker.score += pointsAwarded;
       const matches = rawMatches as unknown as Color[];
       const defender = getPlayer(defenderAddress);
+      defender.hasRevealedMatches = true;
       defender.matchHistory.push({
         attacker: attackerAddress,
         guess,

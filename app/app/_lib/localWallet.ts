@@ -26,11 +26,15 @@ export function useLocalWallet(): WalletLike | undefined {
     setWallet({
       address: account.address,
       send: async (data) => {
-        await client.sendTransaction({
+        const tx = await client.prepareTransactionRequest({
           account,
           to: WORTH_OF_WORDS_ADDRESS,
           data,
         });
+        if (tx.gas !== undefined) {
+          tx.gas *= BigInt(2);
+        }
+        await client.sendTransaction(tx);
       },
     });
     console.log("Using Anvil address:", account.address);

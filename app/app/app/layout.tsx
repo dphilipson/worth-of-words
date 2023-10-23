@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function LobbyLayout({ children }: { children: ReactNode }) {
   return (
-    <main className="flex min-h-screen flex-col items-center pt-24">
+    <main className="flex min-h-screen flex-col items-center pt-16">
       {children}
     </main>
   );

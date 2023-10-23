@@ -128,17 +128,19 @@ const ColoredKey = memo(function ColoredKey({
         className="relative flex h-14 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-gray-300 text-black shadow-xl"
         onClick={onClick}
       >
-        <div className="absolute top-0 flex w-full space-x-0.5">
-          {colors.map((color, i) => (
-            <div
-              key={i}
-              className={clsx(
-                "h-4 flex-1 rounded-sm",
-                backgroundClassForColor(color),
-              )}
-            />
-          ))}
-        </div>
+        {selectedIndex === undefined && (
+          <div className="absolute top-0 flex w-full space-x-0.5">
+            {colors.map((color, i) => (
+              <div
+                key={i}
+                className={clsx(
+                  "h-4 flex-1 rounded-sm",
+                  backgroundClassForColor(color),
+                )}
+              />
+            ))}
+          </div>
+        )}
         {letter}
       </div>
     );

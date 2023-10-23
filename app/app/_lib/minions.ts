@@ -111,17 +111,25 @@ function newMinionWallet(accountAddress: Address, privateKey: Hex): WalletLike {
     }),
     FEE_BUFFER_PERCENT,
     FEE_BUFFER_PERCENT,
-  ).connect(
-    (rpcClient) =>
-      new MinionSmartContractAccount({
-        accountAddress,
-        entryPointAddress: ENTRY_POINT_ADDRESS,
-        chain: rpcClient.chain,
-        privateKey,
-        factoryAddress: MINION_FACTORY_ADDRESS,
-        rpcClient,
-      }),
-  );
+  )
+    // Double the call gas limit to be safe for demos.
+    .withCustomMiddleware(async (struct) => {
+      return {
+        ...struct,
+        callGasLimit: BigInt((await struct.callGasLimit)!) * BigInt(2),
+      };
+    })
+    .connect(
+      (rpcClient) =>
+        new MinionSmartContractAccount({
+          accountAddress,
+          entryPointAddress: ENTRY_POINT_ADDRESS,
+          chain: rpcClient.chain,
+          privateKey,
+          factoryAddress: MINION_FACTORY_ADDRESS,
+          rpcClient,
+        }),
+    );
   return {
     address: accountAddress,
     send: async (data) => {

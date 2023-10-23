@@ -11,6 +11,9 @@ import { usePrevious } from "../_lib/hooks";
 import { useLobby } from "../_lib/useLobby";
 import Card from "./card";
 import ConnectedColoredKeyboard from "./connectedColoredKeyboard";
+import ConnectedGuessGrid from "./connectedGuessGrid";
+import ConnectedPlayerList from "./connectedPlayerList";
+import ConnectedPlayerListItem from "./connectedPlayerListItem";
 import { Countdown } from "./countdown";
 import GameOverView from "./gameOverView";
 import KeyboardCapture from "./keyboardCapture";
@@ -66,13 +69,13 @@ export default memo(function GameplayView(): ReactNode {
       );
     } else if (lobby.phase === Phase.REVEALING_GUESSES) {
       return (
-        <p className="mt-2 text-gray-700">
+        <p className="text-gray-700">
           Revealing guesses {getWaitingPlayerText()}
         </p>
       );
     } else if (lobby.phase === Phase.REVEALING_MATCHES) {
       return (
-        <p className="mt-2 text-gray-700">
+        <p className="text-gray-700">
           Revealing matches {getWaitingPlayerText()}
         </p>
       );
@@ -94,12 +97,27 @@ export default memo(function GameplayView(): ReactNode {
           onHoverChange={setSelectedTargetIndex}
         />
       </div>
-      <Card className="flex flex-col items-center">{statusComponent}</Card>
-      <div className={clsx("mt-10", !isInputtingGuess && "opacity-30")}>
-        <ConnectedColoredKeyboard
-          selectedIndex={selectedTargetIndex}
-          onKey={onKey}
-        />
+      <Card className="my-10 flex flex-col items-center">
+        {statusComponent}
+      </Card>
+      <div className="my-10 flex w-full justify-center px-8">
+        {/* <div className="flex w-full max-w-xs  flex-col items-center space-y-4">
+          <ConnectedPlayerListItem playerAddress={playerAddress} />
+          <ConnectedGuessGrid
+            playerAddress={playerAddress}
+            currentInput=""
+            isSelfGrid={true}
+          />
+        </div> */}
+        <div className={clsx(!isInputtingGuess && "opacity-30")}>
+          <ConnectedColoredKeyboard
+            selectedIndex={selectedTargetIndex}
+            onKey={onKey}
+          />
+        </div>
+        {/* <div>
+          <ConnectedPlayerList />
+        </div> */}
       </div>
     </>
   );

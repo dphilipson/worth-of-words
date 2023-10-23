@@ -128,6 +128,7 @@ export class LobbyActionsImpl implements LobbyActions {
   }
 
   public async revealMatches(): Promise<void> {
+    console.log("REVEALING MATCHES");
     const attackers = getAttackers(this.state, this.wallet.address);
     const currentWordIndex =
       this.state.config.numLives -
@@ -158,11 +159,9 @@ export class LobbyActionsImpl implements LobbyActions {
         salt: salt.toString(),
         guess: wordToLetters(attacker.revealedGuess),
       });
-      console.log({ word, salt, guess: attacker.revealedGuess, proof });
-      // return proof;
       proofs.push(proof);
     }
-    console.log({ proofs });
+    console.log("SENDING MATCHES");
     this.wallet.send(
       encodeFunctionData({
         abi: iWorthOfWordsABI,

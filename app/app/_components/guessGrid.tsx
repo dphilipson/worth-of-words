@@ -15,6 +15,7 @@ export interface ScoredRowProps {
   word: string;
   colors: Color[];
   isFromCurrentPlayer: boolean;
+  isSelfGrid: boolean;
 }
 
 export interface InputRowProps {
@@ -43,6 +44,7 @@ const GuessRow = memo(function GuessRow({
   word,
   colors,
   isFromCurrentPlayer,
+  isSelfGrid,
 }: ScoredRowProps): ReactNode {
   return (
     <div
@@ -52,7 +54,12 @@ const GuessRow = memo(function GuessRow({
       )}
     >
       {colors.map((color, i) => (
-        <GuessSquare key={i} letter={word[i]} color={color} />
+        <GuessSquare
+          key={i}
+          letter={word[i]}
+          color={color}
+          isSelfGrid={isSelfGrid}
+        />
       ))}
     </div>
   );
@@ -67,7 +74,7 @@ const InputRow = memo(function InputRow({
     <div
       className={clsx(
         "flex space-x-1.5",
-        isFromCurrentPlayer && "border-l-8 border-l-primary pl-4",
+        isFromCurrentPlayer && "-ml-2 border-l-4 border-l-primary pl-1",
       )}
     >
       {chainFrom(range(WORD_LENGTH))
@@ -82,13 +89,18 @@ const InputRow = memo(function InputRow({
 interface GuessSquareProps {
   letter: string;
   color: Color;
+  isSelfGrid: boolean;
 }
 
 const GuessSquare = memo(function GuessSquare({
   letter,
   color,
+  isSelfGrid,
 }: GuessSquareProps): ReactNode {
-  const bgColor = backgroundClassForColor(color);
+  const bgColor =
+    color === Color.GREEN && isSelfGrid
+      ? "bg-red-600"
+      : backgroundClassForColor(color);
   return (
     <div
       className={`flex h-12 w-12 items-center justify-center text-base-100 ${bgColor} shadow-sm`}

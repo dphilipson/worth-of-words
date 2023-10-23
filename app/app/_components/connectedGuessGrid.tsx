@@ -9,11 +9,13 @@ import GuessGrid, { InputRowProps, ScoredRowProps } from "./guessGrid";
 export interface ConnectedGuessGridProps {
   playerAddress: Address;
   currentInput: string;
+  isSelfGrid: boolean;
 }
 
 export default memo(function ConnectedGuessGrid({
   playerAddress: gridPlayerAddress,
   currentInput,
+  isSelfGrid,
 }: ConnectedGuessGridProps): ReactNode {
   const {
     playerAddress: currentPlayerAddress,
@@ -25,6 +27,7 @@ export default memo(function ConnectedGuessGrid({
     word: guess.guess,
     colors: guess.matches,
     isFromCurrentPlayer: guess.attacker === currentPlayerAddress,
+    isSelfGrid,
   }));
   const inputRows: InputRowProps[] = (() => {
     if (
@@ -32,6 +35,9 @@ export default memo(function ConnectedGuessGrid({
       (lobby.phase === Phase.REVEALING_GUESSES &&
         getPlayer(lobby, currentPlayerAddress).hasCommittedGuess)
     ) {
+      if (isSelfGrid) {
+        return [];
+      }
       return [
         {
           letters: currentInput,
@@ -41,6 +47,8 @@ export default memo(function ConnectedGuessGrid({
           isFromCurrentPlayer: false,
         },
       ];
+    } else if (gridPlayer.hasRevealedMatches) {
+      return [];
     } else {
       return getAttackers(lobby, gridPlayerAddress)
         .filter((attacker) => attacker.revealedGuess)

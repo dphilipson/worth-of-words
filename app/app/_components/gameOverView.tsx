@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { memo, ReactNode } from "react";
 
 import { Phase } from "../_lib/gameLogic";
@@ -17,6 +18,9 @@ export default memo(function GameOverView(): ReactNode {
         <h1 className="text-4xl">{statusText}</h1>
       </Card>
       <ConnectedPlayerList />
+      <Link className="mt-5 text-lg text-blue-900 hover:underline" href="/">
+        Return home
+      </Link>
     </>
   );
 });

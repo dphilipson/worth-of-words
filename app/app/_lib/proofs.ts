@@ -109,12 +109,12 @@ async function newProver<T>(circuitName: string): Promise<Prover<T>> {
 }
 
 async function newWitnessCalculator(circuitName: string): Promise<any> {
-  const code = await loadBinary(`./generated/${circuitName}.wasm`);
+  const code = await loadBinary(`/generated/${circuitName}.wasm`);
   return builder(code);
 }
 
 async function loadZkey(circuitName: string): Promise<Uint8Array> {
-  const buffer = await loadBinary(`./generated/${circuitName}.zkey`);
+  const buffer = await loadBinary(`/generated/${circuitName}.zkey`);
   return new Uint8Array(buffer);
 }
 

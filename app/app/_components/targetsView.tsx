@@ -22,7 +22,7 @@ export default memo(function TargetsView({
         return (
           <div
             key={defender.address}
-            className="flex w-full max-w-xs flex-col items-center space-y-4"
+            className="flex w-full max-w-xs cursor-pointer flex-col items-center space-y-4 rounded-xl p-3 transition-colors hover:bg-black hover:bg-opacity-10"
             onMouseEnter={() => onHoverChange(i)}
             onMouseLeave={() => onHoverChange(undefined)}
           >
