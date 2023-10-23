@@ -14,8 +14,8 @@ import { wordToLetters, wordToNumber } from "./words";
  */
 export async function printTestData(): Promise<void> {
   await printValidMammaProof();
-  // await printImamsMerkleProof();
-  // await printImamsOnMammaScoreProof();
+  await printImamsMerkleProof();
+  await printImamsOnMammaScoreProof();
 }
 
 async function printValidMammaProof(): Promise<void> {
@@ -53,7 +53,7 @@ function printProof(proof: ProofCallData): void {
     JSON.stringify(
       proof,
       (_, value) => (typeof value === "bigint" ? value.toString() : value),
-      4
-    ).replaceAll('"', "")
+      4,
+    ).replaceAll('"', ""),
   );
 }

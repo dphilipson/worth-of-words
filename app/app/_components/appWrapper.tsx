@@ -9,7 +9,6 @@ import {
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
 import { createConfig, WagmiConfig } from "wagmi";
-import { foundry, polygonMumbai } from "wagmi/chains";
 
 import {
   ALCHEMY_API_KEY,
