@@ -94,8 +94,10 @@ export function storeMinionPrivateKey(address: Address, key: Hex): void {
   localStorage.setItem(getPrivateKeyKey(address), key);
 }
 
-export function loadMinionPrivateKey(address: Address): Hex | null {
-  return localStorage.getItem(getPrivateKeyKey(address)) as Hex | null;
+export function loadMinionPrivateKey(address: Address): Hex | undefined {
+  return (localStorage.getItem(getPrivateKeyKey(address)) ?? undefined) as
+    | Hex
+    | undefined;
 }
 
 function getPrivateKeyKey(address: Address): string {

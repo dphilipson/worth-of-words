@@ -42,7 +42,7 @@ export function useLocalWallet(): WalletLike | undefined {
 
   useEffect(() => {
     const savedPrivateKey = loadPrivateKey();
-    if (savedPrivateKey !== null) {
+    if (savedPrivateKey !== undefined) {
       createAndSetWallet(savedPrivateKey);
       return;
     }
@@ -70,6 +70,8 @@ function storePrivateKey(privateKey: Hex): void {
   sessionStorage.setItem(PRIVATE_KEY_KEY, privateKey);
 }
 
-function loadPrivateKey(): Hex | null {
-  return sessionStorage.getItem(PRIVATE_KEY_KEY) as Hex | null;
+function loadPrivateKey(): Hex | undefined {
+  return (sessionStorage.getItem(PRIVATE_KEY_KEY) ?? undefined) as
+    | Hex
+    | undefined;
 }

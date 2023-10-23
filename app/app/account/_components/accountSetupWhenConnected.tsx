@@ -71,6 +71,7 @@ export default memo(function AccountSetupWhenConnected({
 
   const isAllReady =
     (privateKey !== undefined && hasDeployed) || transactionSucceeded;
+  console.log({ privateKey, hasDeployed, transactionSucceeded });
 
   useEffect(() => {
     if (urlHash === undefined) {
