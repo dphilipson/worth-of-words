@@ -4,6 +4,7 @@ import { memo, ReactNode, useCallback } from "react";
 import { Hex, zeroAddress } from "viem";
 import { useMutation } from "wagmi";
 
+import { TIME_LIMIT_MULTIPLIER } from "../_lib/constants";
 import { useCreateLobby } from "../_lib/createLobby";
 import { LobbyConfig } from "../_lib/gameLogic";
 import {
@@ -70,9 +71,9 @@ async function getLobbyConfig(): Promise<LobbyConfig> {
     minPlayers: 0,
     maxPlayers: 1000,
     guessWordMerkleRoot,
-    maxCommitGuessTime: 300,
-    maxRevealGuessTime: 60,
-    maxRevealMatchesTime: 60,
+    maxCommitGuessTime: 300 * TIME_LIMIT_MULTIPLIER,
+    maxRevealGuessTime: 60 * TIME_LIMIT_MULTIPLIER,
+    maxRevealMatchesTime: 60 * TIME_LIMIT_MULTIPLIER,
     maxRounds: 0,
     numLives: 3,
     pointsForYellow: 2,

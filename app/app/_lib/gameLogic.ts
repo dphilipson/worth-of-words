@@ -76,7 +76,7 @@ export function newLobbyState(config: LobbyConfig): LobbyState {
     currentRoundPlayerOrder: [],
     nextRoundPlayerSet: new Set(),
     targetOffsets: [],
-    roundNumber: 0,
+    roundNumber: -1, // Will be increased to 0 at first rond start.
     phase: Phase.NOT_STARTED,
     phaseDeadline: 0,
     previousRoundSnapshot: undefined,

@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { memo, ReactNode, useCallback, useEffect, useState } from "react";
 
 import {
@@ -27,12 +26,14 @@ export default memo(function GameplayView(): ReactNode {
   const [selectedTargetIndex, setSelectedTargetIndex] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const roundNumberLastRender = usePrevious(lobby.roundNumber);
+  const [pulseInput, subscribeToPulseInput] = useCreateSubscription<void>();
   const commitGuess = useCallback(
     (guess: string) => {
       setIsSubmitting(true);
+      pulseInput();
       actions.commitGuess(guess);
     },
-    [actions],
+    [actions, pulseInput],
   );
   const { input, onKey, clearInput } = useInputKeys(
     validGuessWords,
@@ -110,6 +111,7 @@ export default memo(function GameplayView(): ReactNode {
         <TargetsView
           currentInput={input}
           onHoverChange={setSelectedTargetIndex}
+          subscribeToInputConfirm={subscribeToPulseInput}
         />
       </div>
       <Card className="mt-10 flex flex-col items-center">
@@ -121,11 +123,15 @@ export default memo(function GameplayView(): ReactNode {
       >
         View game status
       </button>
-      <div className={clsx("mt-2", !isInputtingGuess && "opacity-30")}>
+      <div className="mt-2">
         <ConnectedColoredKeyboard
           selectedIndex={selectedTargetIndex}
+          disabled={!isInputtingGuess}
           onKey={onKey}
         />
+      </div>
+      <div className="absolute bottom-16 right-8 hidden w-full max-w-xs lg:block">
+        <ConnectedPlayerListItem playerAddress={playerAddress} />
       </div>
       <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
         <div className="flex justify-center space-x-10">
@@ -136,6 +142,7 @@ export default memo(function GameplayView(): ReactNode {
               playerAddress={playerAddress}
               currentInput=""
               isSelfGrid={true}
+              subscribeToInputConfirm={undefined}
             />
           </div>
           <div className="flex w-96 min-w-fit flex-col items-center space-y-4">

@@ -145,7 +145,11 @@ export class LobbyActionsImpl implements LobbyActions {
         continue;
       }
       const prover = await getScoreGuessProver();
-      const { word, salt } = this.storage.loadSecretWordsAndSalts()[currentWordIndex];
+      const secretWordsAndSalts = this.storage.loadSecretWordsAndSalts();
+      if (!secretWordsAndSalts) {
+        throw new Error("Secret words not in storage! Cannot reveal.");
+      }
+      const { word, salt } = secretWordsAndSalts[currentWordIndex];
 
       const proof = await prover({
         word: wordToLetters(word),
@@ -172,8 +176,4 @@ export class LobbyActionsImpl implements LobbyActions {
       }),
     );
   }
-
-
 }
-
-

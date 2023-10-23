@@ -16,6 +16,7 @@ import {
   POST_DEADLINE_WAIT_TIME_MS,
   WORTH_OF_WORDS_ADDRESS,
 } from "./constants";
+import { emptyList } from "./empty";
 import { getEventsNowAndForever as getLobbyEventsNowAndForever } from "./events";
 import {
   getUpdatedLobbyState,
@@ -51,10 +52,6 @@ export function LobbyProvider({
   );
 }
 
-export function useLobby(): LobbyContext {
-  return useContext(LobbyContext);
-}
-
 export interface LobbyContext {
   playerAddress: Address;
   lobby: LobbyState;
@@ -63,6 +60,10 @@ export interface LobbyContext {
   actions: LobbyActions;
   secrets: string[];
   advanceToNextRound: (() => void) | undefined;
+}
+
+export function useLobby(): LobbyContext {
+  return useContext(LobbyContext);
 }
 
 // TODO: better (or any) error handling.
@@ -102,7 +103,7 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     if (secretsRef.current === undefined) {
       secretsRef.current = storage
         .loadSecretWordsAndSalts()
-        .map((secret) => secret.word);
+        ?.map((secret) => secret.word);
     }
     if (actionsRef.current === undefined) {
       actionsRef.current = new LobbyActionsImpl(
@@ -115,7 +116,6 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
       actionsRef.current.setLobbyState(lobby);
     }
   }
-  const secrets = secretsRef.current;
   const actions = actionsRef.current;
   const playerAddress = wallet?.address;
   const player =
@@ -176,19 +176,12 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     player?.hasRevealedMatches,
   ]);
 
-  if (
-    !wallet ||
-    !lobby ||
-    !validSecretWords ||
-    !validGuessWords ||
-    !actions ||
-    !secrets
-  ) {
+  if (!wallet || !lobby || !validSecretWords || !validGuessWords || !actions) {
     return undefined;
   }
 
   const isViewingPreviousRound =
-    advancedToRoundNumber < lobby.roundNumber && lobby.previousRoundSnapshot;
+    advancedToRoundNumber < lobby.roundNumber && !!lobby.previousRoundSnapshot;
   const lobbyView = isViewingPreviousRound
     ? lobby.previousRoundSnapshot!
     : lobby;
@@ -198,7 +191,7 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     validSecretWords,
     validGuessWords,
     actions,
-    secrets,
+    secrets: secretsRef.current ?? emptyList(),
     advanceToNextRound: isViewingPreviousRound ? advanceToNextRound : undefined,
   };
 }

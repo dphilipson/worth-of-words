@@ -19,11 +19,12 @@ export class LobbyStorage {
     this.store(SECRETS_AND_SALTS_KEY, JSON.stringify(stringySecrets));
   }
 
-  public loadSecretWordsAndSalts(): SecretAndSalt[] {
-    // TODO: Error handling if not present, and below.
-    const stringySecretsAndSalts = JSON.parse(
-      this.load(SECRETS_AND_SALTS_KEY)!,
-    );
+  public loadSecretWordsAndSalts(): SecretAndSalt[] | undefined {
+    const json = this.load(SECRETS_AND_SALTS_KEY);
+    if (json === undefined) {
+      return undefined;
+    }
+    const stringySecretsAndSalts = JSON.parse(json);
     return stringySecretsAndSalts.map(unstringifySecret);
   }
 

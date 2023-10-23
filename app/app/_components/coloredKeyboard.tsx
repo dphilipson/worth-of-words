@@ -8,16 +8,23 @@ import { Color } from "../_lib/gameLogic";
 export interface ColoredKeyboardProps {
   colorsByLetter: Map<string, Color>[];
   selectedIndex: number | undefined;
+  disabled: boolean;
   onKey(keyCode: string): void;
 }
 
 export default memo(function ColoredKeyboard({
   colorsByLetter,
   selectedIndex,
+  disabled,
   onKey,
 }: ColoredKeyboardProps): ReactNode {
   return (
-    <div className="text-1xl select-none flex-col space-y-2 font-bold">
+    <div
+      className={clsx(
+        "text-1xl select-none flex-col space-y-2 font-bold",
+        disabled && "pointer-events-none opacity-30",
+      )}
+    >
       <ColoredKeyboardRow
         colorsByLetter={colorsByLetter}
         selectedIndex={selectedIndex}
@@ -110,41 +117,32 @@ const ColoredKey = memo(function ColoredKey({
     }
   })();
 
-  if (fullColor !== undefined) {
-    return (
-      <div
-        className={clsx(
-          "flex h-14 w-11 cursor-pointer items-center justify-center rounded-lg text-white shadow-xl",
-          backgroundClassForColor(fullColor),
-        )}
-        onClick={onClick}
-      >
-        {letter}
-      </div>
-    );
-  } else {
-    return (
-      <div
-        className="relative flex h-14 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-lg bg-gray-300 text-black shadow-xl"
-        onClick={onClick}
-      >
-        {selectedIndex === undefined && (
-          <div className="absolute top-0 flex w-full space-x-0.5">
-            {colors.map((color, i) => (
-              <div
-                key={i}
-                className={clsx(
-                  "h-4 flex-1 rounded-sm",
-                  backgroundClassForColor(color),
-                )}
-              />
-            ))}
-          </div>
-        )}
-        {letter}
-      </div>
-    );
-  }
+  return (
+    <div
+      className={clsx(
+        "relative flex h-14 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-lg shadow-xl transition-transform hover:scale-105 active:scale-95",
+        fullColor !== undefined
+          ? backgroundClassForColor(fullColor) + " text-white"
+          : "bg-gray-300 text-black",
+      )}
+      onClick={onClick}
+    >
+      {fullColor === undefined && selectedIndex === undefined && (
+        <div className="absolute top-0 flex w-full space-x-0.5">
+          {colors.map((color, i) => (
+            <div
+              key={i}
+              className={clsx(
+                "h-4 flex-1 rounded-sm",
+                backgroundClassForColor(color),
+              )}
+            />
+          ))}
+        </div>
+      )}
+      {letter}
+    </div>
+  );
 });
 
 interface MetaKeyProps {

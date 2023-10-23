@@ -1,6 +1,7 @@
 import { memo, ReactNode, useMemo } from "react";
 
 import { getDefenders, Player } from "../_lib/gameLogic";
+import { SubscribeFunction } from "../_lib/subscriptions";
 import { useLobby } from "../_lib/useLobby";
 import ConnectedGuessGrid from "./connectedGuessGrid";
 import ConnectedPlayerListItem from "./connectedPlayerListItem";
@@ -8,11 +9,13 @@ import ConnectedPlayerListItem from "./connectedPlayerListItem";
 export interface TargetsViewProps {
   currentInput: string;
   onHoverChange(index: number | undefined): void;
+  subscribeToInputConfirm: SubscribeFunction<void>;
 }
 
 export default memo(function TargetsView({
   currentInput,
   onHoverChange,
+  subscribeToInputConfirm,
 }: TargetsViewProps): ReactNode {
   const { playerAddress, lobby } = useLobby();
   const sortedDefenders = useMemo(() => {
@@ -35,6 +38,7 @@ export default memo(function TargetsView({
               playerAddress={defender.address}
               currentInput={currentInput}
               isSelfGrid={false}
+              subscribeToInputConfirm={subscribeToInputConfirm}
             />
           </div>
         );

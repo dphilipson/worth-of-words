@@ -19,6 +19,7 @@
     "@tanstack/react-query-devtools": "^4.36.1",
     "clsx": "^2.0.0",
     "connectkit": "^1.5.3",
+    "framer-motion": "^10.16.4",
     "immer": "^10.0.3",
     "next": "13.5.4",
     "react": "^18",

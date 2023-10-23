@@ -6,11 +6,13 @@ import ColoredKeyboard from "./coloredKeyboard";
 
 export interface ConnectedColoredKeyboardProps {
   selectedIndex: number | undefined;
+  disabled: boolean;
   onKey(keyCode: string): void;
 }
 
 export default memo(function ConnectedColoredKeyboard({
   selectedIndex,
+  disabled,
   onKey,
 }: ConnectedColoredKeyboardProps): ReactNode {
   const { playerAddress, lobby } = useLobby();
@@ -27,6 +29,7 @@ export default memo(function ConnectedColoredKeyboard({
     <ColoredKeyboard
       colorsByLetter={colorsByLetter}
       selectedIndex={selectedIndex}
+      disabled={disabled}
       onKey={onKey}
     />
   );

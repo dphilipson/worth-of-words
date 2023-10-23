@@ -1,6 +1,10 @@
 import clsx from "clsx";
-import { memo, ReactNode } from "react";
+import { memo, ReactNode, useEffect } from "react";
 import { chainFrom, repeat } from "transducist";
+
+import { usePrevious } from "../_lib/hooks";
+import { useCreateSubscription } from "../_lib/subscriptions";
+import PulseOnDemandBox from "./pulseOnDemandBox";
 
 export interface PlayerListItemProps {
   className?: string;
@@ -25,6 +29,15 @@ export default memo(function PlayerListItem({
   isThinking,
   isEliminated,
 }: PlayerListItemProps): ReactNode {
+  const [pulseScore, subscribeToPulseScore] = useCreateSubscription<void>();
+  const previousScore = usePrevious(score);
+
+  useEffect(() => {
+    if (previousScore !== undefined && previousScore !== score) {
+      pulseScore();
+    }
+  }, [previousScore, score, pulseScore]);
+
   return (
     <div
       className={clsx(
@@ -37,6 +50,9 @@ export default memo(function PlayerListItem({
       <div className="flex-col">
         <div className="text-2xl">
           {name}
+          {isCurrentPlayer && (
+            <span className="ml-1 text-sm text-gray-500">(you)</span>
+          )}
           {isThinking && (
             <span className="loading loading-bars loading-xs ml-2 opacity-30" />
           )}
@@ -44,7 +60,12 @@ export default memo(function PlayerListItem({
         <div className="text-xs text-gray-400">{ellipsizeAddress(address)}</div>
       </div>
       <div className="flex-col text-right">
-        <div className="text-3xl">{score}</div>
+        <PulseOnDemandBox
+          className="text-3xl"
+          subscribeToPulses={subscribeToPulseScore}
+        >
+          {score}
+        </PulseOnDemandBox>
         <div className="text-sm">
           {getLivesText(maxLives, livesLeft, isEliminated)}
         </div>

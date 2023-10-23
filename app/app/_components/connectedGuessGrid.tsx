@@ -3,6 +3,7 @@ import { Address } from "viem";
 
 import { WORD_LENGTH } from "../_lib/constants";
 import { getAttackers, getPlayer, Phase } from "../_lib/gameLogic";
+import { SubscribeFunction } from "../_lib/subscriptions";
 import { useLobby } from "../_lib/useLobby";
 import GuessGrid, { InputRowProps, ScoredRowProps } from "./guessGrid";
 
@@ -10,12 +11,14 @@ export interface ConnectedGuessGridProps {
   playerAddress: Address;
   currentInput: string;
   isSelfGrid: boolean;
+  subscribeToInputConfirm: SubscribeFunction<void> | undefined;
 }
 
 export default memo(function ConnectedGuessGrid({
   playerAddress: gridPlayerAddress,
   currentInput,
   isSelfGrid,
+  subscribeToInputConfirm,
 }: ConnectedGuessGridProps): ReactNode {
   const {
     playerAddress: currentPlayerAddress,
@@ -46,6 +49,7 @@ export default memo(function ConnectedGuessGrid({
             currentInput.length === WORD_LENGTH &&
             !validGuessWords.has(currentInput),
           isFromCurrentPlayer: false,
+          subscribeToPulses: subscribeToInputConfirm,
         },
       ];
     } else if (gridPlayer.hasRevealedMatches) {

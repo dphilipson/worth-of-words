@@ -11,6 +11,7 @@ import {
 import { notNull } from "./typechecks";
 
 export const USE_ANVIL = false;
+export const TIME_LIMIT_MULTIPLIER = 1;
 
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
 export const ALCHEMY_API_KEY = notNull(process.env.NEXT_PUBLIC_ALCHEMY_ID);

@@ -5,6 +5,9 @@ import { chainFrom, range } from "transducist";
 import { backgroundClassForColor } from "../_lib/colors";
 import { WORD_LENGTH } from "../_lib/constants";
 import { Color } from "../_lib/gameLogic";
+import { SubscribeFunction } from "../_lib/subscriptions";
+import PulseOnDemandBox from "./pulseOnDemandBox";
+import PulseOnEnterBox from "./pulseOnEnterBox";
 
 export interface GuessGridProps {
   secretWord: string | undefined;
@@ -23,6 +26,7 @@ export interface InputRowProps {
   letters: string;
   inputIsInvalid: boolean;
   isFromCurrentPlayer: boolean;
+  subscribeToPulses?: SubscribeFunction<void>;
 }
 
 export default memo(function GuessGrid({
@@ -56,7 +60,7 @@ const GuessRow = memo(function GuessRow({
   isSelfGrid,
 }: ScoredRowProps): ReactNode {
   return (
-    <div
+    <PulseOnEnterBox
       className={clsx(
         "flex space-x-1.5",
         isFromCurrentPlayer && "-ml-2 border-l-4 border-l-primary pl-1",
@@ -70,7 +74,7 @@ const GuessRow = memo(function GuessRow({
           isSelfGrid={isSelfGrid}
         />
       ))}
-    </div>
+    </PulseOnEnterBox>
   );
 });
 
@@ -78,20 +82,28 @@ const InputRow = memo(function InputRow({
   letters,
   inputIsInvalid,
   isFromCurrentPlayer,
+  subscribeToPulses,
 }: InputRowProps): ReactNode {
   return (
-    <div
-      className={clsx(
-        "flex space-x-1.5",
-        isFromCurrentPlayer && "-ml-2 border-l-4 border-l-primary pl-1",
-      )}
-    >
-      {chainFrom(range(WORD_LENGTH))
-        .map((i) => (
-          <InputSquare key={i} letter={letters[i]} isInvalid={inputIsInvalid} />
-        ))
-        .toArray()}
-    </div>
+    <PulseOnEnterBox>
+      <PulseOnDemandBox
+        className={clsx(
+          "flex space-x-1.5",
+          isFromCurrentPlayer && "-ml-2 border-l-4 border-l-primary pl-1",
+        )}
+        subscribeToPulses={subscribeToPulses}
+      >
+        {chainFrom(range(WORD_LENGTH))
+          .map((i) => (
+            <InputSquare
+              key={i}
+              letter={letters[i]}
+              isInvalid={inputIsInvalid}
+            />
+          ))
+          .toArray()}
+      </PulseOnDemandBox>
+    </PulseOnEnterBox>
   );
 });
 
