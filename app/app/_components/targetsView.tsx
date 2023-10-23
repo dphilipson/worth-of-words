@@ -30,6 +30,7 @@ export default memo(function TargetsView({
             <ConnectedGuessGrid
               playerAddress={defender.address}
               currentInput={currentInput}
+              isSelfGrid={false}
             />
           </div>
         );

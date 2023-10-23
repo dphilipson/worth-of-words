@@ -8,6 +8,7 @@ import {
   Phase,
 } from "../_lib/gameLogic";
 import { usePrevious } from "../_lib/hooks";
+import { useCreateSubscription } from "../_lib/subscriptions";
 import { useLobby } from "../_lib/useLobby";
 import Card from "./card";
 import ConnectedColoredKeyboard from "./connectedColoredKeyboard";
@@ -17,6 +18,7 @@ import ConnectedPlayerListItem from "./connectedPlayerListItem";
 import { Countdown } from "./countdown";
 import GameOverView from "./gameOverView";
 import KeyboardCapture from "./keyboardCapture";
+import Modal from "./modal";
 import TargetsView from "./targetsView";
 
 export default memo(function GameplayView(): ReactNode {
@@ -45,6 +47,8 @@ export default memo(function GameplayView(): ReactNode {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lobby.roundNumber]);
+  const [openStatusModal, subscribeToOpenStatusModal] =
+    useCreateSubscription<void>();
 
   const player = getPlayer(lobby, playerAddress);
   if (lobby.phase === Phase.GAME_OVER || player.isEliminated) {
@@ -97,28 +101,38 @@ export default memo(function GameplayView(): ReactNode {
           onHoverChange={setSelectedTargetIndex}
         />
       </div>
-      <Card className="my-10 flex flex-col items-center">
+      <Card className="mt-10 flex flex-col items-center">
         {statusComponent}
       </Card>
-      <div className="my-10 flex w-full justify-center px-8">
-        {/* <div className="flex w-full max-w-xs  flex-col items-center space-y-4">
-          <ConnectedPlayerListItem playerAddress={playerAddress} />
-          <ConnectedGuessGrid
-            playerAddress={playerAddress}
-            currentInput=""
-            isSelfGrid={true}
-          />
-        </div> */}
-        <div className={clsx(!isInputtingGuess && "opacity-30")}>
-          <ConnectedColoredKeyboard
-            selectedIndex={selectedTargetIndex}
-            onKey={onKey}
-          />
-        </div>
-        {/* <div>
-          <ConnectedPlayerList />
-        </div> */}
+      <button
+        className="btn btn-sm mt-5 text-gray-800"
+        onClick={openStatusModal}
+      >
+        View game status
+      </button>
+      <div className={clsx("mt-2", !isInputtingGuess && "opacity-30")}>
+        <ConnectedColoredKeyboard
+          selectedIndex={selectedTargetIndex}
+          onKey={onKey}
+        />
       </div>
+      <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
+        <div className="flex justify-center space-x-10">
+          <div className="flex w-full max-w-xs flex-col items-center space-y-4">
+            <h5>Your status</h5>
+            <ConnectedPlayerListItem playerAddress={playerAddress} />
+            <ConnectedGuessGrid
+              playerAddress={playerAddress}
+              currentInput=""
+              isSelfGrid={true}
+            />
+          </div>
+          <div className="flex w-96 min-w-fit flex-col items-center space-y-4">
+            <h5>Rankings</h5>
+            <ConnectedPlayerList />
+          </div>
+        </div>
+      </Modal>
     </>
   );
 });
