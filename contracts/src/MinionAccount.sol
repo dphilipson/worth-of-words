@@ -29,16 +29,33 @@ contract MinionAccount is BaseAccount, Initializable {
         address indexed owner
     );
 
-    error CallerNotOwnerOrEntryPoint();
+    event PublicKeyChanged(
+        address indexed previousPublicKey,
+        address indexed newPublicKey
+    );
+
+    error InvalidOwner(address owner);
+    error InvalidPublicKey(address publicKey);
+    error UnauthorizedCaller(address caller);
 
     modifier onlyOwnerOrEntryPoint() {
-        _onlyOwnerOrEntryPoint();
+        if (msg.sender != address(_entryPoint) && msg.sender != owner) {
+            revert UnauthorizedCaller(msg.sender);
+        }
+        _;
+    }
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) {
+            revert UnauthorizedCaller(msg.sender);
+        }
         _;
     }
 
     constructor(IEntryPoint entryPoint_, address target_) {
         _entryPoint = entryPoint_;
         target = target_;
+        _disableInitializers();
     }
 
     receive() external payable {}
@@ -57,8 +74,10 @@ contract MinionAccount is BaseAccount, Initializable {
         address owner_,
         address publicKey_
     ) external payable initializer {
-        owner = owner_;
-        publicKey = publicKey_;
+        if (owner_ == address(0)) {
+            revert InvalidOwner(owner_);
+        }
+        _changePublicKey(publicKey_);
         emit MinionAccountInitialized(_entryPoint, target, owner_);
     }
 
@@ -69,6 +88,10 @@ contract MinionAccount is BaseAccount, Initializable {
         if (!success) {
             _rethrowError(result);
         }
+    }
+
+    function changePublicKey(address newPublicKey) external onlyOwner {
+        _changePublicKey(newPublicKey);
     }
 
     function entryPoint() public view virtual override returns (IEntryPoint) {
@@ -85,10 +108,13 @@ contract MinionAccount is BaseAccount, Initializable {
         return 0;
     }
 
-    function _onlyOwnerOrEntryPoint() private view {
-        if (msg.sender != address(_entryPoint) && msg.sender != owner) {
-            revert CallerNotOwnerOrEntryPoint();
+    function _changePublicKey(address newPublicKey) internal {
+        if (newPublicKey == address(0)) {
+            revert InvalidPublicKey(newPublicKey);
         }
+        address oldPublicKey = publicKey;
+        publicKey = newPublicKey;
+        emit PublicKeyChanged(oldPublicKey, newPublicKey);
     }
 
     function _rethrowError(bytes memory result) private pure {
