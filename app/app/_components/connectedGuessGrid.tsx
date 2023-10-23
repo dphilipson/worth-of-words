@@ -21,6 +21,7 @@ export default memo(function ConnectedGuessGrid({
     playerAddress: currentPlayerAddress,
     lobby,
     validGuessWords,
+    secrets,
   } = useLobby();
   const gridPlayer = getPlayer(lobby, gridPlayerAddress);
   const scoredRows: ScoredRowProps[] = gridPlayer.matchHistory.map((guess) => ({
@@ -59,6 +60,20 @@ export default memo(function ConnectedGuessGrid({
         }));
     }
   })();
+  const secretWord = (() => {
+    if (!isSelfGrid) {
+      return undefined;
+    }
+    const secretIndex =
+      lobby.config.numLives - getPlayer(lobby, currentPlayerAddress).livesLeft;
+    return secrets[secretIndex];
+  })();
 
-  return <GuessGrid scoredRows={scoredRows} inputRows={inputRows} />;
+  return (
+    <GuessGrid
+      scoredRows={scoredRows}
+      inputRows={inputRows}
+      secretWord={secretWord}
+    />
+  );
 });

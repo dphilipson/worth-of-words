@@ -2,6 +2,7 @@ import { encodeFunctionData, encodePacked, Hex, keccak256 } from "viem";
 
 import { iWorthOfWordsABI } from "../_generated/wagmi";
 import { getAttackers, LobbyState } from "./gameLogic";
+import { LobbyStorage, SecretAndSalt } from "./lobbyStorage";
 import { getGuessWordMerkleTree, getSecretWordMerkleTree } from "./merkle";
 import { getLobbyPassword } from "./password";
 import {
@@ -26,18 +27,11 @@ export interface LobbyActions {
   endRevealMatchesPhase(): Promise<void>;
 }
 
-interface SecretAndSalt {
-  word: string;
-  salt: bigint;
-}
-
-const SECRETS_AND_SALTS_KEY = "secrets-and-salts";
-const GUESS_KEY = "guess";
-
 export class LobbyActionsImpl implements LobbyActions {
   constructor(
     private readonly lobbyId: bigint,
     private readonly wallet: WalletLike,
+    private readonly storage: LobbyStorage,
     private state: LobbyState,
   ) {}
 
@@ -74,7 +68,7 @@ export class LobbyActionsImpl implements LobbyActions {
       });
       proofs.push(proof);
     }
-    this.storeSecretWordsAndSalts(secrets);
+    this.storage.storeSecretWordsAndSalts(secrets);
     return this.wallet.send(
       encodeFunctionData({
         abi: iWorthOfWordsABI,
@@ -99,7 +93,7 @@ export class LobbyActionsImpl implements LobbyActions {
     const commitment = keccak256(
       encodePacked(["uint24", "uint256"], [wordToNumber(guess), salt]),
     );
-    this.storeGuess({ word: guess, salt });
+    this.storage.storeGuess({ word: guess, salt });
     return this.wallet.send(
       encodeFunctionData({
         abi: iWorthOfWordsABI,
@@ -110,7 +104,7 @@ export class LobbyActionsImpl implements LobbyActions {
   }
 
   public async revealGuess(): Promise<void> {
-    const guessAndSalt = this.loadGuess();
+    const guessAndSalt = this.storage.loadGuess();
     if (guessAndSalt === undefined) {
       throw new Error("Couldn't find guess in storage to reveal.");
     }
@@ -128,7 +122,6 @@ export class LobbyActionsImpl implements LobbyActions {
   }
 
   public async revealMatches(): Promise<void> {
-    console.log("REVEALING MATCHES");
     const attackers = getAttackers(this.state, this.wallet.address);
     const currentWordIndex =
       this.state.config.numLives -
@@ -152,7 +145,7 @@ export class LobbyActionsImpl implements LobbyActions {
         continue;
       }
       const prover = await getScoreGuessProver();
-      const { word, salt } = this.loadSecretWordsAndSalts()[currentWordIndex];
+      const { word, salt } = this.storage.loadSecretWordsAndSalts()[currentWordIndex];
 
       const proof = await prover({
         word: wordToLetters(word),
@@ -161,7 +154,6 @@ export class LobbyActionsImpl implements LobbyActions {
       });
       proofs.push(proof);
     }
-    console.log("SENDING MATCHES");
     this.wallet.send(
       encodeFunctionData({
         abi: iWorthOfWordsABI,
@@ -181,46 +173,7 @@ export class LobbyActionsImpl implements LobbyActions {
     );
   }
 
-  private storeSecretWordsAndSalts(secrets: SecretAndSalt[]): void {
-    const stringySecrets = secrets.map(stringifySecret);
-    this.store(SECRETS_AND_SALTS_KEY, JSON.stringify(stringySecrets));
-  }
 
-  private loadSecretWordsAndSalts(): SecretAndSalt[] {
-    // TODO: Error handling if not present, and below.
-    const stringySecretsAndSalts = JSON.parse(
-      this.load(SECRETS_AND_SALTS_KEY)!,
-    );
-    return stringySecretsAndSalts.map(unstringifySecret);
-  }
-
-  private storeGuess(guess: SecretAndSalt): void {
-    const stringyGuess = stringifySecret(guess);
-    this.store(GUESS_KEY, JSON.stringify(stringyGuess));
-  }
-
-  private loadGuess(): SecretAndSalt {
-    const stringyGuess = JSON.parse(this.load(GUESS_KEY)!);
-    return unstringifySecret(stringyGuess);
-  }
-
-  private store(key: string, value: string): void {
-    localStorage.setItem(this.fullKey(key), value);
-  }
-
-  private load(key: string): string | undefined {
-    return localStorage.getItem(this.fullKey(key)) ?? undefined;
-  }
-
-  private fullKey(key: string): string {
-    return `worth-of-words:lobby:${this.lobbyId}:player:${this.wallet.address}:${key}`;
-  }
 }
 
-function stringifySecret({ word, salt }: SecretAndSalt): unknown {
-  return { word, salt: salt.toString() };
-}
 
-function unstringifySecret({ word, salt }: any): SecretAndSalt {
-  return { word, salt: BigInt(salt) };
-}

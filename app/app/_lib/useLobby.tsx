@@ -25,6 +25,7 @@ import {
 } from "./gameLogic";
 import { useSetDeadline } from "./hooks";
 import { LobbyActions, LobbyActionsImpl } from "./lobbyActions";
+import { LobbyStorage } from "./lobbyStorage";
 import { useWallet } from "./useWallet";
 import { getGuessWordlist, getSecretWordlist } from "./words";
 
@@ -60,6 +61,7 @@ export interface LobbyContext {
   validSecretWords: Set<string>;
   validGuessWords: Set<string>;
   actions: LobbyActions;
+  secrets: string[];
   advanceToNextRound: (() => void) | undefined;
 }
 
@@ -91,16 +93,29 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     },
     staleTime: Number.POSITIVE_INFINITY,
   });
+  const secretsRef = useRef<string[]>();
   const actionsRef = useRef<LobbyActionsImpl>();
   const setDeadline = useSetDeadline();
 
   if (wallet && lobby) {
+    const storage = new LobbyStorage(lobbyId, wallet.address);
+    if (secretsRef.current === undefined) {
+      secretsRef.current = storage
+        .loadSecretWordsAndSalts()
+        .map((secret) => secret.word);
+    }
     if (actionsRef.current === undefined) {
-      actionsRef.current = new LobbyActionsImpl(lobbyId, wallet, lobby);
+      actionsRef.current = new LobbyActionsImpl(
+        lobbyId,
+        wallet,
+        storage,
+        lobby,
+      );
     } else {
       actionsRef.current.setLobbyState(lobby);
     }
   }
+  const secrets = secretsRef.current;
   const actions = actionsRef.current;
   const playerAddress = wallet?.address;
   const player =
@@ -161,7 +176,14 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     player?.hasRevealedMatches,
   ]);
 
-  if (!wallet || !lobby || !validSecretWords || !validGuessWords || !actions) {
+  if (
+    !wallet ||
+    !lobby ||
+    !validSecretWords ||
+    !validGuessWords ||
+    !actions ||
+    !secrets
+  ) {
     return undefined;
   }
 
@@ -176,6 +198,7 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     validSecretWords,
     validGuessWords,
     actions,
+    secrets,
     advanceToNextRound: isViewingPreviousRound ? advanceToNextRound : undefined,
   };
 }

@@ -7,6 +7,7 @@ import { WORD_LENGTH } from "../_lib/constants";
 import { Color } from "../_lib/gameLogic";
 
 export interface GuessGridProps {
+  secretWord: string | undefined;
   scoredRows: ScoredRowProps[];
   inputRows: InputRowProps[];
 }
@@ -25,11 +26,19 @@ export interface InputRowProps {
 }
 
 export default memo(function GuessGrid({
+  secretWord,
   scoredRows,
   inputRows,
 }: GuessGridProps): ReactNode {
   return (
     <div className="select-none flex-col space-y-1.5 text-3xl font-bold">
+      {secretWord && (
+        <InputRow
+          letters={secretWord}
+          inputIsInvalid={false}
+          isFromCurrentPlayer={false}
+        />
+      )}
       {scoredRows.map((row, i) => (
         <GuessRow key={i} {...row} />
       ))}
