@@ -22,7 +22,8 @@ import Modal from "./modal";
 import TargetsView from "./targetsView";
 
 export default memo(function GameplayView(): ReactNode {
-  const { playerAddress, lobby, validGuessWords, actions } = useLobby();
+  const { playerAddress, lobby, validGuessWords, actions, advanceToNextRound } =
+    useLobby();
   const [selectedTargetIndex, setSelectedTargetIndex] = useState<number>();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const roundNumberLastRender = usePrevious(lobby.roundNumber);
@@ -61,7 +62,17 @@ export default memo(function GameplayView(): ReactNode {
     !getPlayer(lobby, playerAddress).hasCommittedGuess;
 
   const statusComponent = (() => {
-    if (lobby.phase === Phase.COMMITING_GUESSES) {
+    if (advanceToNextRound) {
+      // We are currently viewing a snapshot of the previous round.
+      return (
+        <>
+          <p>The round has ended!</p>
+          <button className="btn btn-primary mt-2" onClick={advanceToNextRound}>
+            Start next round
+          </button>
+        </>
+      );
+    } else if (lobby.phase === Phase.COMMITING_GUESSES) {
       const statusText = isInputtingGuess
         ? "…left to submit guess"
         : `Waiting for players ${getWaitingPlayerText()}`;

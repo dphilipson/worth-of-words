@@ -13,6 +13,7 @@ export interface LobbyState {
   roundNumber: number;
   phase: Phase;
   phaseDeadline: number;
+  previousRoundSnapshot: LobbyState | undefined;
 }
 
 export interface Player {
@@ -78,18 +79,39 @@ export function newLobbyState(config: LobbyConfig): LobbyState {
     roundNumber: 0,
     phase: Phase.NOT_STARTED,
     phaseDeadline: 0,
+    previousRoundSnapshot: undefined,
   };
 }
 
-export const getUpdatedLobbyState = produce(mutateLobbyState);
-
-export function mutateLobbyState(
-  state: LobbyState,
+export function getUpdatedLobbyState(
+  initialState: LobbyState,
   events: LobbyEvent[],
-): void {
-  for (const event of events) {
-    mutateLobbyStateSingleEvent(state, event);
+): LobbyState {
+  // Special case for round-ending events. We want to get a snapshot of the
+  // state right before the event that ends the round and store it in the state
+  // for next round.
+  const lastRoundEndingEventIndex = getLastRoundEndingEventIndex(events);
+  if (lastRoundEndingEventIndex === undefined) {
+    return produce(initialState, (state) => {
+      for (const event of events) {
+        mutateLobbyStateSingleEvent(state, event);
+      }
+    });
   }
+  // Get the state right before the round ending event. Then get the state from
+  // applying the rest of the events and put the earlier state into it.
+  const previousRoundSnapshot = produce(initialState, (state) => {
+    chainFrom(events)
+      .take(lastRoundEndingEventIndex)
+      .forEach((event) => mutateLobbyStateSingleEvent(state, event));
+    state.previousRoundSnapshot = undefined;
+  });
+  return produce(previousRoundSnapshot, (state) => {
+    state.previousRoundSnapshot = previousRoundSnapshot;
+    chainFrom(events)
+      .drop(lastRoundEndingEventIndex)
+      .forEach((event) => mutateLobbyStateSingleEvent(state, event));
+  });
 }
 
 function mutateLobbyStateSingleEvent(
@@ -308,4 +330,18 @@ export function getPlayersDoneWithPhaseCount(lobby: LobbyState): number {
 
 export function getLivePlayerCount(lobby: LobbyState): number {
   return lobby.currentRoundPlayerOrder.length;
+}
+
+function getLastRoundEndingEventIndex(
+  events: LobbyEvent[],
+): number | undefined {
+  for (let i = events.length - 1; i >= 0; i--) {
+    if (
+      events[i].eventName === "NewRound" ||
+      events[i].eventName === "GameEnded"
+    ) {
+      return i;
+    }
+  }
+  return undefined;
 }

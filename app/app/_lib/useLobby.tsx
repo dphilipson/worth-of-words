@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -19,7 +20,6 @@ import { getEventsNowAndForever as getLobbyEventsNowAndForever } from "./events"
 import {
   getUpdatedLobbyState,
   LobbyState,
-  mutateLobbyState,
   newLobbyState,
   Phase,
 } from "./gameLogic";
@@ -60,6 +60,7 @@ export interface LobbyContext {
   validSecretWords: Set<string>;
   validGuessWords: Set<string>;
   actions: LobbyActions;
+  advanceToNextRound: (() => void) | undefined;
 }
 
 // TODO: better (or any) error handling.
@@ -67,6 +68,13 @@ export interface LobbyContext {
 function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
   const wallet = useWallet();
   const lobby = useLobbyState(lobbyId);
+  const [advancedToRoundNumber, setAdvancedToRoundNumber] = useState(0);
+  const advanceToNextRound = useCallback(() => {
+    const roundNumber = lobby?.roundNumber;
+    if (roundNumber !== undefined) {
+      setAdvancedToRoundNumber(roundNumber);
+    }
+  }, [lobby?.roundNumber]);
   const { data: validSecretWords } = useQuery({
     queryKey: ["valid-secret-words-set"],
     queryFn: async () => {
@@ -157,12 +165,18 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     return undefined;
   }
 
+  const isViewingPreviousRound =
+    advancedToRoundNumber < lobby.roundNumber && lobby.previousRoundSnapshot;
+  const lobbyView = isViewingPreviousRound
+    ? lobby.previousRoundSnapshot!
+    : lobby;
   return {
     playerAddress: wallet.address,
-    lobby,
+    lobby: lobbyView,
     validSecretWords,
     validGuessWords,
     actions,
+    advanceToNextRound: isViewingPreviousRound ? advanceToNextRound : undefined,
   };
 }
 
@@ -188,8 +202,10 @@ function useLobbyState(lobbyId: bigint): LobbyState | undefined {
         WORTH_OF_WORDS_ADDRESS,
         lobbyId,
         (initialEvents) => {
-          const initialState = newLobbyState(config);
-          mutateLobbyState(initialState, initialEvents);
+          const initialState = getUpdatedLobbyState(
+            newLobbyState(config),
+            initialEvents,
+          );
           setState(initialState);
           console.log("Initial state:", initialState);
         },
