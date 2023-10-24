@@ -556,8 +556,7 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
                 _chooseRandomishOffsets(
                     playerCount,
                     lobby.randomishSeed,
-                    lobby.roundNumber,
-                    playerCount - 1 - NUM_TARGETS
+                    lobby.roundNumber
                 );
         }
     }
@@ -681,12 +680,11 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
     function _chooseRandomishOffsets(
         uint32 playerCount,
         uint32 randomishSeed,
-        uint32 roundNumber,
-        uint32 numOffsets
+        uint32 roundNumber
     ) private pure returns (uint32[] memory) {
-        uint32[] memory offsets = new uint32[](numOffsets);
+        uint32[] memory offsets = new uint32[](NUM_TARGETS);
         uint32 salt = 0;
-        for (uint32 i = 0; i < numOffsets; i++) {
+        for (uint32 i = 0; i < NUM_TARGETS; i++) {
             while (true) {
                 bytes32 randomishHash = keccak256(
                     abi.encodePacked(randomishSeed, roundNumber, salt++)
