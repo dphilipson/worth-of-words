@@ -1,4 +1,4 @@
-import { Address, decodeEventLog, Hex } from "viem";
+import { Address, decodeEventLog, Hex, toHex } from "viem";
 import { PublicClient } from "wagmi";
 
 import { iWorthOfWordsABI } from "../_generated/wagmi";
@@ -26,43 +26,69 @@ export function getEventsNowAndForever(
   let isCancelled = false;
   let hasSentInitialLogs = false;
   (async () => {
-    const filterId = await client.request({
-      method: "eth_newFilter" as any,
-      params: [
-        {
-          fromBlock: "0x0",
-          address,
-          topics: [null, numberAsTopic(lobbyId)],
-        },
-      ],
-    });
+    let nextStartBlock = BigInt(0);
     while (true) {
-      const logs: any[] = await client.request({
-        method: "eth_getFilterChanges" as any,
-        params: [filterId as any],
-      });
+      const { events, nextBlockNumber } = await getEventsSince(
+        client,
+        address,
+        lobbyId,
+        nextStartBlock,
+      );
+      nextStartBlock = nextBlockNumber;
       if (isCancelled) {
         return;
       }
-      const decodedLogs: LobbyEvent[] = logs.map((log) =>
-        decodeEventLog({
-          abi: iWorthOfWordsABI,
-          data: log.data,
-          topics: log.topics,
-          strict: true,
-        }),
-      );
       if (!hasSentInitialLogs) {
         hasSentInitialLogs = true;
-        onInitialLogs(decodedLogs);
+        onInitialLogs(events);
         onInitialLogs = undefined!;
-      } else if (decodedLogs.length > 0) {
-        onNewLogs(decodedLogs);
+      } else if (events.length > 0) {
+        onNewLogs(events);
       }
       await delay(POLL_INTERVAL_MS);
+      if (isCancelled) {
+        return;
+      }
     }
   })();
   return () => (isCancelled = true);
+}
+
+interface EventsSinceOut {
+  events: LobbyEvent[];
+  nextBlockNumber: bigint;
+}
+
+async function getEventsSince(
+  client: PublicClient,
+  address: Address,
+  lobbyId: bigint,
+  startBlockNumber: bigint,
+): Promise<EventsSinceOut> {
+  const currentBlockNumber = await client.getBlockNumber();
+  if (currentBlockNumber < startBlockNumber) {
+    return { events: [], nextBlockNumber: startBlockNumber };
+  }
+  const logs: any[] = await client.request({
+    method: "eth_getLogs",
+    params: [
+      {
+        fromBlock: toHex(startBlockNumber),
+        toBlock: toHex(currentBlockNumber),
+        address,
+        topics: [null, numberAsTopic(lobbyId)],
+      },
+    ],
+  });
+  const events: LobbyEvent[] = logs.map((log) =>
+    decodeEventLog({
+      abi: iWorthOfWordsABI,
+      data: log.data,
+      topics: log.topics,
+      strict: true,
+    }),
+  );
+  return { events, nextBlockNumber: currentBlockNumber + BigInt(1) };
 }
 
 function numberAsTopic(n: number | bigint): Hex {
