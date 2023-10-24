@@ -263,7 +263,27 @@ export function getAttackers(state: LobbyState, defender: Address): Player[] {
   );
 }
 
-export function getDefenders(state: LobbyState, attacker: Address): Player[] {
+/**
+ * Returns the defenders in a deterministic order: this means if you get the
+ * same targets for several rounds, their order won't jump around.
+ */
+export function getSortedDefenders(
+  state: LobbyState,
+  attacker: Address,
+): Player[] {
+  const defenders = getDefenders(state, attacker);
+  defenders.sort((a, b) => {
+    if (a.name !== b.name) {
+      return a.name < b.name ? -1 : 1;
+    }
+    return a.address < b.address ? -1 : 1;
+  });
+  return defenders;
+}
+
+function getDefenders(state: LobbyState, attacker: Address): Player[] {
+  // If you modify this so that it doesn't return a new list, make sure to
+  // modify `useSortedDefenders` so it doesn't mutate the return value.
   const attackerIndex = getPlayerIndex(state, attacker);
   return state.targetOffsets.map((offset) =>
     getPlayerAtOffset(state, attackerIndex, offset),

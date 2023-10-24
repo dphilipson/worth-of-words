@@ -1,6 +1,6 @@
 import { memo, ReactNode, useMemo } from "react";
 
-import { Color, getDefenders, ScoredGuess } from "../_lib/gameLogic";
+import { Color, getSortedDefenders, ScoredGuess } from "../_lib/gameLogic";
 import { useLobby } from "../_lib/useLobby";
 import ColoredKeyboard from "./coloredKeyboard";
 
@@ -19,7 +19,7 @@ export default memo(function ConnectedColoredKeyboard({
 
   const colorsByLetter = useMemo(
     () =>
-      getDefenders(lobby, playerAddress).map((defender) =>
+      getSortedDefenders(lobby, playerAddress).map((defender) =>
         colorsFromMatchHistory(defender.matchHistory),
       ),
     [playerAddress, lobby],
