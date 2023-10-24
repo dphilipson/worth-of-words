@@ -39,10 +39,13 @@ export default memo(function CreateLobbyView(): ReactNode {
 
   return (
     <div className="card w-full max-w-xl bg-base-100 shadow-xl">
-      <div className="card-body">
+      <div className="card-body space-y-2">
         <h2 className="card-title">Create a lobby</h2>
         <p>Create a lobby, then find some opponents to play!</p>
-        <div className="h-4" />
+        <p>
+          Only one person in your group needs to create a lobby. They can send a
+          link to the other players.
+        </p>
         <div className="card-actions justify-end">
           <LoadingButton
             className="btn btn-primary"
