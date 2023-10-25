@@ -121,6 +121,11 @@ export default memo(function AccountSetupWhenConnected({
           Funds sent to this account can only be used to pay for gas, and you
           may withdraw them at any time.
         </p>
+        <p>
+          You must have slightly more than 0.5 Mumbai MATIC for this step. To
+          get some, go to <a href="http://mumbaifaucet.com">mumbaifaucet.com</a>
+          .
+        </p>
         <div className="flex justify-end">
           <LoadingButton
             className="btn btn-primary"
