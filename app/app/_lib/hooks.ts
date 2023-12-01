@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useSetDeadline(): (
   fn: () => void,
@@ -50,7 +50,7 @@ export function usePrintChanges<T>(x: T): void {
 }
 
 /**
- * Initially undefined we don't have NextJS preload the page with an empty hash
+ * Initially undefined so we don't have NextJS preload the page with an empty hash
  * or some nonsense like that.
  */
 export function useUrlHash(): string | undefined {
@@ -79,4 +79,84 @@ export function useHasMounted(): boolean {
     setHasMounted(true);
   }, []);
   return hasMounted;
+}
+
+/**
+ * Like `useMemo`, except that it's guaranteed to keep the same instance if the
+ * dependencies don't change, unlike `useMemo` which is permitted to drop the
+ * cached value as an optimization.
+ */
+export function useReallyMemo<T>(f: () => T, deps: unknown[]): T {
+  const previousDeps = usePrevious(deps);
+  const ref = useRef<T>();
+  if (ref.current === undefined || arraysDiffer(previousDeps!, deps)) {
+    ref.current = f();
+  }
+  return ref.current;
+}
+
+function arraysDiffer(a: unknown[], b: unknown[]): boolean {
+  if (a.length !== b.length) {
+    return true;
+  }
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export interface UseLocalStorageConfig<T> {
+  key: string;
+  disabled?: boolean;
+  toJson?: (value: T) => unknown;
+  fromJson?: (value: any) => T;
+}
+
+export interface UseLocalStorageOut<T> {
+  value: T | undefined;
+  setValue(value: T): void;
+  clearValue(): void;
+}
+
+export function useLocalStorage<T>({
+  key,
+  toJson = identity,
+  fromJson = identity,
+}: UseLocalStorageConfig<T>): [
+  value: T | undefined,
+  setValue: (value: T | undefined) => void,
+] {
+  const loadFromStorage = () => {
+    const json = localStorage.getItem(key);
+    return json === null ? undefined : fromJson(JSON.parse(json));
+  };
+  const [value, setState] = useState(loadFromStorage);
+  const hasMounted = useHasMounted();
+
+  useEffect(() => {
+    if (hasMounted) {
+      setState(loadFromStorage());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  const setValue = useCallback(
+    (value: T | undefined) => {
+      if (value !== undefined) {
+        localStorage.setItem(key, JSON.stringify(toJson(value)));
+      } else {
+        localStorage.removeItem(key);
+      }
+      setState(value);
+    },
+    [key, toJson],
+  );
+
+  return [value, setValue];
+}
+
+function identity<T>(x: T): T {
+  return x;
 }

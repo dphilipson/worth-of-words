@@ -1,60 +1,60 @@
 import { Address } from "viem";
 
-export interface SecretAndSalt {
-  word: string;
+import { useLocalStorage, UseLocalStorageOut } from "./hooks";
+
+export interface SecretsAndSalt {
+  words: string[];
   salt: bigint;
 }
 
-const SECRETS_AND_SALTS_KEY = "secrets-and-salts";
+export interface GuessAndSalt {
+  guess: string;
+  salt: bigint;
+}
+
+export interface LobbyStorage {
+  secrets: SecretsAndSalt | undefined;
+  guess: GuessAndSalt | undefined;
+  advancedToRound: number;
+  setSecrets(secrets: SecretsAndSalt): void;
+  setGuess(guess: GuessAndSalt): void;
+  clearGuess(): void;
+  setAdvancedToRound(round: number): void;
+}
+
+const SECRETS_KEY = "secrets";
 const GUESS_KEY = "guess";
+const ADVANCED_TO_ROUND_KEY = "advanced-to-round";
 
-export class LobbyStorage {
-  constructor(
-    private readonly lobbyId: bigint,
-    private readonly walletAddress: Address,
-  ) {}
-
-  public storeSecretWordsAndSalts(secrets: SecretAndSalt[]): void {
-    const stringySecrets = secrets.map(stringifySecret);
-    this.store(SECRETS_AND_SALTS_KEY, JSON.stringify(stringySecrets));
+export function useLobbyStorage(
+  lobbyId: bigint | undefined,
+  walletAddress: Address | undefined,
+): LobbyStorage | undefined {
+  const getFullKey = (key: string) =>
+    `worth-of-words:lobby:${lobbyId}:player:${walletAddress}:${key}`;
+  const [secrets, setSecrets] = useLocalStorage<SecretsAndSalt>({
+    key: getFullKey(SECRETS_KEY),
+    toJson: ({ words, salt }) => ({ words, salt: salt.toString() }),
+    fromJson: ({ words, salt }) => ({ words, salt: BigInt(salt) }),
+  });
+  const [guess, setGuess] = useLocalStorage<GuessAndSalt>({
+    key: getFullKey(GUESS_KEY),
+    toJson: ({ guess, salt }) => ({ guess, salt: salt.toString() }),
+    fromJson: ({ guess, salt }) => ({ guess, salt: BigInt(salt) }),
+  });
+  const [advancedToRound, advanceToRound] = useLocalStorage<number>({
+    key: getFullKey(ADVANCED_TO_ROUND_KEY),
+  });
+  if (lobbyId === undefined || walletAddress === undefined) {
+    return undefined;
   }
-
-  public loadSecretWordsAndSalts(): SecretAndSalt[] | undefined {
-    const json = this.load(SECRETS_AND_SALTS_KEY);
-    if (json === undefined) {
-      return undefined;
-    }
-    const stringySecretsAndSalts = JSON.parse(json);
-    return stringySecretsAndSalts.map(unstringifySecret);
-  }
-
-  public storeGuess(guess: SecretAndSalt): void {
-    const stringyGuess = stringifySecret(guess);
-    this.store(GUESS_KEY, JSON.stringify(stringyGuess));
-  }
-
-  public loadGuess(): SecretAndSalt {
-    const stringyGuess = JSON.parse(this.load(GUESS_KEY)!);
-    return unstringifySecret(stringyGuess);
-  }
-
-  private store(key: string, value: string): void {
-    localStorage.setItem(this.fullKey(key), value);
-  }
-
-  private load(key: string): string | undefined {
-    return localStorage.getItem(this.fullKey(key)) ?? undefined;
-  }
-
-  private fullKey(key: string): string {
-    return `worth-of-words:lobby:${this.lobbyId}:player:${this.walletAddress}:${key}`;
-  }
-}
-
-function stringifySecret({ word, salt }: SecretAndSalt): unknown {
-  return { word, salt: salt.toString() };
-}
-
-function unstringifySecret({ word, salt }: any): SecretAndSalt {
-  return { word, salt: BigInt(salt) };
+  return {
+    secrets,
+    guess,
+    advancedToRound: advancedToRound ?? 0,
+    setSecrets,
+    setGuess,
+    clearGuess: () => setGuess(undefined),
+    setAdvancedToRound: advanceToRound,
+  };
 }

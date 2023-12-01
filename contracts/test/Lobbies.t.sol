@@ -15,12 +15,12 @@ contract LobbiesTest is Test, Lobbies {
 
     function test_runthrough() public {
         this.initialize(getDefaultLobbyConfig());
-        ValidWordProof[]
-            memory secretWordCommitments = getMammaSecretWordCommitments();
+        ValidWordsProof
+            memory secretWordsCommitment = getMammaSecretWordsCommitment();
         vm.prank(ALICE);
-        this.addPlayer("Alice", bytes(""), secretWordCommitments);
+        this.addPlayer("Alice", bytes(""), secretWordsCommitment);
         vm.prank(BOB);
-        this.addPlayer("Bob", bytes(""), secretWordCommitments);
+        this.addPlayer("Bob", bytes(""), secretWordsCommitment);
         vm.prank(ALICE);
         this.startGame();
         Word imams = WordTestUtils.fromString("IMAMS");
@@ -33,15 +33,23 @@ contract LobbiesTest is Test, Lobbies {
         bytes32[] memory merkleProof = getImamsMerkleProof();
         vm.prank(ALICE);
         this.revealGuess(imams, salt, merkleProof);
-        // Alice doesn't need anything in her matches proof, since Bob didn't
-        // get a guess in on time.
+        // Alice can put any valid proof in, since Bob didn't submit on time.
+        // In a real game, she'd submit a proof for a dummy non-matching guess,
+        // but we'll just reuse the same proof as Bob's for this test.
+        ScoreGuessesProof memory scoreProof = getImamsOnMammaScoreProof();
         vm.prank(ALICE);
-        this.revealMatches(new ScoreGuessProof[](1));
+        this.revealMatches(scoreProof);
         vm.prank(BOB);
-        this.revealMatches(getImamsOnMammaScoreProof());
+        this.revealMatches(scoreProof);
         // IMAMS against MAMMA has two yellows and one green. With the test
         // config, thats 2 + 10 points.
-        assertEq(lobby.playersByAddress[ALICE].score, 12, "wrong score");
+        assertEq(
+            lobby.playersByAddress[ALICE].score,
+            12,
+            "wrong score for Alice"
+        );
+        // Bob should get no points because he didn't submit a guess.
+        assertEq(lobby.playersByAddress[BOB].score, 0, "wrong score for Bob");
         assertEq(lobby.roundNumber, 1, "round should have advanced");
     }
 
@@ -52,14 +60,14 @@ contract LobbiesTest is Test, Lobbies {
     function addPlayer(
         string calldata playerName,
         bytes calldata password,
-        ValidWordProof[] calldata secretWordCommitments
+        ValidWordsProof calldata secretWordsCommitment
     ) external {
         _addPlayer(
             lobby,
             LOBBY_ID,
             playerName,
             password,
-            secretWordCommitments
+            secretWordsCommitment
         );
     }
 
@@ -79,8 +87,8 @@ contract LobbiesTest is Test, Lobbies {
         _revealGuess(lobby, LOBBY_ID, guess, salt, merkleProof);
     }
 
-    function revealMatches(ScoreGuessProof[] calldata proofs) external {
-        _revealMatches(lobby, LOBBY_ID, proofs);
+    function revealMatches(ScoreGuessesProof calldata proof) external {
+        _revealMatches(lobby, LOBBY_ID, proof);
     }
 
     function getDefaultLobbyConfig() private pure returns (LobbyConfig memory) {
@@ -105,42 +113,41 @@ contract LobbiesTest is Test, Lobbies {
     }
 
     /**
-     * Proofs for the word "MAMMA". Generated from `printTestData` in the app
-     * (frontend) module.
+     * Proof for the word "MAMMA" and two others not used in this test.
+     * Generated from `printTestData` in the app (frontend) module.
      */
-    function getMammaSecretWordCommitments()
+    function getMammaSecretWordsCommitment()
         private
         pure
-        returns (ValidWordProof[] memory proofs)
+        returns (ValidWordsProof memory)
     {
-        proofs = new ValidWordProof[](2);
-        for (uint32 i = 0; i < 2; i++) {
-            proofs[i] = ValidWordProof(
+        return
+            ValidWordsProof(
                 [
-                    5867464772186840556131892863832894985645392960127500054486892683820685535397,
-                    13682553220618727812134559800673623893246649555837418948293524162520578246322
+                    17881595491463269564028249543491327440928342057208551375603995221815423818362,
+                    13731895407756928260451318329930734688585234889194182604340302047082970113064
                 ],
                 [
                     [
-                        2726094359809819990645740848433472707396579329035278628123360037793985800737,
-                        9023551802349293670618849177877588335623416562224050437177701129173706804417
+                        10041729348039128096846126424245821030280463087898957209323267876832189337229,
+                        4585173980328929416560052129055439130840871716497738781184710780744001411657
                     ],
                     [
-                        10196577371336501803509017139443457477010117923926472185026505752617004001151,
-                        7667170194398291915000940398155266262880024181214102384088110838920244468749
+                        2073478311500690531758885553064726059849489367930319487872664731113310725767,
+                        1671061633064024332847138202429134250370577539303100503152382948003779992620
                     ]
                 ],
                 [
-                    2107705034795918583029340238310343621889618242692555047618994222069317418802,
-                    16940101826390903987697967360398154712931521169408391832525321445933264745730
+                    1227574819873297095949033528010595514908399406658348126919702485914703415683,
+                    11684528560275350585037846583396184014992507441463324031984922255681160841032
                 ],
                 [
                     5171736603042482243320905874870331627894653004354088196836570650861053951069,
+                    8561268086786338597719598234748529167157446697220990872578671534870233569341,
+                    10366956229969468420673216372240379198377488389397733760441536651340128113246,
                     7173236982933911777820733145493173871226223723182762917932632264146841199672
                 ]
             );
-        }
-        return proofs;
     }
 
     function getImamsMerkleProof()
@@ -174,42 +181,61 @@ contract LobbiesTest is Test, Lobbies {
     function getImamsOnMammaScoreProof()
         private
         pure
-        returns (ScoreGuessProof[] memory proofs)
+        returns (ScoreGuessesProof memory)
     {
-        proofs = new ScoreGuessProof[](1);
-        proofs[0] = ScoreGuessProof(
-            [
-                5301969868000658697396310561997649807575458765523818387791461452281911122996,
-                20874767957779501960974395628649302931877753140358766484175657996148161344967
-            ],
-            [
+        return
+            ScoreGuessesProof(
                 [
-                    9537404683050324715340052646948040936160078688793783514569851109435260926326,
-                    9018235337191429907731051205592880498340390733645934934168162176468118729256
+                    15693239736464155968943120648313727508491978725751295945152830771130753012582,
+                    9764223623244957491282176177134973110395736897559787596874877041253769484354
                 ],
                 [
-                    21342259992825453858805043626787888506454162417661729416624936893791342016158,
-                    14364973220933639838169025413536906763896440846008517520281335991290862855966
+                    [
+                        3488833506423774319360670602070037271224240358954407852260427213742871500625,
+                        2893461148445015230262491105662613756517495680284484997509679004510422945192
+                    ],
+                    [
+                        638883980693004260327686765048482955791133217504465860210714550850825747765,
+                        16332317062985708606605983089533126610969069843277862487364725643788024838442
+                    ]
+                ],
+                [
+                    3363024327997736643710643267981701686192711446567955247724498059633144479480,
+                    3726766078545050752983425371113336650661259272508959025235662413574467496086
+                ],
+                [
+                    5171736603042482243320905874870331627894653004354088196836570650861053951069,
+                    0,
+                    1,
+                    1,
+                    2,
+                    0,
+                    2,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    2,
+                    0,
+                    0,
+                    0,
+                    8,
+                    12,
+                    0,
+                    12,
+                    18,
+                    12,
+                    14,
+                    14,
+                    2,
+                    7,
+                    15,
+                    0,
+                    11,
+                    4,
+                    14
                 ]
-            ],
-            [
-                16221649677286850427230532527753650756055218094032876845356730776261684153982,
-                5067690487716801048462946155703919636088680931163733377129346305560780250499
-            ],
-            [
-                5171736603042482243320905874870331627894653004354088196836570650861053951069,
-                0,
-                1,
-                1,
-                2,
-                0,
-                8,
-                12,
-                0,
-                12,
-                18
-            ]
-        );
-        return proofs;
+            );
     }
 }

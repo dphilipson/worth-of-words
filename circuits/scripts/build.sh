@@ -27,7 +27,7 @@ build_circuit() {
 }
 
 rm -rf dist/*
-build_circuit valid_word ValidWord
-build_circuit score_guess ScoreGuess
-cp dist/valid_word_js/witness_calculator.js ../app/app/_generated/
+build_circuit valid_words ValidWords
+build_circuit score_guesses ScoreGuesses
+cp dist/valid_words_js/witness_calculator.js ../app/app/_generated/
 

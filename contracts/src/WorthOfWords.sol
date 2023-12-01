@@ -20,14 +20,14 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
         LobbyId lobbyId,
         string calldata playerName,
         bytes calldata password,
-        ValidWordProof[] calldata secretWordCommitments
+        ValidWordsProof calldata secretWordsCommitment
     ) external override {
         _addPlayer(
             _getLobby(lobbyId),
             lobbyId,
             playerName,
             password,
-            secretWordCommitments
+            secretWordsCommitment
         );
     }
 
@@ -53,9 +53,9 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
 
     function revealMatches(
         LobbyId lobbyId,
-        ScoreGuessProof[] calldata proofs
+        ScoreGuessesProof calldata proof
     ) external override {
-        _revealMatches(_getLobby(lobbyId), lobbyId, proofs);
+        _revealMatches(_getLobby(lobbyId), lobbyId, proof);
     }
 
     function endRevealMatchesPhase(LobbyId lobbyId) external override {

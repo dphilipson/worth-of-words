@@ -1,7 +1,7 @@
 import { getGuessWordMerkleTree, getSecretWordMerkleTree } from "./merkle";
 import {
-  getScoreGuessProver,
-  getValidWordProver,
+  getScoreGuessesProver,
+  getValidWordsProver,
   ProofCallData,
 } from "./proofs";
 import { wordToLetters, wordToNumber } from "./words";
@@ -18,34 +18,54 @@ export async function printTestData(): Promise<void> {
   await printImamsOnMammaScoreProof();
 }
 
-async function printValidMammaProof(): Promise<void> {
-  const word = "MAMMA";
-  const tree = await getSecretWordMerkleTree();
-  const { proofHashes, proofOrderings } = tree.getProof(word)!;
-  const prover = await getValidWordProver();
-  const proof = await prover({
-    word: wordToNumber(word),
-    salt: "1",
-    proofHashes,
-    proofOrderings,
-  });
-  printProof(proof);
+export async function printValidMammaProof(): Promise<void> {
+  await printValidWordsProof(["MAMMA", "GOODY", "ESSAY"]);
 }
 
-async function printImamsMerkleProof(): Promise<void> {
+export async function printImamsMerkleProof(): Promise<void> {
   const tree = await getGuessWordMerkleTree();
   const proof = tree.getProof([wordToNumber("IMAMS")]);
   console.log(`[${proof.join(",")}]`);
 }
 
-async function printImamsOnMammaScoreProof(): Promise<void> {
-  const prover = await getScoreGuessProver();
+export async function printImamsOnMammaScoreProof(): Promise<void> {
+  const prover = await getScoreGuessesProver();
   const proof = await prover({
     word: wordToLetters("MAMMA"),
     salt: "1",
-    guess: wordToLetters("IMAMS"),
+    guesses: [
+      wordToLetters("IMAMS"),
+      wordToLetters("MOOCH"),
+      wordToLetters("PALEO"),
+    ],
   });
   printProof(proof);
+}
+
+async function printValidWordsProof(words: string[]): Promise<void> {
+  const startTime = Date.now();
+  const wordsAsNumbers: number[] = [];
+  const proofHashes: string[][] = [];
+  const proofOrderings: number[][] = [];
+  const tree = await getSecretWordMerkleTree();
+  for (const word of words) {
+    const { proofHashes: hashes, proofOrderings: orderings } =
+      tree.getProof(word)!;
+    wordsAsNumbers.push(wordToNumber(word));
+    proofHashes.push(hashes);
+    proofOrderings.push(orderings);
+  }
+  const prover = await getValidWordsProver();
+  const proof = await prover({
+    words: wordsAsNumbers,
+    salt: "1",
+    proofHashes,
+    proofOrderings,
+    merkleRoot: tree.root.toString(),
+  });
+  printProof(proof);
+  const duration = Date.now() - startTime;
+  console.log(`Proof generated in ${duration}ms`);
 }
 
 function printProof(proof: ProofCallData): void {

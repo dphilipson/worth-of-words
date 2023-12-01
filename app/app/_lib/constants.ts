@@ -10,7 +10,7 @@ import {
 } from "../_generated/deployedConstants";
 import { notNull } from "./typechecks";
 
-export const USE_ANVIL = false;
+export const USE_ANVIL = true;
 export const TIME_LIMIT_MULTIPLIER = 1;
 
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
@@ -19,6 +19,9 @@ export const WALLET_CONNECT_PROJECT_ID = notNull(
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
 );
 export const WORD_LENGTH = 5;
+// The next two constants correspond to the fixed sizes of the ZK-circuits.
+export const SECRET_WORDS_IN_PROOF = 3;
+export const GUESSES_IN_PROOF = 3;
 export const POLL_INTERVAL_MS = 1000;
 export const ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 export const WORTH_OF_WORDS_ADDRESS = USE_ANVIL

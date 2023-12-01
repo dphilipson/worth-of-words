@@ -5,6 +5,7 @@ import { Address, Hex } from "viem";
 import { LobbyEvent } from "./events";
 
 export interface LobbyState {
+  id: bigint;
   config: LobbyConfig;
   playersByAddress: Map<Address, Player>;
   currentRoundPlayerOrder: Address[];
@@ -69,8 +70,9 @@ export interface LobbyConfig {
   pointsForFullWord: number;
 }
 
-export function newLobbyState(config: LobbyConfig): LobbyState {
+export function newLobbyState(id: bigint, config: LobbyConfig): LobbyState {
   return {
+    id,
     config,
     playersByAddress: new Map(),
     currentRoundPlayerOrder: [],

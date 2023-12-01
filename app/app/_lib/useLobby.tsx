@@ -17,7 +17,7 @@ import {
   WORTH_OF_WORDS_ADDRESS,
 } from "./constants";
 import { emptyList } from "./empty";
-import { getEventsNowAndForever as getLobbyEventsNowAndForever } from "./events";
+import { getLobbyEventsNowAndForever } from "./events";
 import {
   getUpdatedLobbyState,
   LobbyState,
@@ -26,7 +26,7 @@ import {
 } from "./gameLogic";
 import { useSetDeadline } from "./hooks";
 import { LobbyActions, LobbyActionsImpl } from "./lobbyActions";
-import { LobbyStorage } from "./lobbyStorage";
+import { useLobbyStorage } from "./lobbyStorage";
 import { useWallet } from "./useWallet";
 import { getGuessWordlist, getSecretWordlist } from "./words";
 
@@ -94,17 +94,12 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     },
     staleTime: Number.POSITIVE_INFINITY,
   });
-  const secretsRef = useRef<string[]>();
+  const playerAddress = wallet?.address;
+  const storage = useLobbyStorage(lobby?.id, playerAddress);
   const actionsRef = useRef<LobbyActionsImpl>();
   const setDeadline = useSetDeadline();
 
-  if (wallet && lobby) {
-    const storage = new LobbyStorage(lobbyId, wallet.address);
-    if (secretsRef.current === undefined) {
-      secretsRef.current = storage
-        .loadSecretWordsAndSalts()
-        ?.map((secret) => secret.word);
-    }
+  if (wallet && lobby && storage) {
     if (actionsRef.current === undefined) {
       actionsRef.current = new LobbyActionsImpl(
         lobbyId,
@@ -113,11 +108,11 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
         lobby,
       );
     } else {
+      actionsRef.current.setLobbyStorage(storage);
       actionsRef.current.setLobbyState(lobby);
     }
   }
   const actions = actionsRef.current;
-  const playerAddress = wallet?.address;
   const player =
     lobby && playerAddress && lobby.playersByAddress.get(playerAddress);
   const hasRevealedGuess = player?.revealedGuess !== undefined;
@@ -191,7 +186,7 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     validSecretWords,
     validGuessWords,
     actions,
-    secrets: secretsRef.current ?? emptyList(),
+    secrets: storage?.secrets?.words ?? emptyList(),
     advanceToNextRound: isViewingPreviousRound ? advanceToNextRound : undefined,
   };
 }
@@ -219,7 +214,7 @@ function useLobbyState(lobbyId: bigint): LobbyState | undefined {
         lobbyId,
         (initialEvents) => {
           const initialState = getUpdatedLobbyState(
-            newLobbyState(config),
+            newLobbyState(lobbyId, config),
             initialEvents,
           );
           setState(initialState);

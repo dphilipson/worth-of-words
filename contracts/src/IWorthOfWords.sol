@@ -43,24 +43,24 @@ enum Color {
     Green
 }
 
-struct ValidWordProof {
+struct ValidWordsProof {
     uint256[2] _pA;
     uint256[2][2] _pB;
     uint256[2] _pC;
     /**
-     * Public signals are [commitment, merkleRoot].
+     * Public signals are [...commitments[3], merkleRoot].
      */
-    uint256[2] _pubSignals;
+    uint256[4] _pubSignals;
 }
 
-struct ScoreGuessProof {
+struct ScoreGuessesProof {
     uint256[2] _pA;
     uint256[2][2] _pB;
     uint256[2] _pC;
     /**
-     * Public signals are [commitment, ...scores[5], ...guessLetters[5]].
+     * Public signals are [commitment, ...scores[3][5], ...guessLetters[3][5]].
      */
-    uint256[11] _pubSignals;
+    uint256[31] _pubSignals;
 }
 
 interface WorthOfWordsTypes {
@@ -128,14 +128,14 @@ interface WorthOfWordsTypes {
     error MaxPlayerCountTooLow();
     error PlayerCountRangeIsEmpty();
     error NumLivesIsZero();
+    error TooManyLives();
 
     // Errors for joinLobby.
     error AlreadyInLobby();
     error LobbyIsFull(uint32 playerLimit);
     error IncorrectLobbyPassword();
-    error WrongNumberOfSecretWords(uint32 provided, uint32 required);
-    error InvalidMerkleProofInSecretWordProof(uint32 proofIndex);
-    error InvalidSecretWordProof(uint32 proofIndex);
+    error InvalidSecretWordsProof();
+    error InvalidMerkleProofInSecretWordsProof();
 
     // Errors for startGame.
     error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
@@ -148,14 +148,13 @@ interface WorthOfWordsTypes {
     error InvalidMerkleProofInGuessReveal();
 
     // Errors for revealMatches.
-    error WrongNumberOfMatchReveals(uint32 provided, uint32 required);
     error WrongSecretWordOrSaltInMatchProof(
-        uint32 proofIndex,
+        uint32 attackerIndex,
         uint32 secretWordIndex,
         string guess
     );
-    error WrongGuessInMatchProof(uint32 proofIndex, string requiredGuess);
-    error InvalidMatchProof(uint32 index, string guess);
+    error WrongGuessInMatchProof(uint32 attackerIndex, string requiredGuess);
+    error InvalidMatchProof();
 
     // Errors for endRevealMatchesPhase.
     error DeadlineNotExpired(uint48 currentTime, uint48 deadline);
@@ -170,7 +169,7 @@ interface IWorthOfWords is WorthOfWordsTypes {
         LobbyId lobbyId,
         string calldata playerName,
         bytes calldata password,
-        ValidWordProof[] calldata secretWordCommitments
+        ValidWordsProof calldata secretWordsCommitment
     ) external;
 
     function startGame(LobbyId lobbyId) external;
@@ -186,7 +185,7 @@ interface IWorthOfWords is WorthOfWordsTypes {
 
     function revealMatches(
         LobbyId lobbyId,
-        ScoreGuessProof[] calldata proofs
+        ScoreGuessesProof calldata proof
     ) external;
 
     function endRevealMatchesPhase(LobbyId lobbyId) external;

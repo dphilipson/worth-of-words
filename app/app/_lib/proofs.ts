@@ -21,16 +21,17 @@ interface ProverOut {
 }
 
 export interface ValidWordInput {
-  word: number;
+  words: number[];
   salt: string;
-  proofHashes: string[];
-  proofOrderings: number[];
+  proofHashes: string[][];
+  proofOrderings: number[][];
+  merkleRoot: string;
 }
 
 export interface ScoreGuessInput {
   word: number[];
   salt: string;
-  guess: number[];
+  guesses: number[][];
 }
 
 function proofAsViemParam({ proof, publicSignals }: ProverOut): ProofCallData {
@@ -57,7 +58,7 @@ export function useProveValidWord(
       if (!input) {
         throw new Error();
       }
-      const prover = await getValidWordProver();
+      const prover = await getValidWordsProver();
       return prover(input);
     },
     enabled: !!input,
@@ -75,7 +76,7 @@ export function useProveScoreGuess(
       if (!input) {
         throw new Error();
       }
-      const prover = await getScoreGuessProver();
+      const prover = await getScoreGuessesProver();
       return prover(input);
     },
     enabled: !!input,
@@ -84,12 +85,12 @@ export function useProveScoreGuess(
   });
 }
 
-export const getValidWordProver = newOneTimeLoader(() =>
-  newProver<ValidWordInput>("valid_word"),
+export const getValidWordsProver = newOneTimeLoader(() =>
+  newProver<ValidWordInput>("valid_words"),
 );
 
-export const getScoreGuessProver = newOneTimeLoader(() =>
-  newProver<ScoreGuessInput>("score_guess"),
+export const getScoreGuessesProver = newOneTimeLoader(() =>
+  newProver<ScoreGuessInput>("score_guesses"),
 );
 
 async function newProver<T>(circuitName: string): Promise<Prover<T>> {

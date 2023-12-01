@@ -16,7 +16,7 @@ const fakeEvent =
 
 export type LobbyEvent = typeof fakeEvent;
 
-export function getEventsNowAndForever(
+export function getLobbyEventsNowAndForever(
   client: PublicClient,
   address: Address,
   lobbyId: bigint,

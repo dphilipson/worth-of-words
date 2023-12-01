@@ -8,10 +8,14 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import "./IWorthOfWords.sol";
 import {MatchHistory, Scoring} from "./Scoring.sol";
 import {Words} from "./Words.sol";
-import {ScoreGuessVerifier} from "./generated/ScoreGuessVerifier.sol";
-import {ValidWordVerifier} from "./generated/ValidWordVerifier.sol";
+import {ScoreGuessesVerifier} from "./generated/ScoreGuessesVerifier.sol";
+import {ValidWordsVerifier} from "./generated/ValidWordsVerifier.sol";
 
-contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
+contract Lobbies is
+    WorthOfWordsTypes,
+    ScoreGuessesVerifier,
+    ValidWordsVerifier
+{
     using Scoring for MatchHistory;
     using Words for Word;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -46,7 +50,10 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         bool wasAttacked;
     }
 
+    // Changing either of the following two constants requires generating a
+    // larger ZK-circuit.
     uint32 private constant NUM_TARGETS = 3;
+    uint32 private constant MAX_LIVES = 3;
     // Sentinel value to save gas by not repeatedly setting to zero and back.
     bytes32 private constant NO_GUESS_COMMITMENT = bytes32(uint256(1));
 
@@ -115,6 +122,9 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         if (config.numLives == 0) {
             revert NumLivesIsZero();
         }
+        if (config.numLives > MAX_LIVES) {
+            revert TooManyLives();
+        }
 
         // Effects
         lobby.config = config;
@@ -129,7 +139,7 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         LobbyId lobbyId,
         string calldata playerName,
         bytes calldata password,
-        ValidWordProof[] calldata secretWordCommitments
+        ValidWordsProof calldata secretWordsCommitment
     ) internal requirePhase(lobby, Phase.NotStarted) {
         // Checks
         if (lobby.livePlayerAddressesByRound[0].contains(msg.sender)) {
@@ -141,29 +151,19 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         ) {
             revert LobbyIsFull(lobby.config.maxPlayers);
         }
-        uint32 numCommitments = uint32(secretWordCommitments.length);
-        if (numCommitments != lobby.config.numLives) {
-            revert WrongNumberOfSecretWords(
-                numCommitments,
-                lobby.config.numLives
-            );
-        }
         if (!_isValidPassword(lobby, password)) {
             revert IncorrectLobbyPassword();
         }
-        for (uint32 i = 0; i < secretWordCommitments.length; i++) {
-            _verifyValidWord(
-                secretWordCommitments[i],
-                i,
-                lobby.config.secretWordMerkleRoot
-            );
-        }
+        _verifyValidWords(
+            secretWordsCommitment,
+            lobby.config.secretWordMerkleRoot
+        );
 
         // Effects
         Player storage player = lobby.playersByAddress[msg.sender];
-        for (uint32 i = 0; i < secretWordCommitments.length; i++) {
-            player.secretWordCommitments.push() = secretWordCommitments[i]
-                ._pubSignals[0];
+        for (uint32 i = 0; i < lobby.config.numLives; i++) {
+            player.secretWordCommitments.push() = secretWordsCommitment
+                ._pubSignals[i];
         }
         lobby.livePlayerAddressesByRound[0].add(msg.sender);
 
@@ -257,7 +257,7 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
     function _revealMatches(
         Lobby storage lobby,
         LobbyId lobbyId,
-        ScoreGuessProof[] calldata proofs
+        ScoreGuessesProof calldata proof
     )
         internal
         requireInOrReadyForPhase(
@@ -275,12 +275,6 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         // Checks
         Player storage player = _validateCurrentPlayer(lobby);
         uint32[] memory offsets = _getTargetOffsets(lobby);
-        if (proofs.length != offsets.length) {
-            revert WrongNumberOfMatchReveals(
-                uint32(proofs.length),
-                uint32(offsets.length)
-            );
-        }
 
         // Handle each attacker in sequence.
         AttackAccumulator memory accumulator = AttackAccumulator({
@@ -288,13 +282,24 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
             revealedSecretWord: "",
             wasAttacked: false
         });
+        // TODO: the zero-proof/nonattacker case!!!
+        if (
+            !this.verifyScoreGuessesProof(
+                proof._pA,
+                proof._pB,
+                proof._pC,
+                proof._pubSignals
+            )
+        ) {
+            revert InvalidMatchProof();
+        }
         for (uint32 i = 0; i < offsets.length; i++) {
             _handleAttack(
                 lobby,
                 lobbyId,
                 player,
                 offsets[i],
-                proofs[i],
+                proof,
                 i,
                 accumulator
             );
@@ -401,8 +406,8 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         LobbyId lobbyId,
         Player storage player,
         uint32 offset,
-        ScoreGuessProof calldata proof,
-        uint32 proofIndex,
+        ScoreGuessesProof calldata proof,
+        uint32 attackerIndex,
         AttackAccumulator memory accumulator
     ) private {
         (
@@ -415,8 +420,14 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         }
         accumulator.wasAttacked = true;
         uint32[5] memory guessLetters = attacker.guess.toLetters();
-        _verifyMatches(player, proof, proofIndex, attacker.guess, guessLetters);
-        Color[5] memory matches = _getMatchesFromProof(proof);
+        _verifyMatches(
+            player,
+            proof,
+            attackerIndex,
+            attacker.guess,
+            guessLetters
+        );
+        Color[5] memory matches = _getMatchesFromProof(proof, attackerIndex);
         (uint32 newYellowCount, uint32 newGreenCount) = player
             .matchHistory
             .scoreMatches(guessLetters, matches);
@@ -598,58 +609,49 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
         return lobby.livePlayerAddressesByRound[lobby.roundNumber];
     }
 
-    function _verifyValidWord(
-        ValidWordProof calldata proof,
-        uint32 proofIndex,
+    function _verifyValidWords(
+        ValidWordsProof calldata proof,
         uint256 secretWordMerkleRoot
     ) private view {
         if (
-            !this.verifyValidWordProof(
+            !this.verifyValidWordsProof(
                 proof._pA,
                 proof._pB,
                 proof._pC,
                 proof._pubSignals
             )
         ) {
-            revert InvalidSecretWordProof(proofIndex);
+            revert InvalidSecretWordsProof();
         }
-        if (proof._pubSignals[1] != secretWordMerkleRoot) {
-            revert InvalidMerkleProofInSecretWordProof(proofIndex);
+        if (proof._pubSignals[MAX_LIVES] != secretWordMerkleRoot) {
+            revert InvalidMerkleProofInSecretWordsProof();
         }
     }
 
     function _verifyMatches(
         Player storage player,
-        ScoreGuessProof calldata proof,
-        uint32 proofIndex,
+        ScoreGuessesProof calldata proof,
+        uint32 attackerIndex,
         Word guess,
         uint32[5] memory guessLetters
     ) private view {
-        if (
-            !this.verifyScoreGuessProof(
-                proof._pA,
-                proof._pB,
-                proof._pC,
-                proof._pubSignals
-            )
-        ) {
-            revert InvalidMatchProof(proofIndex, guess.toString());
-        }
         if (
             proof._pubSignals[0] !=
             player.secretWordCommitments[player.secretWordIndex]
         ) {
             revert WrongSecretWordOrSaltInMatchProof(
-                proofIndex,
+                attackerIndex,
                 player.secretWordIndex,
                 guess.toString()
             );
         }
-        // Elements at spots [6, 11) of the public signals should correspond
-        // to the letters of the guess.
+        // Public signals: [commitment, ...scores[3][5], ...guessLetters[3][5]].
         for (uint32 i = 0; i < 5; i++) {
-            if (proof._pubSignals[6 + i] != uint256(guessLetters[i])) {
-                revert WrongGuessInMatchProof(proofIndex, guess.toString());
+            if (
+                proof._pubSignals[i + 5 * (NUM_TARGETS + attackerIndex) + 1] !=
+                uint256(guessLetters[i])
+            ) {
+                revert WrongGuessInMatchProof(attackerIndex, guess.toString());
             }
         }
     }
@@ -715,13 +717,13 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessVerifier, ValidWordVerifier {
     }
 
     function _getMatchesFromProof(
-        ScoreGuessProof calldata proof
+        ScoreGuessesProof calldata proof,
+        uint32 attackerIndex
     ) private pure returns (Color[5] memory) {
         Color[5] memory matches;
-        // Elements at spots [1, 6) of the public signals correspond to the
-        // match colors.
+        // Public signals: [commitment, ...scores[3][5], ...guessLetters[3][5]].
         for (uint32 i = 0; i < 5; i++) {
-            matches[i] = Color(proof._pubSignals[1 + i]);
+            matches[i] = Color(proof._pubSignals[i + 5 * attackerIndex + 1]);
         }
         return matches;
     }
