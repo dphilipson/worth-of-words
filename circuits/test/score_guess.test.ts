@@ -1,11 +1,11 @@
-import { beforeAll, describe, expect, it, test } from "@jest/globals";
+import { beforeAll, describe, expect, test } from "@jest/globals";
 import { wasm as wasmTester } from "circom_tester";
 
-describe("score_guess circuit", () => {
+describe("score_guesses circuit", () => {
   let circuit;
 
   beforeAll(async () => {
-    circuit = await wasmTester("./src/score_guess.circom");
+    circuit = await wasmTester("./src/score_guesses.circom");
   });
 
   describe("handles simple scoring", () => {
@@ -99,7 +99,11 @@ describe("score_guess circuit", () => {
     guess,
     score,
   }: ExpectScoreInput): Promise<void> {
-    const witness = await circuit.calculateWitness({ word, salt: 42, guess });
+    const witness = await circuit.calculateWitness({
+      word,
+      salt: 42,
+      guesses: new Array(3).fill(guess),
+    });
     expect(Number(witness[0])).toBe(1);
     // Skip over witness[1], the commitment hash.
     expect(witness.slice(2, 7).map(Number)).toEqual(score);
