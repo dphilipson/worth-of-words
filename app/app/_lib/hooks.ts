@@ -114,12 +114,6 @@ export interface UseLocalStorageConfig<T> {
   fromJson?: (value: any) => T;
 }
 
-export interface UseLocalStorageOut<T> {
-  value: T | undefined;
-  setValue(value: T): void;
-  clearValue(): void;
-}
-
 export function useLocalStorage<T>({
   key,
   toJson = identity,

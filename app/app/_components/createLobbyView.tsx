@@ -1,24 +1,20 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { memo, ReactNode, useCallback } from "react";
-import { Hex, zeroAddress } from "viem";
+import { memo, ReactNode, useCallback, useState } from "react";
 import { useMutation } from "wagmi";
 
-import { TIME_LIMIT_MULTIPLIER } from "../_lib/constants";
 import { useCreateLobby } from "../_lib/createLobby";
-import { LobbyConfig } from "../_lib/gameLogic";
-import {
-  getGuessWordMerkleTree,
-  getSecretWordMerkleTree,
-} from "../_lib/merkle";
+import { GameSpeed, getLobbyPreset } from "../_lib/lobbyPresets";
+import GameSpeedRadioGroup from "./gameSpeedRadioGroup";
 import LoadingButton from "./loadingButton";
 
 export default memo(function CreateLobbyView(): ReactNode {
   const createLobby = useCreateLobby();
   const navigateToLobby = useNavigateToLobby();
+  const [speed, setSpeed] = useState(GameSpeed.FAST);
   const mutation = useMutation({
     mutationFn: async () => {
-      const config = await getLobbyConfig();
+      const config = await getLobbyPreset(speed);
       return createLobby!(config);
     },
     onSuccess: navigateToLobby,
@@ -46,6 +42,9 @@ export default memo(function CreateLobbyView(): ReactNode {
           Only one person in your group needs to create a lobby. They can send a
           link to the other players.
         </p>
+        <div />
+        <h2 className="mt-4 text-lg">Game speed</h2>
+        <GameSpeedRadioGroup speed={speed} onSpeedChange={setSpeed} />
         <div className="card-actions justify-end">
           <LoadingButton
             className="btn btn-primary"
@@ -60,30 +59,6 @@ export default memo(function CreateLobbyView(): ReactNode {
     </div>
   );
 });
-
-async function getLobbyConfig(): Promise<LobbyConfig> {
-  const [secretTree, guessTree] = await Promise.all([
-    getSecretWordMerkleTree(),
-    getGuessWordMerkleTree(),
-  ]);
-  const secretWordMerkleRoot = secretTree.root;
-  const guessWordMerkleRoot = guessTree.root as Hex;
-  return {
-    secretWordMerkleRoot,
-    privateGamePublicKey: zeroAddress,
-    minPlayers: 0,
-    maxPlayers: 1000,
-    guessWordMerkleRoot,
-    maxCommitGuessTime: 300 * TIME_LIMIT_MULTIPLIER,
-    maxRevealGuessTime: 60 * TIME_LIMIT_MULTIPLIER,
-    maxRevealMatchesTime: 60 * TIME_LIMIT_MULTIPLIER,
-    maxRounds: 0,
-    numLives: 3,
-    pointsForYellow: 2,
-    pointsForGreen: 5,
-    pointsForFullWord: 10,
-  };
-}
 
 function useNavigateToLobby(): (lobbyId: bigint) => void {
   const router = useRouter();

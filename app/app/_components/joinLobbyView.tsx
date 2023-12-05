@@ -6,6 +6,7 @@ import { useImmer } from "use-immer";
 
 import { copyToClipboard } from "../_lib/clipboard";
 import { WORD_LENGTH } from "../_lib/constants";
+import { GameSpeed } from "../_lib/lobbyPresets";
 import Card from "./card";
 import LoadingButton from "./loadingButton";
 import TextInput from "./textInput";
@@ -14,6 +15,7 @@ export interface JoinLobbyViewProps {
   numSecrets: number;
   validSecretWords: Set<string>;
   validGuessWords: Set<string>;
+  speedPreset: GameSpeed | undefined;
   isJoining: boolean;
   onJoin(playerName: string, words: string[]): void;
 }
@@ -22,6 +24,7 @@ export default memo(function JoinLobbyView({
   numSecrets,
   validSecretWords,
   validGuessWords,
+  speedPreset,
   isJoining,
   onJoin,
 }: JoinLobbyViewProps): ReactNode {
@@ -74,10 +77,13 @@ export default memo(function JoinLobbyView({
       <div className="card w-full max-w-sm bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title">Join Lobby</h2>
+          <p>Game speed: {speedPreset?.toLowerCase()}</p>
           <div className="form-control max-w-xs">
-            <label className="label">
-              <span className="label-text">Player name</span>
-            </label>
+            <h2 className="card-title mt-4">Player Name</h2>
+            <p className="mb-2 text-sm">
+              This name will be publicly visible and associated with your wallet
+              address. Avoid identifiable information.
+            </p>
             <TextInput
               className="input input-bordered"
               placeholder="Ana Steele"
@@ -85,7 +91,7 @@ export default memo(function JoinLobbyView({
               onValueChange={setPlayerName}
             />
             <h2 className="card-title mt-4">Secret words</h2>
-            <p className="mb-4">
+            <p className="mb-4 text-sm">
               Choose your secret words. Other players will try to guess these!
             </p>
             {chainFrom(range(numSecrets))

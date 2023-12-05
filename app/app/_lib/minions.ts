@@ -114,7 +114,14 @@ function newMinionWallet(accountAddress: Address, privateKey: Hex): WalletLike {
     FEE_BUFFER_PERCENT,
     FEE_BUFFER_PERCENT,
   )
-    // Double the call gas limit to be safe for demos.
+    // Increase the call gas limit to account for cases where actual gas is a
+    // a bit more than estimated from being "front-run." For example, the last
+    // player to reveal matches also triggers the advance to the next round,
+    // which costs more gas.
+    //
+    // A factor of 2 is much higher than needed, but since this doesn't increase
+    // the amount of gas spent and the user is never prompted to approve this
+    // spend, it doesn't actually matter.
     .withCustomMiddleware(async (struct) => {
       return {
         ...struct,

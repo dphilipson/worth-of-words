@@ -122,7 +122,7 @@ export default memo(function AccountSetupWhenConnected({
           may withdraw them at any time.
         </p>
         <p>
-          You must have slightly more than 0.5 Mumbai MATIC for this step. To
+          You must have slightly more than 0.19 Mumbai MATIC for this step. To
           get some, go to <a href="http://mumbaifaucet.com">mumbaifaucet.com</a>
           .
         </p>

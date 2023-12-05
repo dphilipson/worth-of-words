@@ -11,8 +11,6 @@ import {
 import { notNull } from "./typechecks";
 
 export const USE_ANVIL = true;
-export const TIME_LIMIT_MULTIPLIER = 1;
-
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
 export const ALCHEMY_API_KEY = notNull(process.env.NEXT_PUBLIC_ALCHEMY_ID);
 export const WALLET_CONNECT_PROJECT_ID = notNull(
@@ -33,7 +31,6 @@ export const MINION_FACTORY_ADDRESS = USE_ANVIL
 export const POST_DEADLINE_WAIT_TIME_MS = 4000;
 export const SECRET_GENERATING_MESSAGE =
   "Grant this website permission to make Worth of Words moves on your behalf.";
-export const PREFUND_VALUE = "0.5";
-// Default is 50. Make this big so demo runs smoothly, since we don't have real
-// error handling.
-export const FEE_BUFFER_PERCENT = BigInt(150);
+export const PREFUND_VALUE = "0.19";
+// Default is 5.
+export const FEE_BUFFER_PERCENT = BigInt(5);
