@@ -1,5 +1,6 @@
 import { memo, ReactNode, useCallback, useState } from "react";
 
+import { useRequestNotificationPermission } from "../_lib/notifications";
 import { useLobby } from "../_lib/useLobby";
 import ConnectedPlayerList from "./connectedPlayerList";
 import LoadingButton from "./loadingButton";
@@ -9,6 +10,8 @@ export default memo(function WaitingRoomView(): ReactNode {
   const [isStarting, setIsStarting] = useState(false);
   const hasEnoughPlayers =
     lobby.playersByAddress.size > Math.max(1, lobby.config.minPlayers);
+
+  useRequestNotificationPermission();
 
   const onStartClick = useCallback(() => {
     setIsStarting(true);

@@ -60,12 +60,12 @@ export default memo(function AboutPage(): ReactNode {
         <p>A guess earns points by revealing new information.</p>
         <ul>
           <li>
-            A green match grants points if it is in a position which has not yet
+            A green match earns points if it is in a position which has not yet
             had a green match. Each new green match is worth{" "}
             <b>{pluralize(POINTS_FOR_GREEN, "point")}.</b>
           </li>
           <li>
-            A yellow match grants points if it reveals that there are more
+            A yellow match earns points if it reveals that there are more
             instances of a given letter than were previously known. For example,
             if previous guesses indicated that the letter D appears in the word
             at least once and the new guess has two D&apos;s marked yellow, then
@@ -76,6 +76,20 @@ export default memo(function AboutPage(): ReactNode {
         <p>
           Further, a guess that correctly guesses a full word is awarded an
           additional <b>{pluralize(POINTS_FOR_FULL_WORD, "point")}</b>.
+        </p>
+        <h4>What words are valid?</h4>
+        <p>
+          Worth of Words uses the same word lists as standard Wordle. Like in
+          Wordle, the list of words which can be used as a secret is much
+          smaller than the list of words which can be used as a guess. The word
+          lists are available here:{" "}
+          <Link href="/secret-wordlist.txt">allowed secrets</Link>,{" "}
+          <Link href="/guess-wordlist.txt">allowed guesses</Link>.
+        </p>
+        <h4>Is there a maximum number of players?</h4>
+        <p>
+          No! Any number of players can join the same game, and the game length
+          should not be significantly longer with more players.
         </p>
         <h3>Implementation</h3>
         <p>

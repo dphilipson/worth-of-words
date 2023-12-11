@@ -7,6 +7,10 @@ import {
   Phase,
 } from "../_lib/gameLogic";
 import { usePrevious } from "../_lib/hooks";
+import {
+  useNotifyOnYourTurn,
+  useRequestNotificationPermission,
+} from "../_lib/notifications";
 import { useCreateSubscription } from "../_lib/subscriptions";
 import { useLobby } from "../_lib/useLobby";
 import Card from "./card";
@@ -51,6 +55,9 @@ export default memo(function GameplayView(): ReactNode {
   }, [lobby.roundNumber]);
   const [openStatusModal, subscribeToOpenStatusModal] =
     useCreateSubscription<void>();
+
+  useRequestNotificationPermission();
+  useNotifyOnYourTurn();
 
   const player = getPlayer(lobby, playerAddress);
   if (lobby.phase === Phase.GAME_OVER || player.isEliminated) {

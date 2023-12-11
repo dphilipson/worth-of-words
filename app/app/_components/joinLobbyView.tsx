@@ -86,8 +86,8 @@ export default memo(function JoinLobbyView({
           <div className="form-control max-w-xs">
             <h2 className="card-title mt-4">Player Name</h2>
             <p className="mb-2 text-sm">
-              This name will be publicly visible and associated with your wallet
-              address. Avoid identifiable information.
+              This name will be publicly associated with your wallet address.
+              Avoid identifying information.
             </p>
             <TextInput
               className="input input-bordered"
@@ -206,7 +206,7 @@ function getError(
   if (s.length !== WORD_LENGTH || validSecretWords.has(s)) {
     return undefined;
   } else if (validGuessWords.has(s)) {
-    return "Too hard. Word is a valid guess, but not a valid secret.";
+    return "Word is a valid guess, but not a valid secret.";
   } else {
     return "Not a word.";
   }

@@ -13,10 +13,10 @@ export default memo(function Header(): ReactNode {
         href="/about"
         target={isInLobby ? "_blank" : undefined}
       >
-        <FaRegCircleQuestion className="text-xl" />
+        <FaRegCircleQuestion className="text-2xl text-slate-800" />
       </Link>
       <div className="w-32">
-        <ConnectKitButton />
+        <ConnectKitButton mode="light" />
       </div>
     </div>
   );
