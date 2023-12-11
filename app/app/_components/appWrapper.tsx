@@ -15,6 +15,7 @@ import {
   CHAIN,
   WALLET_CONNECT_PROJECT_ID,
 } from "../_lib/constants";
+import Header from "./header";
 
 const queryClient = new QueryClient();
 
@@ -53,9 +54,7 @@ export default function AppWrapper({
     <QueryClientProvider client={queryClient}>
       <WagmiConfig config={config}>
         <ConnectKitProvider>
-          <div className="absolute right-4 top-4">
-            <ConnectKitButton />
-          </div>
+          <Header />
           {children}
           <ReactQueryDevtools initialIsOpen={false} />
         </ConnectKitProvider>
