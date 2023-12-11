@@ -1,6 +1,7 @@
 "use client";
 import clsx from "clsx";
 import { memo, ReactNode, useCallback, useMemo, useState } from "react";
+import { FaCopy } from "react-icons/fa6";
 import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
@@ -70,8 +71,12 @@ export default memo(function JoinLobbyView({
   return (
     <div className="flex w-full flex-col items-center space-y-10">
       <Card className="w-full max-w-xl px-2 py-2">
-        <button className="btn btn-ghost text-primary" onClick={copyInviteLink}>
+        <button
+          className="btn btn-ghost relative text-primary"
+          onClick={copyInviteLink}
+        >
           {copiedInvite ? "Copied invite!" : "Copy lobby invite link"}
+          <FaCopy className="absolute right-8" />
         </button>
       </Card>
       <div className="card w-full max-w-sm bg-base-100 shadow-xl">

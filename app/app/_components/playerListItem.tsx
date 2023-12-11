@@ -1,9 +1,11 @@
 import clsx from "clsx";
 import { memo, ReactNode, useEffect } from "react";
-import { chainFrom, repeat } from "transducist";
+import { FaHeart, FaHeartCrack } from "react-icons/fa6";
+import { chainFrom, range, repeat } from "transducist";
 
 import { usePrevious } from "../_lib/hooks";
 import { useCreateSubscription } from "../_lib/subscriptions";
+import LivesIndicator from "./livesIndicator";
 import PulseOnDemandBox from "./pulseOnDemandBox";
 
 export interface PlayerListItemProps {
@@ -57,7 +59,9 @@ export default memo(function PlayerListItem({
             <span className="loading loading-bars loading-xs ml-2 opacity-30" />
           )}
         </div>
-        <div className="text-xs text-gray-400">{ellipsizeAddress(address)}</div>
+        <div className="w-20 overflow-hidden text-ellipsis text-xs text-gray-400">
+          {address}
+        </div>
       </div>
       <div className="flex-col text-right">
         <PulseOnDemandBox
@@ -66,9 +70,11 @@ export default memo(function PlayerListItem({
         >
           {score}
         </PulseOnDemandBox>
-        <div className="text-sm">
-          {getLivesText(maxLives, livesLeft, isEliminated)}
-        </div>
+        <LivesIndicator
+          maxLives={maxLives}
+          livesLeft={livesLeft}
+          isEliminated={isEliminated}
+        />
       </div>
     </div>
   );
@@ -76,19 +82,4 @@ export default memo(function PlayerListItem({
 
 function ellipsizeAddress(address: string): string {
   return address.slice(0, 9) + "…";
-}
-
-function getLivesText(
-  maxLives: number,
-  livesLeft: number,
-  isEliminated: boolean,
-): string {
-  const lifeIcon = isEliminated ? "💔" : "❤️";
-  return (
-    repeatString("🩶", maxLives - livesLeft) + repeatString(lifeIcon, livesLeft)
-  );
-}
-
-function repeatString(s: string, n: number): string {
-  return chainFrom(repeat(s, n)).joinToString("");
 }

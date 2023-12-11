@@ -38,5 +38,8 @@
     "prettier": "^3.0.3",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "react-icons": "^4.12.0"
   }
 }
