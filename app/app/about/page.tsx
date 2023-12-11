@@ -153,6 +153,7 @@ export default memo(function AboutPage(): ReactNode {
           </Link>
           .
         </p>
+        <p>Copyright © 2023 David Philipson</p>
         <p>
           <Link href="/">Return home</Link>
         </p>
