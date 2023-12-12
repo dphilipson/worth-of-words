@@ -1,9 +1,9 @@
 import CreateLobbyView from "../_components/createLobbyView";
 
-export default function Home() {
+export default function AppPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between pt-24">
+    <div className="flex min-h-screen flex-col items-center justify-between pt-24">
       <CreateLobbyView />
-    </main>
+    </div>
   );
 }

@@ -138,6 +138,7 @@ interface WorthOfWordsTypes {
     error InvalidMerkleProofInSecretWordsProof();
 
     // Errors for startGame.
+    error NotHost(address host);
     error NotEnoughPlayers(uint32 currentPlayers, uint32 requiredPlayers);
 
     // Errors for commitGuess (none).

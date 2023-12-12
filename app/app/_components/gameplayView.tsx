@@ -82,7 +82,7 @@ export default memo(function GameplayView(): ReactNode {
       );
     } else if (lobby.phase === Phase.COMMITING_GUESSES) {
       const statusText = isInputtingGuess
-        ? "…left to submit guess"
+        ? "left to submit guess"
         : `Waiting for players ${getWaitingPlayerText()}`;
       return (
         <>

@@ -1,7 +1,7 @@
 import { memo, ReactNode } from "react";
 
 import { GAME_SPEED_CONSTANTS, GameSpeed } from "../_lib/lobbyPresets";
-import { capitalize, pluralize, pluralizeNonstandard } from "../_lib/strings";
+import { capitalize, pluralizeNonstandard } from "../_lib/strings";
 import RadioGroup, { RadioGroupItem } from "./radioGroup";
 
 export interface GameSpeedRadioGroupProps {

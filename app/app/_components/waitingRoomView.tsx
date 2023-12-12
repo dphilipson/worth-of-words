@@ -3,13 +3,15 @@ import { memo, ReactNode, useCallback, useState } from "react";
 import { useRequestNotificationPermission } from "../_lib/notifications";
 import { useLobby } from "../_lib/useLobby";
 import ConnectedPlayerList from "./connectedPlayerList";
+import CopyLobbyUrlButton from "./copyLobbyUrlButton";
 import LoadingButton from "./loadingButton";
 
 export default memo(function WaitingRoomView(): ReactNode {
-  const { lobby, actions } = useLobby();
+  const { playerAddress, lobby, actions } = useLobby();
   const [isStarting, setIsStarting] = useState(false);
   const hasEnoughPlayers =
     lobby.playersByAddress.size > Math.max(1, lobby.config.minPlayers);
+  const isHost = lobby.host === playerAddress;
 
   useRequestNotificationPermission();
 
@@ -20,14 +22,19 @@ export default memo(function WaitingRoomView(): ReactNode {
 
   return (
     <div className="flex w-full flex-col items-center space-y-20">
+      <CopyLobbyUrlButton />
       <ConnectedPlayerList />
       <LoadingButton
         className="btn btn-primary"
-        disabled={!hasEnoughPlayers}
+        disabled={!hasEnoughPlayers || !isHost}
         isLoading={isStarting}
         onClick={onStartClick}
       >
-        {hasEnoughPlayers ? "Start game" : "Waiting for players"}
+        {!isHost
+          ? "Waiting for host"
+          : !hasEnoughPlayers
+          ? "Waiting for players"
+          : "Start game"}
       </LoadingButton>
     </div>
   );

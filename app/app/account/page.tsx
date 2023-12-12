@@ -25,14 +25,14 @@ export default memo(function AccountPage(): ReactNode {
   );
 
   return (
-    <main className="flex min-h-screen flex-col items-center pt-48">
-      {!address && <div className="absolute right-32 top-20 text-9xl">↗</div>}
+    <div className="flex flex-col items-center pt-48">
+      {!address && <div className="absolute right-20 top-20 text-9xl">↗</div>}
       <Card className="max-w-xl">
         <div className="prose">{contents}</div>
       </Card>
       <Link className="mt-5 text-lg text-blue-900 hover:underline" href="/">
         Return home
       </Link>
-    </main>
+    </div>
   );
 });

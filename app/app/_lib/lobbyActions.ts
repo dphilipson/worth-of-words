@@ -80,6 +80,8 @@ export class LobbyActionsImpl implements LobbyActions {
     // ignored, so repeat the first word until the desired length.
     while (wordsForProof.length < SECRET_WORDS_IN_PROOF) {
       wordsForProof.push(wordsForProof[0]);
+      proofHashes.push(proofHashes[0]);
+      proofOrderings.push(proofOrderings[0]);
     }
     const proof = await prover({
       words: wordsForProof,

@@ -1,12 +1,13 @@
 import { produce } from "immer";
 import { chainFrom } from "transducist";
-import { Address, Hex } from "viem";
+import { Address, Hex, zeroAddress } from "viem";
 
 import { LobbyEvent } from "./events";
 
 export interface LobbyState {
   id: bigint;
   config: LobbyConfig;
+  host: Address;
   playersByAddress: Map<Address, Player>;
   currentRoundPlayerOrder: Address[];
   nextRoundPlayerSet: Set<Address>;
@@ -74,11 +75,12 @@ export function newLobbyState(id: bigint, config: LobbyConfig): LobbyState {
   return {
     id,
     config,
+    host: zeroAddress,
     playersByAddress: new Map(),
     currentRoundPlayerOrder: [],
     nextRoundPlayerSet: new Set(),
     targetOffsets: [],
-    roundNumber: -1, // Will be increased to 0 at first rond start.
+    roundNumber: -1, // Will be increased to 0 at first round start.
     phase: Phase.NOT_STARTED,
     phaseDeadline: 0,
     previousRoundSnapshot: undefined,
@@ -159,8 +161,10 @@ function mutateLobbyStateSingleEvent(
   }
 
   switch (event.eventName) {
-    case "LobbyCreated":
+    case "LobbyCreated": {
+      state.host = event.args.creator;
       return;
+    }
     case "JoinedLobby": {
       const { player, playerName } = event.args;
       state.playersByAddress.set(player, {

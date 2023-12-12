@@ -10,7 +10,7 @@ import {
 } from "../_generated/deployedConstants";
 import { notNull } from "./typechecks";
 
-export const USE_ANVIL = true;
+export const USE_ANVIL = process.env.NODE_ENV !== "production";
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
 export const ALCHEMY_API_KEY = notNull(process.env.NEXT_PUBLIC_ALCHEMY_ID);
 export const WALLET_CONNECT_PROJECT_ID = notNull(

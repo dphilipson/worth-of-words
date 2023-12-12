@@ -14,6 +14,7 @@ contract LobbiesTest is Test, Lobbies {
     Lobby private lobby;
 
     function test_runthrough() public {
+        vm.prank(ALICE);
         this.initialize(getDefaultLobbyConfig());
         ValidWordsProof
             memory secretWordsCommitment = getMammaSecretWordsCommitment();

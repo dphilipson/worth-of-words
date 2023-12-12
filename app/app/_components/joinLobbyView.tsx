@@ -1,14 +1,12 @@
 "use client";
 import clsx from "clsx";
 import { memo, ReactNode, useCallback, useMemo, useState } from "react";
-import { FaCopy } from "react-icons/fa6";
 import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
-import { copyToClipboard } from "../_lib/clipboard";
 import { WORD_LENGTH } from "../_lib/constants";
 import { GameSpeed } from "../_lib/lobbyPresets";
-import Card from "./card";
+import CopyLobbyUrlButton from "./copyLobbyUrlButton";
 import LoadingButton from "./loadingButton";
 import TextInput from "./textInput";
 
@@ -33,8 +31,6 @@ export default memo(function JoinLobbyView({
   const [words, updateWords] = useImmer(() =>
     chainFrom(repeat("", numSecrets)).toArray(),
   );
-  const [copiedInvite, setCopiedInvite] = useState(false);
-
   const validSecretWordlist = useMemo(
     () => [...validSecretWords],
     [validSecretWords],
@@ -63,22 +59,9 @@ export default memo(function JoinLobbyView({
     }
   }, [inputsAreValid, onJoin, playerName, words]);
 
-  const copyInviteLink = useCallback(() => {
-    copyToClipboard(location.href);
-    setCopiedInvite(true);
-  }, []);
-
   return (
     <div className="flex w-full flex-col items-center space-y-10">
-      <Card className="w-full max-w-xl px-2 py-2">
-        <button
-          className="btn btn-ghost relative text-primary"
-          onClick={copyInviteLink}
-        >
-          {copiedInvite ? "Copied invite!" : "Copy lobby invite link"}
-          <FaCopy className="absolute right-8" />
-        </button>
-      </Card>
+      <CopyLobbyUrlButton />
       <div className="card w-full max-w-sm bg-base-100 shadow-xl">
         <div className="card-body">
           <h2 className="card-title">Join Lobby</h2>

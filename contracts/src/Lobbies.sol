@@ -22,6 +22,7 @@ contract Lobbies is
 
     struct Lobby {
         LobbyConfig config;
+        address host;
         mapping(address => Player) playersByAddress;
         EnumerableSet.AddressSet[] livePlayerAddressesByRound;
         uint48 phaseDeadline;
@@ -128,6 +129,7 @@ contract Lobbies is
 
         // Effects
         lobby.config = config;
+        lobby.host = msg.sender;
         lobby.randomishSeed = uint32(uint256(blockhash(block.number)));
         lobby.livePlayerAddressesByRound.push();
 
@@ -175,7 +177,9 @@ contract Lobbies is
         LobbyId lobbyId
     ) internal kindlyRequirePhase(lobby, Phase.NotStarted) {
         // Checks
-        _validateCurrentPlayer(lobby);
+        if (msg.sender != lobby.host) {
+            revert NotHost(lobby.host);
+        }
         uint32 playerCount = _getLivePlayerCount(lobby);
         uint32 minPlayers = _getMinPlayerCount(lobby);
         if (playerCount < minPlayers) {

@@ -71,13 +71,6 @@ export function useLobby(): LobbyContext {
 function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
   const wallet = useWallet();
   const lobby = useLobbyState(lobbyId);
-  const [advancedToRoundNumber, setAdvancedToRoundNumber] = useState(0);
-  const advanceToNextRound = useCallback(() => {
-    const roundNumber = lobby?.roundNumber;
-    if (roundNumber !== undefined) {
-      setAdvancedToRoundNumber(roundNumber);
-    }
-  }, [lobby?.roundNumber]);
   const { data: validSecretWords } = useQuery({
     queryKey: ["valid-secret-words-set"],
     queryFn: async () => {
@@ -98,6 +91,15 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
   const storage = useLobbyStorage(lobby?.id, playerAddress);
   const actionsRef = useRef<LobbyActionsImpl>();
   const setDeadline = useSetDeadline();
+  const advancedToRoundNumber = storage?.advancedToRound ?? 0;
+
+  const advanceToNextRound = useCallback(() => {
+    const roundNumber = lobby?.roundNumber;
+    const setAdvancedToRound = storage?.setAdvancedToRound;
+    if (roundNumber !== undefined && setAdvancedToRound) {
+      setAdvancedToRound(roundNumber);
+    }
+  }, [lobby?.roundNumber, storage?.setAdvancedToRound]);
 
   if (wallet && lobby && storage) {
     if (actionsRef.current === undefined) {
