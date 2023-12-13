@@ -26,8 +26,10 @@ export default memo(function LobbyWrapper({
     return undefined;
   }
 
+  // Set key as lobby id so this component remounts if the lobby id changes.
+  // Quick-and-dirty way to throw away all state from the previous lobby.
   return (
-    <LobbyProvider lobbyId={lobbyId} loadingComponent="">
+    <LobbyProvider key={lobbyId} lobbyId={lobbyId} loadingComponent="">
       {children}
     </LobbyProvider>
   );
