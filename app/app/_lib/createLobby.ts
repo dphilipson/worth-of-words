@@ -10,7 +10,7 @@ export function useCreateLobby():
   | ((config: LobbyConfig) => Promise<bigint>)
   | undefined {
   const publicClient = usePublicClient();
-  const wallet = useWallet();
+  const wallet = useWallet(true);
   return wallet && ((config) => createLobby(publicClient, wallet, config));
 }
 

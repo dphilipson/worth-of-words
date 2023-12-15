@@ -1,4 +1,6 @@
-import { MutableRefObject, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+
+import { useLatestRef } from "./hooks";
 
 export type Subscription<T, R = void> = [
   PublishFunction<T, R>,
@@ -52,15 +54,4 @@ export function useSubscribe<T, R = void>(
     return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subscribe]);
-}
-
-/**
- * Returns a ref whose `.current` value always contains the most recently
- * updated version of `value`. This is useful for passing to callbacks to ensure
- * that when the callback is called, the most recent value is used.
- */
-export function useLatestRef<T>(value: T): MutableRefObject<T> {
-  const ref = useRef(value);
-  ref.current = value;
-  return ref;
 }

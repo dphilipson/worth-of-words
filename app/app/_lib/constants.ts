@@ -32,5 +32,7 @@ export const POST_DEADLINE_WAIT_TIME_MS = 4000;
 export const SECRET_GENERATING_MESSAGE =
   "Grant this website permission to make Worth of Words moves on your behalf.";
 export const PREFUND_VALUE = "0.19";
+export const REFILL_VALUE = PREFUND_VALUE;
+export const LOW_FUNDS_WARN_THRESHOLD = "0.05";
 // Default is 5.
 export const FEE_BUFFER_PERCENT = BigInt(5);

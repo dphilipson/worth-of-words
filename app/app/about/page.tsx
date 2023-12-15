@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { memo, ReactNode } from "react";
-import { Address } from "viem";
 
 import Card from "../_components/card";
+import PolygonscanLink from "../_components/polygonscanLink";
 import {
   MINION_FACTORY_ADDRESS,
   WORTH_OF_WORDS_ADDRESS,
@@ -26,11 +26,10 @@ export default memo(function AboutPage(): ReactNode {
       <p>
         At the start of the game, each player chooses several secret words.
         Players will gain points by successfully guessing parts of their
-        opponents&apos; secret words, and once all of a player&apos;s secret
-        words are guessed that player is eliminated and can no longer gain
-        points. When there is at most one player remaining, the player with the
-        highest score wins. A player&apos;s first secret word must be fully
-        guessed before any progress can be made on their second word, and so on.
+        opponents&apos; secret words. Once all of a player&apos;s secret words
+        are guessed, that player is eliminated and can no longer gain points.
+        When there is at most one player remaining, the player with the highest
+        score wins.
       </p>
       <p>
         Worth of Words is played over a series of rounds. In each round, every
@@ -118,19 +117,23 @@ export default memo(function AboutPage(): ReactNode {
         and verification from{" "}
         <Link href="https://github.com/iden3/snarkjs">SnarkJS</Link>.
       </p>
-      <h4>Minion Accounts</h4>
+      <h4 id="minion-accounts">Minion Accounts</h4>
       <p>
-        If you played Worth of Words used your primary account, it would require
-        multiple security prompts per round to authorize actions. Instead, we
-        use a message signed by the player to generate a private key for a
-        &ldquo;minion account,&rdquo; a smart contract account with very little
+        If you played Worth of Words with your primary account, you would get
+        multiple security prompts every round to authorize actions, which would
+        be a very annoying experience. Instead, the player controls a separate
+        &ldquo;minion account,&rdquo; a smart contract account with very limited
         permissions. The minion account holds native tokens to pay for gas, but
         the only actions it can take are to make moves in Worth of Words and to
         return its balance to its owner. Thus, Worth of Words can store the
         minion&apos;s private key in the browser&apos;s local storage. This
-        would normally be extremely insecure, but since this key has very
-        limited permissions, if it were to leak the attacker could do very
-        little.
+        would normally be extremely insecure, but since this key has very narrow
+        scope, even if it leaked an attacker could do very little.
+      </p>
+      <p>
+        The minion account&apos;s private key is generated from a message signed
+        by the primary account, so you can regain access even if your browser
+        storage is cleared.
       </p>
       <h4>Are Minion Accounts really secure?</h4>
       <p>
@@ -139,17 +142,24 @@ export default memo(function AboutPage(): ReactNode {
         extremely high gas fees, then manually sending it to the entry point
         with themselves as the beneficiary (recipient of gas fees). This will be
         improved in the future by giving the minion account a gas spend limit
-        per game. But all you can lose for now is testnet native tokens, so
-        it&apos;s not so bad.
+        per game. But since this app only uses testnet tokens for now, it&apos;s
+        not so bad.
+      </p>
+      <h4>How much does it cost to play?</h4>
+      <p>
+        Worth of Words is deployed on the Polygon Mumbai test network, making it
+        completely free. If it were deployed on Polygon mainnet, the gas fees
+        would be roughly $0.15 per player per game.
       </p>
       <h3>Deployed contracts</h3>
       <ul>
         <li>
-          Gameplay contract: {getPolygonscanMumbaiLink(WORTH_OF_WORDS_ADDRESS)}
+          Gameplay contract:{" "}
+          <PolygonscanLink address={WORTH_OF_WORDS_ADDRESS} />
         </li>
         <li>
           Minion account contract:{" "}
-          {getPolygonscanMumbaiLink(MINION_FACTORY_ADDRESS)}
+          <PolygonscanLink address={MINION_FACTORY_ADDRESS} />
         </li>
       </ul>
       <h3>License</h3>
@@ -165,11 +175,3 @@ export default memo(function AboutPage(): ReactNode {
     </Card>
   );
 });
-
-function getPolygonscanMumbaiLink(address: Address): ReactNode {
-  return <Link href={getPolygonscanMumbaiAddress(address)}>{address}</Link>;
-}
-
-function getPolygonscanMumbaiAddress(address: Address): string {
-  return `https://mumbai.polygonscan.com/address/${address}`;
-}

@@ -1,7 +1,5 @@
 import clsx from "clsx";
 import { memo, ReactNode, useEffect } from "react";
-import { FaHeart, FaHeartCrack } from "react-icons/fa6";
-import { chainFrom, range, repeat } from "transducist";
 
 import { usePrevious } from "../_lib/hooks";
 import { useCreateSubscription } from "../_lib/subscriptions";

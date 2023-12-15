@@ -69,7 +69,7 @@ export function useLobby(): LobbyContext {
 // TODO: better (or any) error handling.
 
 function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
-  const wallet = useWallet();
+  const wallet = useWallet(true);
   const lobby = useLobbyState(lobbyId);
   const { data: validSecretWords } = useQuery({
     queryKey: ["valid-secret-words-set"],

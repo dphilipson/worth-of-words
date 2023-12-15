@@ -36,19 +36,21 @@ import {
 } from "./constants";
 import { WalletLike } from "./useWallet";
 
-export function useMinionWalletOrRedirectToLogin(): WalletLike | undefined {
+export function useMinionWallet(
+  redirectToLogin: boolean,
+): WalletLike | undefined {
   const { wallet, isLoading } = useLoadingMinionWallet();
   const router = useRouter();
 
   useEffect(() => {
-    if (!wallet && !isLoading) {
+    if (redirectToLogin && !wallet && !isLoading) {
       const redirect = location.href.replace(location.origin, "");
       const params = new URLSearchParams([["redirect", redirect]]);
       const target = "/account#?" + params;
       router.replace(target);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wallet, isLoading]);
+  }, [wallet, isLoading, redirectToLogin]);
 
   return wallet;
 }
@@ -142,11 +144,12 @@ function newMinionWallet(accountAddress: Address, privateKey: Hex): WalletLike {
   return {
     address: accountAddress,
     send: async (data) => {
-      await provider.sendUserOperation({
+      const out = await provider.sendUserOperation({
         target: WORTH_OF_WORDS_ADDRESS,
         value: BigInt(0),
         data,
       });
+      await provider.waitForUserOperationTransaction(out.hash);
     },
   };
 }

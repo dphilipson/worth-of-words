@@ -11,11 +11,14 @@ export default function Home() {
         quick-thinking battle royale! Play with a few friends or with a large
         group of any size!
       </p>
-      <div className="mt-5 flex justify-center">
-        <Link href="/app">
-          <button className="btn btn-primary">Get started</button>
+      <div className="flex justify-center">
+        <Link className="btn btn-primary" href="/app">
+          Get started
         </Link>
       </div>
+      <p>
+        Or, if you prefer, <Link href="/about">learn how to play</Link>.
+      </p>
     </Card>
   );
 }

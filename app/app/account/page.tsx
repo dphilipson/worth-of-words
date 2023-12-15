@@ -30,9 +30,9 @@ export default memo(function AccountPage(): ReactNode {
       <Card className="max-w-xl">
         <div className="prose">{contents}</div>
       </Card>
-      <Link className="mt-5 text-lg text-blue-900 hover:underline" href="/">
-        Return home
-      </Link>
+      <div className="prose prose-lg mt-5">
+        <Link href="/">Return home</Link>
+      </div>
     </div>
   );
 });

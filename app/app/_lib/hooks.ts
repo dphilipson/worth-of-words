@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 export function useSetDeadline(): (
   fn: () => void,
@@ -40,6 +46,17 @@ export function usePrevious<T>(x: T): T | undefined {
   const previous = previousRef.current;
   previousRef.current = x;
   return previous;
+}
+
+/**
+ * Returns a ref whose `.current` value always contains the most recently
+ * updated version of `value`. This is useful for passing to callbacks to ensure
+ * that when the callback is called, the most recent value is used.
+ */
+export function useLatestRef<T>(value: T): MutableRefObject<T> {
+  const ref = useRef(value);
+  ref.current = value;
+  return ref;
 }
 
 export function usePrintChanges<T>(x: T): void {

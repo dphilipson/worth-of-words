@@ -19,6 +19,7 @@ import {
   loadMinionPrivateKey,
   storeMinionPrivateKey,
 } from "@/app/_lib/minions";
+import { useOwnerBalance } from "@/app/_lib/ownerAccount";
 
 export interface AccountSetupWhenConnectedProps {
   address: Address;
@@ -27,6 +28,7 @@ export interface AccountSetupWhenConnectedProps {
 export default memo(function AccountSetupWhenConnected({
   address,
 }: AccountSetupWhenConnectedProps): ReactNode {
+  const ownerBalance = useOwnerBalance(true);
   const [privateKey, setPrivateKey] = useState(loadMinionPrivateKey(address));
 
   const reallyStorePrivateKey = useCallback(
@@ -52,15 +54,14 @@ export default memo(function AccountSetupWhenConnected({
       reallyStorePrivateKey(keccak256(signedMesage)),
   });
   const onClickSign = useCallback(() => signMessage(), [signMessage]);
-
+  const prefundNumber = parseEther(PREFUND_VALUE);
   const {
     data: createAccountOut,
     isLoading: creatingAccount,
     write,
   } = useMinionAccountFactoryCreateAccount({
     address: MINION_FACTORY_ADDRESS,
-    value: parseEther(PREFUND_VALUE),
-    // Needs args at calltime.
+    value: prefundNumber,
   });
 
   const { isLoading: waitingForTransaction, isSuccess: transactionSucceeded } =
@@ -71,6 +72,8 @@ export default memo(function AccountSetupWhenConnected({
 
   const isAllReady =
     (privateKey !== undefined && hasDeployed) || transactionSucceeded;
+  const ownerBalanceTooLow =
+    ownerBalance !== undefined && ownerBalance < prefundNumber;
 
   useEffect(() => {
     if (urlHash === undefined) {
@@ -113,6 +116,7 @@ export default memo(function AccountSetupWhenConnected({
   } else if (!hasDeployed) {
     const publicKey = privateKeyToAddress(privateKey);
     const createAccount = () => write({ args: [publicKey] });
+    const isLoading = creatingAccount || waitingForTransaction;
     return (
       <>
         <h3>Last step! Deploy your account!</h3>
@@ -122,17 +126,21 @@ export default memo(function AccountSetupWhenConnected({
           may withdraw them at any time.
         </p>
         <p>
-          You must have slightly more than 0.19 Mumbai MATIC for this step. To
-          get some, go to <a href="http://mumbaifaucet.com">mumbaifaucet.com</a>
-          .
+          You must have 0.19 MATIC on the Mumbai testnet for this step. To get
+          some, go to <a href="http://mumbaifaucet.com">mumbaifaucet.com</a>.
         </p>
         <div className="flex justify-end">
           <LoadingButton
             className="btn btn-primary"
-            isLoading={creatingAccount || waitingForTransaction}
+            disabled={ownerBalanceTooLow}
+            isLoading={isLoading}
             onClick={createAccount}
           >
-            Create account
+            {isLoading
+              ? "Creating account…"
+              : ownerBalanceTooLow
+              ? "Not enough MATIC"
+              : "Create account"}
           </LoadingButton>
         </div>
       </>

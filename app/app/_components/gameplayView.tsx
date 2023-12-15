@@ -141,22 +141,24 @@ export default memo(function GameplayView(): ReactNode {
         <ConnectedPlayerListItem playerAddress={playerAddress} />
       </div>
       <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
-        <div className="flex justify-center space-x-10">
-          <div className="flex w-full max-w-xs flex-col items-center space-y-4">
-            <h5>Your status</h5>
-            <ConnectedPlayerListItem playerAddress={playerAddress} />
-            <ConnectedGuessGrid
-              playerAddress={playerAddress}
-              currentInput=""
-              isSelfGrid={true}
-              subscribeToInputConfirm={undefined}
-            />
+        {() => (
+          <div className="flex justify-center space-x-10">
+            <div className="flex w-full max-w-xs flex-col items-center space-y-4">
+              <h5>Your status</h5>
+              <ConnectedPlayerListItem playerAddress={playerAddress} />
+              <ConnectedGuessGrid
+                playerAddress={playerAddress}
+                currentInput=""
+                isSelfGrid={true}
+                subscribeToInputConfirm={undefined}
+              />
+            </div>
+            <div className="flex w-96 min-w-fit flex-col items-center space-y-4">
+              <h5>Rankings</h5>
+              <ConnectedPlayerList />
+            </div>
           </div>
-          <div className="flex w-96 min-w-fit flex-col items-center space-y-4">
-            <h5>Rankings</h5>
-            <ConnectedPlayerList />
-          </div>
-        </div>
+        )}
       </Modal>
     </>
   );
