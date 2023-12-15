@@ -82,7 +82,8 @@ contract MinionAccount is BaseAccount, Initializable {
     }
 
     function withdraw(uint256 value) external onlyOwnerOrEntryPoint {
-        (bool success, bytes memory result) = owner.call{value: value}(
+        uint256 cappedValue = _min(value, address(this).balance);
+        (bool success, bytes memory result) = owner.call{value: cappedValue}(
             bytes("")
         );
         if (!success) {
@@ -121,5 +122,9 @@ contract MinionAccount is BaseAccount, Initializable {
         assembly {
             revert(add(result, 32), mload(result))
         }
+    }
+
+    function _min(uint256 a, uint256 b) private pure returns (uint256) {
+        return a < b ? a : b;
     }
 }

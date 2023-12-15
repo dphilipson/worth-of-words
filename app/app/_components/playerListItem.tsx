@@ -77,7 +77,3 @@ export default memo(function PlayerListItem({
     </div>
   );
 });
-
-function ellipsizeAddress(address: string): string {
-  return address.slice(0, 9) + "…";
-}
