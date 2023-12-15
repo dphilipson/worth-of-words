@@ -127,9 +127,9 @@ export default memo(function AccountSetupWhenConnected({
         </p>
         <p>
           You must have 0.19 MATIC on the Mumbai testnet for this step. To get
-          some, go to <a href="http://mumbaifaucet.com">mumbaifaucet.com</a>.
+          some, visit the <a href="http://mumbaifaucet.com">Mumbai faucet</a>.
         </p>
-        <div className="flex justify-end">
+        <div className="flex justify-center">
           <LoadingButton
             className="btn btn-primary"
             disabled={ownerBalanceTooLow}

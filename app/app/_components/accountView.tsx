@@ -88,6 +88,10 @@ export default memo(function AccountView({
         <Link href="https://mumbaifaucet.com">Mumbai faucet</Link>. You can
         enter the above address directly into the faucet.
       </p>
+      <p>
+        Or, transfer funds from your main account into your Worth of Words
+        account:
+      </p>
       <LoadingButton
         className="btn btn-primary btn-sm"
         disabled={ownerBalanceTooLow}

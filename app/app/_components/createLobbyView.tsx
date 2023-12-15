@@ -45,7 +45,7 @@ export default memo(function CreateLobbyView(): ReactNode {
         <div />
         <h2 className="mt-4 text-lg">Game speed</h2>
         <GameSpeedRadioGroup speed={speed} onSpeedChange={setSpeed} />
-        <div className="card-actions justify-end">
+        <div className="card-actions justify-center">
           <LoadingButton
             className="btn btn-primary"
             disabled={!isEnabled}
