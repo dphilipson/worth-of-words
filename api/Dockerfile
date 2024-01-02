@@ -24,5 +24,6 @@ RUN npm run build
 FROM amazon/aws-lambda-nodejs:20
 
 WORKDIR /usr/src/app
+COPY index.js ./
 COPY --from=prod-deps /usr/src/app/node_modules node_modules
 COPY --from=server /usr/src/app/dist dist
