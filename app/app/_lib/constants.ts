@@ -10,9 +10,18 @@ import {
 } from "../_generated/deployedConstants";
 import { notNull } from "./typechecks";
 
-export const USE_ANVIL = process.env.NODE_ENV !== "production";
+export const IS_PRODUCTION = process.env.NODE_ENV === "production";
+export const USE_ANVIL = !IS_PRODUCTION;
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
 export const ALCHEMY_API_KEY = notNull(process.env.NEXT_PUBLIC_ALCHEMY_ID);
+export const API_URL = IS_PRODUCTION
+  ? "https://api.worthofwords.com"
+  : "http://localhost:3001";
+export const TURNKEY_BASE_URL = "https://api.turnkey.com";
+export const TURNKEY_ORGANIZATION_ID = notNull(
+  process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID,
+);
+export const DOMAIN_NAME = IS_PRODUCTION ? "www.worthofwords.com" : "localhost";
 export const WALLET_CONNECT_PROJECT_ID = notNull(
   process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID,
 );

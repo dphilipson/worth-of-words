@@ -21,6 +21,7 @@
     "@turnkey/http": "^2.6.1",
     "@turnkey/viem": "^0.4.6",
     "@turnkey/webauthn-stamper": "^0.4.3",
+    "axios": "^1.6.4",
     "clsx": "^2.0.0",
     "connectkit": "^1.5.3",
     "framer-motion": "^10.16.16",

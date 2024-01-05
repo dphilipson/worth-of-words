@@ -1,23 +1,9 @@
-import { createActivityPoller, TurnkeyApiTypes } from "@turnkey/http";
+import { createActivityPoller } from "@turnkey/http";
 
 import { ORGANIZATION_ID } from "../constants";
 import { refineNonNull } from "../util";
 import turnkeyClient from "./turnkeyClient";
-
-export type TAttestation = TurnkeyApiTypes["v1Attestation"];
-
-export interface CreateSubOrgWithPrivateKeyRequest {
-  subOrgName: string;
-  challenge: string;
-  privateKeyName: string;
-  attestation: TAttestation;
-}
-
-export interface WalletDetails {
-  id: string;
-  address: string;
-  subOrgId: string;
-}
+import { CreateSubOrgWithPrivateKeyRequest, WalletDetails } from "./types";
 
 // Default path for the first Ethereum address in a new HD wallet.
 // See https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki, paths are in the form:
