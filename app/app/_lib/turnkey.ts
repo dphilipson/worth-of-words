@@ -9,14 +9,13 @@ import {
   SessionKeySigner,
 } from "@alchemy/aa-accounts";
 import {
-  createPublicErc4337Client,
-  createPublicErc4337FromClient,
+  createBundlerClient,
+  createBundlerClientFromExisting,
   createSmartAccountClient,
   createSmartAccountClientFromExisting,
   deepHexlify,
   getUserOperationHash,
   LocalAccountSigner,
-  PublicErc4337Client,
   SmartAccountSigner,
   SmartContractAccount,
   toSmartContractAccount,
@@ -52,21 +51,24 @@ import { foundry } from "viem/chains";
 import { hexToBytes, keccak256, rpc } from "viem/utils";
 
 import {
-  getIEntryPoint,
-  iEntryPointABI,
-  iSessionKeyAccountABI,
-  iSessionKeyAccountFactoryABI,
-  iSessionKeyPermissionsUpdatesABI,
-} from "../_generated/wagmi";
-import {
   API_URL,
   CHAIN,
+  CHAIN_URL,
   DOMAIN_NAME,
+  ENTRY_POINT_ADDRESS,
+  MSCA_FACTORY_ADDRESS,
+  MULTI_OWNER_PLUGIN_ADDRESS,
   TURNKEY_BASE_URL,
   TURNKEY_ORGANIZATION_ID,
+  USE_ANVIL,
 } from "./constants";
 import { randomBytes32 } from "./random";
 import { notNull } from "./typechecks";
+import {
+  iSessionKeyAccountAbi,
+  iSessionKeyAccountFactoryAbi,
+  iSessionKeyPermissionsUpdatesAbi,
+} from "../_generated/wagmi";
 
 const CREATE_SUB_ORG_URL = `${API_URL}/create-sub-org`;
 const LOGIN_URL = `${API_URL}/login`;
@@ -113,7 +115,7 @@ export async function testTheSigning(): Promise<void> {
   const getAddressResult = await publicClient.call({
     to: FACTORY_ADDRESS,
     data: encodeFunctionData({
-      abi: iSessionKeyAccountFactoryABI,
+      abi: iSessionKeyAccountFactoryAbi,
       functionName: "getAddress",
       args: [BigInt(0), [details.address as Hex]],
     }),
@@ -129,37 +131,17 @@ export async function testTheSigning(): Promise<void> {
   }
   const turnkeySigner = await getTurnkeySignerWithCachedDetails(details);
 
-  const transport = createSplitRpcTransport();
-  const chain = foundry;
-
-  const publicErc4337Client = createPublicErc4337FromClient(
-    createPublicClient({ chain, transport }),
-  );
-
-  function createMscaAccount(
-    owner: SmartAccountSigner,
-    accountAddress?: Address,
-  ) {
-    return createMultiOwnerModularAccount({
-      accountAddress,
-      client: publicErc4337Client,
-      owner,
-      entrypointAddress: ENTRY_POINT_ADDRESS,
-      factoryAddress: FACTORY_ADDRESS,
-      excludeDefaultTokenReceiverPlugin: true,
-    });
-  }
-
-  const client = createSmartAccountClientFromExisting({
-    client: publicErc4337Client,
+  const client = createSmartAccountClient({
+    chain: CHAIN,
+    transport: getTransport(),
   }).extend(sessionKeyPluginActions);
 
-  const adminAccount = await createMscaAccount(turnkeySigner);
+  const ownerAccount = await createOwnerAccount(turnkeySigner);
 
-  if (adminAccount.address.toLowerCase() !== accountAddress.toLowerCase()) {
+  if (ownerAccount.address.toLowerCase() !== accountAddress.toLowerCase()) {
     console.error(
       "addresses did not match:",
-      adminAccount.address,
+      ownerAccount.address,
       accountAddress,
     );
     return;
@@ -178,34 +160,17 @@ export async function testTheSigning(): Promise<void> {
   const sessionPublicKey = privateKeyToAddress(sessionPrivateKey);
 
   console.log({ sessionPrivateKey, sessionPublicKey });
-
-  const sessionKeySigner =
-    LocalAccountSigner.privateKeyToAccountSigner(sessionPrivateKey);
-
-  const sessionKeyAccount = await createMscaAccount(
-    sessionKeySigner,
+  const sessionKeyAccount = await createSessionKeyAccount({
     accountAddress,
-  );
-  Object.assign(
-    sessionKeyAccount,
-    getSessionKeyAccountPatch({ sessionPublicKey }),
-  );
+    sessionPrivateKey,
+  });
 
-  // Currently bugged, wait for fix.
-  // const sessionKeyPermissions = new SessionKeyPermissionsBuilder()
-  //   .setContractAccessControlType(2)
-  //   .encode();
-
-  const sessionKeyPermissions = [
-    encodeFunctionData({
-      abi: iSessionKeyPermissionsUpdatesABI,
-      functionName: "setAccessListType",
-      args: [2],
-    }),
-  ];
+  const sessionKeyPermissions = new SessionKeyPermissionsBuilder()
+    .setContractAccessControlType(2)
+    .encode();
 
   const installUo = await client.installSessionKeyPlugin({
-    account: adminAccount,
+    account: ownerAccount,
     args: [
       [sessionPublicKey],
       [keccak256(new TextEncoder().encode("worth-of-words"))],
@@ -377,13 +342,28 @@ function createSplitRpcTransport(): Transport {
   });
 }
 
-function bytesToAddress(bytes: Hex): Address {
-  return `0x${bytes.slice(bytes.length - 40)}`;
+function getTransport() {
+  return USE_ANVIL ? createSplitRpcTransport() : http(CHAIN_URL);
 }
 
-function injectLocalMultiOwnerAddress(): void {
-  MultiOwnerPlugin.meta.addresses[foundry.id] =
-    "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0";
+function createOwnerAccount(
+  owner: SmartAccountSigner,
+  accountAddress?: Address,
+) {
+  return createMultiOwnerModularAccount({
+    transport: getTransport(),
+    chain: CHAIN,
+    owner,
+    accountAddress,
+    entrypointAddress: ENTRY_POINT_ADDRESS,
+    factoryAddress: MSCA_FACTORY_ADDRESS,
+    excludeDefaultTokenReceiverPlugin: true,
+  });
+}
+
+interface CreateSessionKeyAccountParams {
+  accountAddress: Address;
+  sessionPrivateKey: Hex;
 }
 
 type Tx = {
@@ -391,6 +371,45 @@ type Tx = {
   value?: bigint;
   data: Hex | "0x";
 };
+
+async function createSessionKeyAccount({
+  accountAddress,
+  sessionPrivateKey,
+}: CreateSessionKeyAccountParams) {
+  const signer =
+    LocalAccountSigner.privateKeyToAccountSigner(sessionPrivateKey);
+  const sessionPublicKey = privateKeyToAddress(sessionPrivateKey);
+
+  const encodeBatchExecute = async (txs: Tx[]) =>
+    encodeFunctionData({
+      abi: iSessionKeyAccountAbi,
+      functionName: "executeWithSessionKey",
+      args: [
+        txs.map((tx) => ({
+          target: tx.target,
+          data: tx.data,
+          value: tx.value ?? BigInt(0),
+        })),
+        sessionPublicKey,
+      ],
+    });
+
+  const account = await createOwnerAccount(signer, accountAddress);
+  account.encodeBatchExecute = encodeBatchExecute;
+  account.encodeExecute = async (tx) => encodeBatchExecute([tx]);
+  account.getInitCode = async () => "0x";
+  return account;
+}
+
+function bytesToAddress(bytes: Hex): Address {
+  return `0x${bytes.slice(bytes.length - 40)}`;
+}
+
+function injectLocalMultiOwnerAddress(): void {
+  if (MULTI_OWNER_PLUGIN_ADDRESS) {
+    MultiOwnerPlugin.meta.addresses[CHAIN.id] = MULTI_OWNER_PLUGIN_ADDRESS;
+  }
+}
 
 function getSessionKeyAccountPatch({
   sessionPublicKey,
@@ -402,7 +421,7 @@ function getSessionKeyAccountPatch({
 > {
   const encodeBatchExecute = async (txs: Tx[]) =>
     encodeFunctionData({
-      abi: iSessionKeyAccountABI,
+      abi: iSessionKeyAccountAbi,
       functionName: "executeWithSessionKey",
       args: [
         txs.map((tx) => ({

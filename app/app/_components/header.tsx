@@ -1,4 +1,3 @@
-import { ConnectKitButton } from "connectkit";
 import Link from "next/link";
 import { memo, ReactNode } from "react";
 import { FaHouse, FaRegCircleQuestion, FaRegCircleUser } from "react-icons/fa6";
@@ -22,9 +21,6 @@ export default memo(function Header(): ReactNode {
         <FaRegCircleUser className="text-2xl text-slate-800" />
       </button>
       <div />
-      <div className="w-44">
-        <ConnectKitButton mode="light" />
-      </div>
       <Modal subscribeToOpenModal={subscribeToOpenAccountModal}>
         {({ isOpen, closeModal }) => (
           <AccountView isOpen={isOpen} closeModal={closeModal} />

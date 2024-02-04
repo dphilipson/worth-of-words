@@ -1,13 +1,13 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { memo, ReactNode, useCallback, useState } from "react";
-import { useMutation } from "wagmi";
 
 import { useCreateLobby } from "../_lib/createLobby";
 import { GameSpeed, getLobbyPreset } from "../_lib/lobbyPresets";
 import GameSpeedRadioGroup from "./gameSpeedRadioGroup";
 import LoadingButton from "./loadingButton";
 import TurnkeyTesto from "./turnkeyTesto";
+import { useMutation } from "@tanstack/react-query";
 
 export default memo(function CreateLobbyView(): ReactNode {
   const createLobby = useCreateLobby();
@@ -25,14 +25,14 @@ export default memo(function CreateLobbyView(): ReactNode {
   const buttonText = (() => {
     if (!createLobby) {
       return "Loading";
-    } else if (mutation.isLoading) {
+    } else if (mutation.isPending) {
       return "Creating lobby";
     } else {
       return "Create lobby";
     }
   })();
 
-  const isEnabled = createLobby && !mutation.isLoading && !mutation.isSuccess;
+  const isEnabled = createLobby && !mutation.isPending && !mutation.isSuccess;
 
   return (
     <div className="card w-full max-w-xl bg-base-100 shadow-xl">
@@ -51,7 +51,7 @@ export default memo(function CreateLobbyView(): ReactNode {
           <LoadingButton
             className="btn btn-primary"
             disabled={!isEnabled}
-            isLoading={mutation.isLoading}
+            isLoading={mutation.isPending}
             onClick={onClickCreateLobby}
           >
             {buttonText}

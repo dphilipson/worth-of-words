@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { memo, ReactNode, useCallback } from "react";
 import { encodeFunctionData, parseEther } from "viem/utils";
-import { useBalance, useMutation } from "wagmi";
+import { useBalance } from "wagmi";
 
 import { minionAccountABI } from "../_generated/wagmi";
 import { REFILL_VALUE } from "../_lib/constants";
@@ -21,6 +21,7 @@ export default memo(function AccountView({
   isOpen,
   closeModal,
 }: AccountViewProps): ReactNode {
+  return undefined;
   const wallet = useWallet(false);
   const { data: balanceResult } = useBalance({
     address: wallet?.address,

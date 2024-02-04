@@ -1,17 +1,26 @@
-import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect } from "react";
 import { Address } from "viem";
 import {
   useAccount,
   useBalance,
-  usePrepareSendTransaction,
+  useBlockNumber,
+  useEstimateGas,
   useSendTransaction,
-  useWaitForTransaction,
+  useWaitForTransactionReceipt,
 } from "wagmi";
 
 export function useOwnerBalance(watch: boolean): bigint | undefined {
+  const queryClient = useQueryClient();
   const { address } = useAccount();
-  const { data } = useBalance({ address, watch });
-  return data?.value;
+  const { data: blockNumber } = useBlockNumber({ watch: true });
+  const { data: balance, queryKey } = useBalance({ address });
+
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey });
+  }, [blockNumber, queryClient]);
+
+  return balance?.value;
 }
 
 export interface UseSendEthOut {
@@ -23,16 +32,21 @@ export function useSendEth(
   to: Address | undefined,
   value: bigint,
 ): UseSendEthOut {
-  const { config } = usePrepareSendTransaction({
-    to,
-    value,
-  });
-  const {
-    data,
-    sendTransaction,
-    isLoading: isSending,
-  } = useSendTransaction(config);
-  const { isLoading: isWaiting } = useWaitForTransaction({ hash: data?.hash });
-  const sendEth = useCallback(() => sendTransaction?.(), [sendTransaction]);
-  return { sendEth, isSendingEth: isSending || isWaiting };
+  // const { data: gas } = useEstimateGas({
+  //   to,
+  //   value,
+  // });
+  // const {
+  //   sendTransaction,
+  //   isPending: isSending,
+  // } = useSendTransaction();
+  // // const { isLoading: isWaiting } = useWaitForTransactionReceipt({ hash: data?.hash });
+  // const sendEth = useCallback(() => {
+  //   if (to) {
+  //     sendTransaction({ gas, to, value }, {
+  //       onSuccess: (hash) =>
+  //     })
+  //   }
+  // }, [sendTransaction, gas, to, value]);
+  // return { sendEth, isSendingEth: isSending || isWaiting };
 }

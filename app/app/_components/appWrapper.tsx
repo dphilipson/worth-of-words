@@ -1,29 +1,21 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
-import { createConfig, WagmiConfig } from "wagmi";
+import { WagmiProvider, createConfig, http } from "wagmi";
 
-import {
-  ALCHEMY_API_KEY,
-  CHAIN,
-  WALLET_CONNECT_PROJECT_ID,
-} from "../_lib/constants";
+import { CHAIN, CHAIN_URL } from "../_lib/constants";
 import Header from "./header";
 
 const queryClient = new QueryClient();
 
-const config = createConfig(
-  getDefaultConfig({
-    alchemyId: ALCHEMY_API_KEY,
-    walletConnectProjectId: WALLET_CONNECT_PROJECT_ID,
-    appName: "Worth of Words",
-    appUrl: "https://worthofwords.com",
-    chains: [CHAIN],
-  }),
-);
+const config = createConfig({
+  chains: [CHAIN],
+  transports: {
+    [CHAIN.id]: http(CHAIN_URL),
+  } as any,
+});
 
 export default function AppWrapper({
   children,
@@ -47,14 +39,12 @@ export default function AppWrapper({
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <WagmiConfig config={config}>
-        <ConnectKitProvider>
-          <Header />
-          <main className="flex w-full flex-col items-center">{children}</main>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </ConnectKitProvider>
-      </WagmiConfig>
-    </QueryClientProvider>
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <Header />
+        <main className="flex w-full flex-col items-center">{children}</main>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </WagmiProvider>
   );
 }
