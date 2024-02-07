@@ -11,7 +11,7 @@ import {
 import { Address, getContract } from "viem";
 import { usePublicClient } from "wagmi";
 
-import { iWorthOfWordsABI } from "../_generated/wagmi";
+import { iWorthOfWordsAbi } from "../_generated/wagmi";
 import {
   POST_DEADLINE_WAIT_TIME_MS,
   WORTH_OF_WORDS_ADDRESS,
@@ -69,7 +69,7 @@ export function useLobby(): LobbyContext {
 // TODO: better (or any) error handling.
 
 function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
-  const wallet = useWallet(true);
+  const wallet = useWallet();
   const lobby = useLobbyState(lobbyId);
   const { data: validSecretWords } = useQuery({
     queryKey: ["valid-secret-words-set"],
@@ -198,13 +198,17 @@ function useLobbyState(lobbyId: bigint): LobbyState | undefined {
   const publicClient = usePublicClient();
 
   useEffect(() => {
+    if (!publicClient) {
+      return;
+    }
+
     let isCancelled = false;
     let cancelStream = () => {};
     (async () => {
       const worthOfWords = getContract({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         address: WORTH_OF_WORDS_ADDRESS,
-        publicClient,
+        client: publicClient,
       });
       const config = await worthOfWords.read.getLobbyConfig([lobbyId]);
       if (isCancelled) {

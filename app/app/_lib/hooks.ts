@@ -126,7 +126,6 @@ function arraysDiffer(a: unknown[], b: unknown[]): boolean {
 
 export interface UseLocalStorageConfig<T> {
   key: string;
-  disabled?: boolean;
   toJson?: (value: T) => unknown;
   fromJson?: (value: any) => T;
 }

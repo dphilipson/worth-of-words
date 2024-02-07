@@ -1,13 +1,14 @@
 import { Address, Hex } from "viem";
 
-import { USE_ANVIL } from "./constants";
+import { USE_DEBUG_ACCOUNTS } from "./constants";
 import { useLocalWallet } from "./localWallet";
-import { useMinionWallet } from "./minions";
+import { useSessionKeyWallet } from "./sessionKeyWallet";
 
 export interface WalletLike {
   address: Address;
   send(callData: Hex): Promise<void>;
 }
 
-export const useWallet: (redirectToLogin: boolean) => WalletLike | undefined =
-  USE_ANVIL ? useLocalWallet : useMinionWallet;
+export const useWallet: () => WalletLike | undefined = USE_DEBUG_ACCOUNTS
+  ? useLocalWallet
+  : useSessionKeyWallet;

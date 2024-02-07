@@ -1,6 +1,10 @@
 import { memo, ReactElement } from "react";
 
-import { createSubOrgAndWallet, login, testTheSigning } from "../_lib/turnkey";
+import {
+  createSubOrgAndWallet,
+  login,
+  testTheSigning,
+} from "../_lib/turnkeyTesto";
 
 export default memo(function TurnkeyTesto(): ReactElement {
   return (

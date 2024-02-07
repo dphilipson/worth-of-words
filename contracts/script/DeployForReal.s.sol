@@ -9,7 +9,8 @@ contract DeployForRealScript is BaseDeploy {
         runWithPrivateKey(
             vm.envUint("PRIVATE_KEY"),
             "deployedConstants.ts",
-            "DEPLOYED"
+            "DEPLOYED",
+            true
         );
     }
 }

@@ -1,6 +1,6 @@
 import { encodeFunctionData, encodePacked, Hex, keccak256 } from "viem";
 
-import { iWorthOfWordsABI } from "../_generated/wagmi";
+import { iWorthOfWordsAbi } from "../_generated/wagmi";
 import {
   GUESSES_IN_PROOF,
   SECRET_WORDS_IN_PROOF,
@@ -93,7 +93,7 @@ export class LobbyActionsImpl implements LobbyActions {
     this.storage.setSecrets({ words, salt });
     return this.wallet.send(
       encodeFunctionData({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         functionName: "joinLobby",
         args: [this.lobbyId, playerName, password, proof],
       }),
@@ -103,7 +103,7 @@ export class LobbyActionsImpl implements LobbyActions {
   public startGame(): Promise<void> {
     return this.wallet.send(
       encodeFunctionData({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         functionName: "startGame",
         args: [this.lobbyId],
       }),
@@ -118,7 +118,7 @@ export class LobbyActionsImpl implements LobbyActions {
     this.storage.setGuess({ guess, salt });
     return this.wallet.send(
       encodeFunctionData({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         functionName: "commitGuess",
         args: [this.lobbyId, commitment],
       }),
@@ -136,7 +136,7 @@ export class LobbyActionsImpl implements LobbyActions {
     const merkleProof = tree.getProof([guessAsNumber]) as Hex[];
     return this.wallet.send(
       encodeFunctionData({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         functionName: "revealGuess",
         args: [this.lobbyId, guessAsNumber, salt, merkleProof],
       }),
@@ -170,7 +170,7 @@ export class LobbyActionsImpl implements LobbyActions {
     });
     this.wallet.send(
       encodeFunctionData({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         functionName: "revealMatches",
         args: [this.lobbyId, proof],
       }),
@@ -180,7 +180,7 @@ export class LobbyActionsImpl implements LobbyActions {
   public endRevealMatchesPhase(): Promise<void> {
     return this.wallet.send(
       encodeFunctionData({
-        abi: iWorthOfWordsABI,
+        abi: iWorthOfWordsAbi,
         functionName: "endRevealMatchesPhase",
         args: [this.lobbyId],
       }),

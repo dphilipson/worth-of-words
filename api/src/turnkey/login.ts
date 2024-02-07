@@ -2,11 +2,11 @@ import { TSignedRequest } from "@turnkey/http";
 import axios from "axios";
 
 import turnkeyClient from "./turnkeyClient";
-import { WalletDetails } from "./types";
+import { WalletDetails as TurnkeyDetails } from "./types";
 
 export default async function login(
   signedRequest: TSignedRequest
-): Promise<WalletDetails | undefined> {
+): Promise<TurnkeyDetails | undefined> {
   // This signed request is a signed whoami request, coming from the frontend, signed by the end-user's passkey.
   const whoamiResponse = await axios.post(
     signedRequest.url,
@@ -24,15 +24,19 @@ export default async function login(
     // Account does not exist.
     return undefined;
   }
-  const subOrgId = whoamiResponse.data.organizationId;
+  const { organizationId, organizationName } = whoamiResponse.data;
   const walletsResponse = await turnkeyClient.getWallets({
-    organizationId: subOrgId,
+    organizationId,
   });
   const accountsResponse = await turnkeyClient.getWalletAccounts({
-    organizationId: subOrgId,
+    organizationId,
     walletId: walletsResponse.wallets[0].walletId,
   });
-  const walletId = accountsResponse.accounts[0].walletId;
-  const walletAddress = accountsResponse.accounts[0].address;
-  return { id: walletId, address: walletAddress, subOrgId };
+  const { walletId, address } = accountsResponse.accounts[0];
+  return {
+    id: walletId,
+    name: organizationName,
+    address,
+    subOrgId: organizationId,
+  };
 }

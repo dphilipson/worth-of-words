@@ -10,6 +10,7 @@ export interface CreateSubOrgWithPrivateKeyRequest {
 
 export interface WalletDetails {
   id: string;
+  name: string;
   address: string;
   subOrgId: string;
 }

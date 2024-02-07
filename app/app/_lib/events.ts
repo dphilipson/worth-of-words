@@ -1,14 +1,13 @@
-import { Address, decodeEventLog, Hex, toHex } from "viem";
-import { PublicClient } from "wagmi";
+import { Address, decodeEventLog, Hex, PublicClient, toHex } from "viem";
 
-import { iWorthOfWordsABI } from "../_generated/wagmi";
+import { iWorthOfWordsAbi } from "../_generated/wagmi";
 import { delay } from "./async";
 import { POLL_INTERVAL_MS } from "./constants";
 
 const fakeEvent =
   (false as true) &&
   decodeEventLog({
-    abi: iWorthOfWordsABI,
+    abi: iWorthOfWordsAbi,
     data: undefined!,
     topics: undefined!,
     strict: true,
@@ -82,7 +81,7 @@ async function getEventsSince(
   });
   const events: LobbyEvent[] = logs.map((log) =>
     decodeEventLog({
-      abi: iWorthOfWordsABI,
+      abi: iWorthOfWordsAbi,
       data: log.data,
       topics: log.topics,
       strict: true,

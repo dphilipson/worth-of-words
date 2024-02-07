@@ -3,18 +3,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { createConfig, WagmiProvider } from "wagmi";
 
-import { CHAIN, CHAIN_URL } from "../_lib/constants";
+import { CHAIN } from "../_lib/constants";
+import { getSmartAccountClient } from "../_lib/modularAccount";
 import Header from "./header";
 
 const queryClient = new QueryClient();
 
 const config = createConfig({
   chains: [CHAIN],
-  transports: {
-    [CHAIN.id]: http(CHAIN_URL),
-  } as any,
+  client: getSmartAccountClient,
 });
 
 export default function AppWrapper({

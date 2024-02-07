@@ -66,5 +66,5 @@ export default async function createSubOrg(
   const walletId = wallet.walletId;
   const walletAddress = wallet.addresses[0];
 
-  return { id: walletId, address: walletAddress, subOrgId };
+  return { id: walletId, name: walletName, address: walletAddress, subOrgId };
 }

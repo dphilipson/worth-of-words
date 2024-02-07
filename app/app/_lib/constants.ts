@@ -2,6 +2,7 @@ import { foundry, polygonMumbai } from "viem/chains";
 
 import {
   ANVIL_MINION_FACTORY_ADDRESS,
+  ANVIL_PAYMASTER_ADDRESS,
   ANVIL_WORTH_OF_WORDS_ADDRESS,
 } from "../_generated/anvilConstants";
 import {
@@ -12,6 +13,7 @@ import { notNull } from "./typechecks";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export const USE_ANVIL = !IS_PRODUCTION;
+export const USE_DEBUG_ACCOUNTS = !IS_PRODUCTION && false;
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
 export const ALCHEMY_API_KEY = notNull(process.env.NEXT_PUBLIC_ALCHEMY_ID);
 export const CHAIN_URL = USE_ANVIL
@@ -45,6 +47,11 @@ export const REFILL_VALUE = PREFUND_VALUE;
 export const LOW_FUNDS_WARN_THRESHOLD = "0.05";
 // Default is 5.
 export const FEE_BUFFER_PERCENT = BigInt(5);
+export const SESSION_KEY_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+export const GAS_MANAGER_ADDRESS = "0xC03Aac639Bb21233e0139381970328dB8bcEeB67";
+export const PAYMASTER_ADDRESS = USE_ANVIL
+  ? ANVIL_PAYMASTER_ADDRESS
+  : GAS_MANAGER_ADDRESS;
 
 export const MSCA_FACTORY_ADDRESS = USE_ANVIL
   ? "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
