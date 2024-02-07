@@ -1,13 +1,17 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { Hex } from "viem";
+import { privateKeyToAddress } from "viem/accounts";
 
-import { WORTH_OF_WORDS_ADDRESS } from "./constants";
-import { useLocalStorage } from "./hooks";
+import {
+  REFRESH_SESSION_KEY_AT_TTL,
+  WORTH_OF_WORDS_ADDRESS,
+} from "./constants";
+import { useLocalStorage, useSetTimeout } from "./hooks";
 import { useRedirectToLogin } from "./loginRedirects";
 import {
-  createOwnerAccount,
   createSessionKeyAccount,
+  getSessionKeyExpiryTime,
   isDeployed,
   sendUserOperation,
 } from "./modularAccount";
@@ -32,8 +36,10 @@ export function useSessionPrivateKey() {
 }
 
 export function useSessionKeyWallet(): WalletLike | undefined {
-  const { isSuccess, data: wallet, error } = useSessionKeyWalletQuery();
+  const { isSuccess, data, error } = useSessionKeyWalletQuery();
+  const [, setSessionPrivateKey] = useSessionPrivateKey();
   const redirectToLogin = useRedirectToLogin();
+  const setTimeout = useSetTimeout();
 
   useEffect(() => {
     if (error) {
@@ -42,23 +48,40 @@ export function useSessionKeyWallet(): WalletLike | undefined {
   }, [error]);
 
   useEffect(() => {
-    if (isSuccess && !wallet) {
-      redirectToLogin();
+    if (!isSuccess) {
+      return;
     }
+    if (!data) {
+      redirectToLogin();
+      return;
+    }
+    const { expiryTime } = data;
+    // Did you know `setTimeout` executes the callback immediately if the wait
+    // time is at least 2^31 (or ~25 days)? Ask me how I know.
+    const ttl = Math.max(Date.now() - expiryTime, 1 << 30);
+    return setTimeout(() => {
+      setSessionPrivateKey(undefined);
+      redirectToLogin();
+    }, ttl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess, wallet]);
+  }, [isSuccess, data]);
 
-  return wallet ?? undefined;
+  return data?.wallet ?? undefined;
 }
 
-function useSessionKeyWalletQuery(): UseQueryResult<WalletLike | null> {
+interface WalletQueryOut {
+  wallet: WalletLike;
+  expiryTime: number;
+}
+
+function useSessionKeyWalletQuery(): UseQueryResult<WalletQueryOut | null> {
   const [details] = useTurnkeyDetails();
   const [accountAddress] = useAccountAddress();
   const [sessionPrivateKey] = useSessionPrivateKey();
   const ownerAddress = details?.address;
 
   // useQuery fails if returning undefined.
-  return useQuery<WalletLike | null>({
+  return useQuery<WalletQueryOut | null>({
     queryKey: [
       "session-key-wallet",
       ownerAddress,
@@ -69,15 +92,20 @@ function useSessionKeyWalletQuery(): UseQueryResult<WalletLike | null> {
       if (!ownerAddress || !accountAddress || !sessionPrivateKey) {
         return null;
       }
-      const account = await createSessionKeyAccount({
-        accountAddress,
-        sessionPrivateKey,
-      });
-      const deployed = await isDeployed(accountAddress);
+      const sessionPublicKey = privateKeyToAddress(sessionPrivateKey);
+      const [exactExpiryTime, account, deployed] = await Promise.all([
+        getSessionKeyExpiryTime({ accountAddress, sessionPublicKey }),
+        createSessionKeyAccount({ accountAddress, sessionPrivateKey }),
+        isDeployed(accountAddress),
+      ]);
       if (!deployed) {
         return null;
       }
-      return {
+      const expiryTime = exactExpiryTime - REFRESH_SESSION_KEY_AT_TTL;
+      if (expiryTime < Date.now()) {
+        return null;
+      }
+      const wallet: WalletLike = {
         address: accountAddress,
         send: (data) =>
           sendUserOperation({
@@ -86,6 +114,7 @@ function useSessionKeyWalletQuery(): UseQueryResult<WalletLike | null> {
             data,
           }),
       };
+      return { wallet, expiryTime };
     },
     staleTime: Number.POSITIVE_INFINITY,
   });

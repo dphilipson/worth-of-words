@@ -47,7 +47,8 @@ export const REFILL_VALUE = PREFUND_VALUE;
 export const LOW_FUNDS_WARN_THRESHOLD = "0.05";
 // Default is 5.
 export const FEE_BUFFER_PERCENT = BigInt(5);
-export const SESSION_KEY_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
+export const SESSION_KEY_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
+export const REFRESH_SESSION_KEY_AT_TTL = 1000 * 60 * 5; // 5 minutes
 export const GAS_MANAGER_ADDRESS = "0xC03Aac639Bb21233e0139381970328dB8bcEeB67";
 export const PAYMASTER_ADDRESS = USE_ANVIL
   ? ANVIL_PAYMASTER_ADDRESS

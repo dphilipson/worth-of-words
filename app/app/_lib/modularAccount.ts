@@ -3,24 +3,22 @@ import {
   MultiOwnerModularAccount,
   MultiOwnerPlugin,
   SessionKeyPermissionsBuilder,
+  SessionKeyPluginAbi,
   sessionKeyPluginActions,
 } from "@alchemy/aa-accounts";
 import {
   Address,
   createSmartAccountClient,
-  deepHexlify,
-  getUserOperationHash,
   Hex,
   LocalAccountSigner,
   SmartAccountSigner,
   SmartContractAccount,
-  UserOperationRequest,
-  UserOperationStruct,
 } from "@alchemy/aa-core";
 import {
   custom,
   encodeFunctionData,
   encodePacked,
+  getContract,
   http,
   keccak256,
   Transport,
@@ -28,7 +26,7 @@ import {
 import { privateKeyToAddress } from "viem/accounts";
 import { foundry } from "viem/chains";
 
-import { iAccountAbi, iSessionKeyAccountAbi } from "../_generated/wagmi";
+import { iSessionKeyAccountAbi } from "../_generated/wagmi";
 import {
   CHAIN,
   CHAIN_URL,
@@ -37,7 +35,7 @@ import {
   MULTI_OWNER_PLUGIN_ADDRESS,
   PAYMASTER_ADDRESS,
   SESSION_KEY_PLUGIN_ADDRESS,
-  SESSION_KEY_TTL_SECONDS,
+  SESSION_KEY_TTL,
   USE_ANVIL,
   WORTH_OF_WORDS_ADDRESS,
 } from "./constants";
@@ -200,7 +198,7 @@ function getSessionKeyPermissions(): Hex[] {
     .setRequiredPaymaster(PAYMASTER_ADDRESS)
     .setTimeRange({
       validFrom: 0,
-      validUntil: ((Date.now() / 1000) | 0) + SESSION_KEY_TTL_SECONDS,
+      validUntil: ((Date.now() + SESSION_KEY_TTL) / 1000) | 0,
     })
     .encode();
 }
@@ -221,6 +219,28 @@ export async function isDeployed(address: Address): Promise<boolean> {
   const client = getSmartAccountClient();
   const bytecode = await client.getBytecode({ address });
   return bytecode != null && bytecode !== "0x";
+}
+
+export interface GetSessionKeyTimeRangeParams {
+  accountAddress: Address;
+  sessionPublicKey: Address;
+}
+
+export async function getSessionKeyExpiryTime({
+  accountAddress,
+  sessionPublicKey,
+}: GetSessionKeyTimeRangeParams): Promise<number> {
+  const client = getSmartAccountClient();
+  const loupe = getContract({
+    address: SESSION_KEY_PLUGIN_ADDRESS,
+    abi: SessionKeyPluginAbi,
+    client,
+  });
+  const [, validUntil] = await loupe.read.getKeyTimeRange([
+    accountAddress,
+    sessionPublicKey,
+  ]);
+  return 1000 * validUntil;
 }
 
 /**

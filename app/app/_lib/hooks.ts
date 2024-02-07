@@ -19,7 +19,7 @@ export function useSetDeadline(): (
  * cancelled if the component unmounts and it returns a cancellation function
  * instead of a timeout id.
  */
-function useSetTimeout(): (fn: () => void, delay: number) => () => void {
+export function useSetTimeout(): (fn: () => void, delay: number) => () => void {
   const timeoutIds = useRef(new Set<NodeJS.Timeout>()).current;
 
   useEffect(() => () => {
