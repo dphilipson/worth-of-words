@@ -75,8 +75,8 @@ export default memo(function AboutPage(): ReactNode {
         Worth of Words uses the same word lists as standard Wordle. Like in
         Wordle, the list of words which can be used as a secret is much smaller
         than the list of words which can be used as a guess. The word lists are
-        available here: <Link href="/secret-wordlist.txt">allowed secrets</Link>
-        , <Link href="/guess-wordlist.txt">allowed guesses</Link>.
+        available here: <a href="/secret-wordlist.txt">allowed secrets</a>,{" "}
+        <a href="/guess-wordlist.txt">allowed guesses</a>.
       </p>
       <h4>Is there a maximum number of players?</h4>
       <p>

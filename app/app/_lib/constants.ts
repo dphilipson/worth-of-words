@@ -1,4 +1,4 @@
-import { arbitrumSepolia, foundry, polygonMumbai } from "viem/chains";
+import { arbitrumSepolia, foundry } from "viem/chains";
 
 import {
   ANVIL_PAYMASTER_ADDRESS,

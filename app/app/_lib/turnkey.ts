@@ -54,7 +54,7 @@ export async function createSubOrgAndWallet(): Promise<TurnkeyDetails> {
   const authenticatorUserId = generateRandomBuffer();
   const attestation = await getWebAuthnAttestation({
     publicKey: {
-      rp: { id: "localhost", name: "Worth of Words" },
+      rp: { id: DOMAIN_NAME, name: "Worth of Words" },
       challenge,
       pubKeyCredParams: [
         { type: "public-key", alg: -7 },
