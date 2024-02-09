@@ -3,7 +3,6 @@
 FROM amazon/aws-lambda-nodejs:20 AS prod-deps
 
 # Install node-prune. We'll use it later.
-# RUN apk add curl
 RUN curl -sf https://gobinaries.com/tj/node-prune | sh
 
 # Copy over the bare requirements for running `yarn` to install the server

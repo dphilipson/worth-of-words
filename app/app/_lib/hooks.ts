@@ -139,18 +139,14 @@ export function useLocalStorage<T>({
   setValue: (value: T | undefined) => void,
 ] {
   const loadFromStorage = () => {
+    if (!localStorage) {
+      // We are probably in Next's server-side render.
+      return undefined;
+    }
     const json = localStorage.getItem(key);
     return json === null ? undefined : fromJson(JSON.parse(json));
   };
   const [value, setState] = useState(loadFromStorage);
-  const hasMounted = useHasMounted();
-
-  useEffect(() => {
-    if (hasMounted) {
-      setState(loadFromStorage());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
 
   const setValue = useCallback(
     (value: T | undefined) => {

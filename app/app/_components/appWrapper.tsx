@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
+import { Chain } from "viem";
 import { createConfig, WagmiProvider } from "wagmi";
 
 import { CHAIN } from "../_lib/constants";
@@ -12,7 +13,9 @@ import Header from "./header";
 const queryClient = new QueryClient();
 
 const config = createConfig({
-  chains: [CHAIN],
+  // Wagmi is trying to be clever with types, but it makes a valid config fail
+  // typechecking.
+  chains: [CHAIN] as [Chain],
   client: getSmartAccountClient,
 });
 

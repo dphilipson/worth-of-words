@@ -1,7 +1,7 @@
 import { createActivityPoller } from "@turnkey/http";
 
-import { ORGANIZATION_ID } from "../constants";
-import { refineNonNull } from "../util";
+import { TURNKEY_ORGANIZATION_ID } from "../constants";
+import { refineNonNull } from "../typeHelpers";
 import turnkeyClient from "./turnkeyClient";
 import { CreateSubOrgWithPrivateKeyRequest, WalletDetails } from "./types";
 
@@ -26,7 +26,7 @@ export default async function createSubOrg(
   const completedActivity = await activityPoller({
     type: "ACTIVITY_TYPE_CREATE_SUB_ORGANIZATION_V4",
     timestampMs: String(Date.now()),
-    organizationId: ORGANIZATION_ID,
+    organizationId: TURNKEY_ORGANIZATION_ID,
     parameters: {
       subOrganizationName: createSubOrgRequest.subOrgName,
       rootQuorumThreshold: 1,

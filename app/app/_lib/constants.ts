@@ -12,16 +12,13 @@ import {
 import { notNull } from "./typechecks";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
-export const USE_ANVIL = !IS_PRODUCTION;
-export const USE_DEBUG_ACCOUNTS = !IS_PRODUCTION && false;
+export const USE_ANVIL = false; // !IS_PRODUCTION;
+export const USE_DEBUG_ACCOUNTS = false; // !IS_PRODUCTION;
 export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
-export const ALCHEMY_API_KEY = notNull(process.env.NEXT_PUBLIC_ALCHEMY_ID);
-export const CHAIN_URL = USE_ANVIL
-  ? "http://localhost:8545"
-  : `https://polygon-mumbai.g.alchemy.com/v2/${ALCHEMY_API_KEY}`;
-export const API_URL = IS_PRODUCTION
+export const WORTH_OF_WORDS_API_URL = IS_PRODUCTION
   ? "https://api.worthofwords.com"
   : "http://localhost:3001";
+export const RPC_URL = `${WORTH_OF_WORDS_API_URL}/rpc`;
 export const TURNKEY_BASE_URL = "https://api.turnkey.com";
 export const TURNKEY_ORGANIZATION_ID = notNull(
   process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID,
@@ -40,11 +37,6 @@ export const MINION_FACTORY_ADDRESS = USE_ANVIL
   ? ANVIL_MINION_FACTORY_ADDRESS
   : DEPLOYED_MINION_FACTORY_ADDRESS;
 export const POST_DEADLINE_WAIT_TIME_MS = 4000;
-export const SECRET_GENERATING_MESSAGE =
-  "Grant this website permission to make Worth of Words moves on your behalf.";
-export const PREFUND_VALUE = "0.19";
-export const REFILL_VALUE = PREFUND_VALUE;
-export const LOW_FUNDS_WARN_THRESHOLD = "0.05";
 // Default is 5.
 export const FEE_BUFFER_PERCENT = BigInt(5);
 export const SESSION_KEY_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -56,12 +48,12 @@ export const PAYMASTER_ADDRESS = USE_ANVIL
 
 export const MSCA_FACTORY_ADDRESS = USE_ANVIL
   ? "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9"
-  : undefined;
+  : "0x000000e92D78D90000007F0082006FDA09BD5f11";
 export const MULTI_OWNER_PLUGIN_ADDRESS = USE_ANVIL
   ? "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"
-  : undefined;
+  : "0xcE0000007B008F50d762D155002600004cD6c647";
 export const SESSION_KEY_PLUGIN_ADDRESS = USE_ANVIL
   ? "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-  : undefined;
+  : "0x000000e30a00f600823700E975f1b1ac387f0017";
 export const ANVIL_PRIVATE_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";

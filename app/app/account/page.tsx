@@ -50,6 +50,7 @@ export default memo(function AccountPage(): ReactNode {
     },
     onError: getErrorHandler("Failed to create passkey."),
   });
+
   const {
     mutate: chooseExistingPasskey,
     isPending: isChoosingExistingPasskey,
@@ -61,6 +62,7 @@ export default memo(function AccountPage(): ReactNode {
     },
     onError: getErrorHandler("Failed to select passkey."),
   });
+
   const { mutate: createSessionKey, isPending: isCreatingSessionKey } =
     useMutation({
       mutationFn: async (_: unknown) => {
@@ -81,10 +83,12 @@ export default memo(function AccountPage(): ReactNode {
       onSuccess: () => setErrorText(""),
       onError: getErrorHandler("Failed to create session key."),
     });
+
   const cancelPasskeyChoice = useCallback(() => {
     setDetails(undefined);
     setAccountAddress(undefined);
   }, [setDetails, setAccountAddress]);
+
   const isLoading =
     isCreatingPasskey || isChoosingExistingPasskey || isCreatingSessionKey;
   const redirectAfterLogin = useRedirectAfterLogin();

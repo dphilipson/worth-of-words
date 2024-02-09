@@ -6,18 +6,20 @@ import {
   SessionKeyPluginAbi,
   sessionKeyPluginActions,
 } from "@alchemy/aa-accounts";
+import { createAlchemySmartAccountClient } from "@alchemy/aa-alchemy";
 import {
   Address,
   createSmartAccountClient,
+  getVersion060EntryPoint,
   Hex,
   LocalAccountSigner,
   SmartAccountSigner,
   SmartContractAccount,
 } from "@alchemy/aa-core";
 import {
+  createWalletClient,
   custom,
   encodeFunctionData,
-  encodePacked,
   getContract,
   http,
   keccak256,
@@ -29,7 +31,6 @@ import { foundry } from "viem/chains";
 import { iSessionKeyAccountAbi } from "../_generated/wagmi";
 import {
   CHAIN,
-  CHAIN_URL,
   ENTRY_POINT_ADDRESS,
   MSCA_FACTORY_ADDRESS,
   MULTI_OWNER_PLUGIN_ADDRESS,
@@ -38,23 +39,36 @@ import {
   SESSION_KEY_TTL,
   USE_ANVIL,
   WORTH_OF_WORDS_ADDRESS,
+  WORTH_OF_WORDS_API_URL,
 } from "./constants";
 
 export const getSmartAccountClient = memoized(() => {
+  const client = USE_ANVIL ? getLocalDevClient() : getAlchemyClient();
+  return client.extend(sessionKeyPluginActions);
+});
+
+function getLocalDevClient() {
   return createSmartAccountClient({
     chain: CHAIN,
     transport: getTransport(),
-    paymasterAndData: USE_ANVIL
-      ? {
-          dummyPaymasterAndData: () => PAYMASTER_ADDRESS,
-          paymasterAndData: async (op) => {
-            op.paymasterAndData = PAYMASTER_ADDRESS;
-            return op;
-          },
-        }
-      : undefined,
-  }).extend(sessionKeyPluginActions);
-});
+    paymasterAndData: {
+      dummyPaymasterAndData: () => PAYMASTER_ADDRESS,
+      paymasterAndData: async (op) => {
+        op.paymasterAndData = PAYMASTER_ADDRESS;
+        return op;
+      },
+    },
+  });
+}
+
+function getAlchemyClient() {
+  return createAlchemySmartAccountClient({
+    chain: CHAIN,
+    rpcUrl: `${WORTH_OF_WORDS_API_URL}/rpc`,
+    // Policy ID is filled in by the backend.
+    gasManagerConfig: { policyId: "<redacted>" },
+  });
+}
 
 export function createOwnerAccount(
   owner: SmartAccountSigner,
@@ -65,9 +79,8 @@ export function createOwnerAccount(
     chain: CHAIN,
     owner,
     accountAddress,
-    entrypointAddress: ENTRY_POINT_ADDRESS,
+    entryPoint: getVersion060EntryPoint(CHAIN, ENTRY_POINT_ADDRESS),
     factoryAddress: MSCA_FACTORY_ADDRESS,
-    excludeDefaultTokenReceiverPlugin: true,
   });
 }
 
@@ -164,10 +177,6 @@ async function deployAccountWithSessionKey({
       [getSessionKeyPermissions()],
     ],
     pluginAddress: SESSION_KEY_PLUGIN_ADDRESS,
-    dependencyOverrides: [
-      encodePacked(["address", "uint8"], [MULTI_OWNER_PLUGIN_ADDRESS!, 0x1]),
-      encodePacked(["address", "uint8"], [MULTI_OWNER_PLUGIN_ADDRESS!, 0x0]),
-    ],
   });
   await waitForOperation(op.hash);
 }
@@ -179,7 +188,9 @@ async function addSessionKey({
   const client = getSmartAccountClient();
   const op = await client.addSessionKey({
     account: ownerAccount,
-    args: [sessionPublicKey, getSessionKeyTag(), getSessionKeyPermissions()],
+    key: sessionPublicKey,
+    tag: getSessionKeyTag(),
+    permissions: getSessionKeyPermissions(),
   });
   await waitForOperation(op.hash);
 }
@@ -255,10 +266,12 @@ function injectLocalMultiOwnerAddress(): void {
 }
 
 export const getTransport = memoized(() =>
-  USE_ANVIL ? createSplitRpcTransportForLocalDev() : http(CHAIN_URL),
+  USE_ANVIL
+    ? createSplitTransportForLocalBundler()
+    : http(`${WORTH_OF_WORDS_API_URL}/rpc`),
 );
 
-function createSplitRpcTransportForLocalDev(): Transport {
+function createSplitTransportForLocalBundler(): Transport {
   const chain = foundry;
   const bundlerTransport = http("http://localhost:8546/rpc")({ chain });
   const nodeTransport = http("http://localhost:8545")({ chain });
@@ -272,7 +285,7 @@ function createSplitRpcTransportForLocalDev(): Transport {
   ]);
 
   return custom({
-    async request({ method, params }) {
+    request: ({ method, params }) => {
       if (bundlerRpcMethods.has(method)) {
         return bundlerTransport.request({ method, params });
       } else {

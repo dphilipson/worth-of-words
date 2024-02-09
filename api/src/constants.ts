@@ -1,9 +1,11 @@
-import { refineNonNull } from "./util";
+import { refineNonNull } from "./typeHelpers";
 
 export const ALLOWED_ORIGIN = getEnv("ALLOWED_ORIGIN");
-export const API_PUBLIC_KEY = getEnv("API_PUBLIC_KEY");
-export const API_PRIVATE_KEY = getEnv("API_PRIVATE_KEY");
-export const ORGANIZATION_ID = getEnv("ORGANIZATION_ID");
+export const ALCHEMY_URL = getEnv("ALCHEMY_URL");
+export const GAS_MANAGER_POLICY_ID = getEnv("GAS_MANAGER_POLICY_ID");
+export const TURNKEY_PUBLIC_KEY = getEnv("TURNKEY_PUBLIC_KEY");
+export const TURNKEY_PRIVATE_KEY = getEnv("TURNKEY_PRIVATE_KEY");
+export const TURNKEY_ORGANIZATION_ID = getEnv("TURNKEY_ORGANIZATION_ID");
 
 export const TURNKEY_BASE_URL = "https://api.turnkey.com";
 

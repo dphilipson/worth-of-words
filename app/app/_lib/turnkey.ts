@@ -12,16 +12,16 @@ import axios from "axios";
 import { Address } from "viem";
 
 import {
-  API_URL,
   DOMAIN_NAME,
   TURNKEY_BASE_URL,
   TURNKEY_ORGANIZATION_ID,
+  WORTH_OF_WORDS_API_URL,
 } from "./constants";
 import { useLocalStorage } from "./hooks";
 import { getTransport } from "./modularAccount";
 
-const CREATE_SUB_ORG_URL = `${API_URL}/create-sub-org`;
-const LOGIN_URL = `${API_URL}/login`;
+const CREATE_SUB_ORG_URL = `${WORTH_OF_WORDS_API_URL}/create-sub-org`;
+const LOGIN_URL = `${WORTH_OF_WORDS_API_URL}/login`;
 const DETAILS_KEY = "worth-of-words:turnkey-details";
 
 type TAttestation = TurnkeyApiTypes["v1Attestation"];
@@ -76,7 +76,6 @@ export async function createSubOrgAndWallet(): Promise<TurnkeyDetails> {
     CREATE_SUB_ORG_URL,
     request,
   );
-  console.log("response:", response.data);
   return response.data;
 }
 
@@ -88,7 +87,6 @@ export async function login(): Promise<TurnkeyDetails | undefined> {
     LOGIN_URL,
     signedRequest,
   );
-  console.log("response:", response.data);
   // API returns empty response if user does not exist.
   return response.data || undefined;
 }
