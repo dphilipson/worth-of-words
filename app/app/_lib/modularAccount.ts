@@ -66,6 +66,16 @@ function getAlchemyClient() {
     rpcUrl: `${WORTH_OF_WORDS_API_URL}/rpc`,
     // Policy ID is filled in by the backend.
     gasManagerConfig: { policyId: "<redacted>" },
+    opts: {
+      feeOptions: {
+        // Jack up the verification gas limit to work around an estimation bug
+        // in the session key plugin.
+        verificationGasLimit: { percentage: 200 },
+        // Jack up the call gas limit for cases when state changes cause the
+        // execution gas to increase.
+        callGasLimit: { percentage: 100 },
+      },
+    },
   });
 }
 

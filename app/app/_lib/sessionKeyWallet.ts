@@ -36,16 +36,10 @@ export function useSessionPrivateKey() {
 }
 
 export function useSessionKeyWallet(): WalletLike | undefined {
-  const { isSuccess, data, error } = useSessionKeyWalletQuery();
+  const { isSuccess, data } = useSessionKeyWalletQuery();
   const [, setSessionPrivateKey] = useSessionPrivateKey();
   const redirectToLogin = useRedirectToLogin();
   const setTimeout = useSetTimeout();
-
-  useEffect(() => {
-    if (error) {
-      console.error(error);
-    }
-  }, [error]);
 
   useEffect(() => {
     if (!isSuccess) {

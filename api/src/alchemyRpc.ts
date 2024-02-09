@@ -70,6 +70,8 @@ function validateOverrides(overrides: GasOverrides | undefined): void {
   validateOverridePercentage("maxFeePerGas", 150);
   validateOverridePercentage("maxPriorityFeePerGas", 105);
   validateOverridePercentage("preVerificationGas", 105);
+  validateOverridePercentage("verificationGasLimit", 300);
+  validateOverridePercentage("callGasLimit", 200);
 
   const invalidKey = Object.keys(overrides).find(
     (key) => !validatedKeys.has(key as keyof GasOverrides)

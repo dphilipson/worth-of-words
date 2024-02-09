@@ -23,9 +23,9 @@ async function createLobby(
   wallet: WalletLike,
   config: LobbyConfig,
 ): Promise<bigint> {
-  // TODO: Timeout or something if it goes too long.
+  let stopWatching = () => {};
   const promise = new Promise<bigint>((resolve, reject) => {
-    const stopWatching = publicClient.watchContractEvent({
+    stopWatching = publicClient.watchContractEvent({
       abi: iWorthOfWordsAbi,
       address: WORTH_OF_WORDS_ADDRESS,
       eventName: "LobbyCreated",
@@ -42,12 +42,17 @@ async function createLobby(
       },
     });
   });
-  await wallet.send(
-    encodeFunctionData({
-      abi: iWorthOfWordsAbi,
-      functionName: "createLobby",
-      args: [config],
-    }),
-  );
+  try {
+    await wallet.send(
+      encodeFunctionData({
+        abi: iWorthOfWordsAbi,
+        functionName: "createLobby",
+        args: [config],
+      }),
+    );
+  } catch (error) {
+    stopWatching();
+    throw error;
+  }
   return promise;
 }
