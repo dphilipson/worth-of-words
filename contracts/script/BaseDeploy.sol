@@ -5,7 +5,6 @@ import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
 import {Script, console2} from "forge-std/Script.sol";
 import {DevPaymaster} from "../src/DevPaymaster.sol";
-import {MinionAccountFactory} from "../src/MinionAccountFactory.sol";
 import {WorthOfWords} from "../src/WorthOfWords.sol";
 
 contract BaseDeploy is Script {
@@ -20,7 +19,6 @@ contract BaseDeploy is Script {
     ) internal {
         vm.startBroadcast(privateKey);
         address worthOfWords = deployWorthOfWords();
-        address factory = deployMinionFactory(worthOfWords);
         address devPaymaster;
         if (!isProduction) {
             devPaymaster = deployDevPaymaster();
@@ -40,16 +38,6 @@ contract BaseDeploy is Script {
                 '";'
             )
         );
-        vm.writeLine(
-            path,
-            string.concat(
-                "export const ",
-                variablePrefix,
-                '_MINION_FACTORY_ADDRESS = "',
-                vm.toString(factory),
-                '";'
-            )
-        );
         if (!isProduction) {
             vm.writeLine(
             path,
@@ -63,7 +51,6 @@ contract BaseDeploy is Script {
             );
         }
         console2.log("WorthOfWords: %s", worthOfWords);
-        console2.log("MinionAccountFactory: %s", factory);
         if (!isProduction) {
             console2.log("DevPaymaster: %s", devPaymaster);
         }
@@ -87,32 +74,6 @@ contract BaseDeploy is Script {
             "WorthOfWords address did not match predicted"
         );
         return worthOfWords;
-    }
-
-    function deployMinionFactory(
-        address worthOfWords
-    ) private returns (address) {
-        address addr = Create2.computeAddress(
-            bytes32(0),
-            keccak256(
-                abi.encodePacked(
-                    type(MinionAccountFactory).creationCode,
-                    abi.encode(ENTRY_POINT, worthOfWords)
-                )
-            ),
-            CREATE2_FACTORY
-        );
-        if (addr.code.length > 0) {
-            return addr;
-        }
-        address factory = address(
-            new MinionAccountFactory{salt: 0}(ENTRY_POINT, worthOfWords)
-        );
-        require(
-            factory == addr,
-            "MinionAccountFactory address did not match predicted"
-        );
-        return factory;
     }
 
     function deployDevPaymaster() private returns (address) {

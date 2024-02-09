@@ -4,6 +4,6 @@
 set -e
 
 source .env
-forge script script/DeployForReal.s.sol:DeployForRealScript --rpc-url $MUMBAI_RPC_URL --broadcast --verify -vvvv
+forge script script/DeployForReal.s.sol:DeployForRealScript --rpc-url $ARBITRUM_SEPOLIA_RPC_URL --broadcast --verify -vvvv
 mkdir -p ../app/app/_lib/generated/
 cp out/deployedConstants.ts ../app/app/_generated/

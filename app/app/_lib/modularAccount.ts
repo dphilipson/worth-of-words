@@ -17,7 +17,6 @@ import {
   SmartContractAccount,
 } from "@alchemy/aa-core";
 import {
-  createWalletClient,
   custom,
   encodeFunctionData,
   getContract,

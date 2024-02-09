@@ -139,7 +139,7 @@ export function useLocalStorage<T>({
   setValue: (value: T | undefined) => void,
 ] {
   const loadFromStorage = () => {
-    if (!localStorage) {
+    if (typeof localStorage === "undefined") {
       // We are probably in Next's server-side render.
       return undefined;
     }

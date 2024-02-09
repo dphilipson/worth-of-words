@@ -1,12 +1,9 @@
 import Link from "next/link";
 import { memo, ReactNode } from "react";
 
+import BlockExplorerLink from "../_components/blockExplorerLink";
 import Card from "../_components/card";
-import PolygonscanLink from "../_components/polygonscanLink";
-import {
-  MINION_FACTORY_ADDRESS,
-  WORTH_OF_WORDS_ADDRESS,
-} from "../_lib/constants";
+import { WORTH_OF_WORDS_ADDRESS } from "../_lib/constants";
 import {
   POINTS_FOR_FULL_WORD,
   POINTS_FOR_GREEN,
@@ -117,49 +114,11 @@ export default memo(function AboutPage(): ReactNode {
         and verification from{" "}
         <Link href="https://github.com/iden3/snarkjs">SnarkJS</Link>.
       </p>
-      <h4 id="minion-accounts">Minion Accounts</h4>
-      <p>
-        If you played Worth of Words with your primary account, you would get
-        multiple security prompts every round to authorize actions, which would
-        be a very annoying experience. Instead, the player controls a separate
-        &ldquo;minion account,&rdquo; a smart contract account with very limited
-        permissions. The minion account holds native tokens to pay for gas, but
-        the only actions it can take are to make moves in Worth of Words and to
-        return its balance to its owner. Thus, Worth of Words can store the
-        minion&apos;s private key in the browser&apos;s local storage. This
-        would normally be extremely insecure, but since this key has very narrow
-        scope, even if it leaked an attacker could do very little.
-      </p>
-      <p>
-        The minion account&apos;s private key is generated from a message signed
-        by the primary account, so you can regain access even if your browser
-        storage is cleared.
-      </p>
-      <h4>Are Minion Accounts really secure?</h4>
-      <p>
-        Well actually, no. An attacker who steals the private key to a minion
-        account can steal all its funds by signing a user operation with
-        extremely high gas fees, then manually sending it to the entry point
-        with themselves as the beneficiary (recipient of gas fees). This will be
-        improved in the future by giving the minion account a gas spend limit
-        per game. But since this app only uses testnet tokens for now, it&apos;s
-        not so bad.
-      </p>
-      <h4>How much does it cost to play?</h4>
-      <p>
-        Worth of Words is deployed on the Polygon Mumbai test network, making it
-        completely free. If it were deployed on Polygon mainnet, the gas fees
-        would be roughly $0.15 per player per game.
-      </p>
-      <h3>Deployed contracts</h3>
+      <h4>TODO: Explain Modular Accounts and Gas Manager</h4>
+      <h3>Contracts</h3>
       <ul>
         <li>
-          Gameplay contract:{" "}
-          <PolygonscanLink address={WORTH_OF_WORDS_ADDRESS} />
-        </li>
-        <li>
-          Minion account contract:{" "}
-          <PolygonscanLink address={MINION_FACTORY_ADDRESS} />
+          Worth of Words: <BlockExplorerLink address={WORTH_OF_WORDS_ADDRESS} />
         </li>
       </ul>
       <h3>License</h3>

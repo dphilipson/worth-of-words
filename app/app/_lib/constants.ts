@@ -1,20 +1,16 @@
-import { foundry, polygonMumbai } from "viem/chains";
+import { arbitrumSepolia, foundry, polygonMumbai } from "viem/chains";
 
 import {
-  ANVIL_MINION_FACTORY_ADDRESS,
   ANVIL_PAYMASTER_ADDRESS,
   ANVIL_WORTH_OF_WORDS_ADDRESS,
 } from "../_generated/anvilConstants";
-import {
-  DEPLOYED_MINION_FACTORY_ADDRESS,
-  DEPLOYED_WORTH_OF_WORDS_ADDRESS,
-} from "../_generated/deployedConstants";
+import { DEPLOYED_WORTH_OF_WORDS_ADDRESS } from "../_generated/deployedConstants";
 import { notNull } from "./typechecks";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export const USE_ANVIL = false; // !IS_PRODUCTION;
 export const USE_DEBUG_ACCOUNTS = false; // !IS_PRODUCTION;
-export const CHAIN = USE_ANVIL ? foundry : polygonMumbai;
+export const CHAIN = USE_ANVIL ? foundry : arbitrumSepolia;
 export const WORTH_OF_WORDS_API_URL = IS_PRODUCTION
   ? "https://api.worthofwords.com"
   : "http://localhost:3001";
@@ -33,9 +29,6 @@ export const ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 export const WORTH_OF_WORDS_ADDRESS = USE_ANVIL
   ? ANVIL_WORTH_OF_WORDS_ADDRESS
   : DEPLOYED_WORTH_OF_WORDS_ADDRESS;
-export const MINION_FACTORY_ADDRESS = USE_ANVIL
-  ? ANVIL_MINION_FACTORY_ADDRESS
-  : DEPLOYED_MINION_FACTORY_ADDRESS;
 export const POST_DEADLINE_WAIT_TIME_MS = 4000;
 // Default is 5.
 export const FEE_BUFFER_PERCENT = BigInt(5);

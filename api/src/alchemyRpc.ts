@@ -1,5 +1,4 @@
 import axios from "axios";
-import { Request, Response } from "express";
 
 import { ALCHEMY_URL, GAS_MANAGER_POLICY_ID } from "./constants";
 import { JsonRpcRequest } from "./jsonRpc";
@@ -70,6 +69,7 @@ function validateOverrides(overrides: GasOverrides | undefined): void {
 
   validateOverridePercentage("maxFeePerGas", 150);
   validateOverridePercentage("maxPriorityFeePerGas", 105);
+  validateOverridePercentage("preVerificationGas", 105);
 
   const invalidKey = Object.keys(overrides).find(
     (key) => !validatedKeys.has(key as keyof GasOverrides)
