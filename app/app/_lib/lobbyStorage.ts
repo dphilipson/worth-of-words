@@ -1,6 +1,6 @@
 import { Address } from "viem";
 
-import { useLocalStorage } from "./hooks";
+import { useStorage } from "./hooks";
 
 export interface SecretsAndSalt {
   words: string[];
@@ -32,17 +32,17 @@ export function useLobbyStorage(
 ): LobbyStorage | undefined {
   const getFullKey = (key: string) =>
     `worth-of-words:lobby:${lobbyId}:player:${walletAddress}:${key}`;
-  const [secrets, setSecrets] = useLocalStorage<SecretsAndSalt>({
+  const [secrets, setSecrets] = useStorage<SecretsAndSalt>({
     key: getFullKey(SECRETS_KEY),
     toJson: ({ words, salt }) => ({ words, salt: salt.toString() }),
     fromJson: ({ words, salt }) => ({ words, salt: BigInt(salt) }),
   });
-  const [guess, setGuess] = useLocalStorage<GuessAndSalt>({
+  const [guess, setGuess] = useStorage<GuessAndSalt>({
     key: getFullKey(GUESS_KEY),
     toJson: ({ guess, salt }) => ({ guess, salt: salt.toString() }),
     fromJson: ({ guess, salt }) => ({ guess, salt: BigInt(salt) }),
   });
-  const [advancedToRound, advanceToRound] = useLocalStorage<number>({
+  const [advancedToRound, advanceToRound] = useStorage<number>({
     key: getFullKey(ADVANCED_TO_ROUND_KEY),
   });
   if (lobbyId === undefined || walletAddress === undefined) {

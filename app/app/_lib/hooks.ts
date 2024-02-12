@@ -124,43 +124,57 @@ function arraysDiffer(a: unknown[], b: unknown[]): boolean {
   return false;
 }
 
-export interface UseLocalStorageConfig<T> {
+export interface UseStorageConfig<T> {
   key: string;
   toJson?: (value: T) => unknown;
   fromJson?: (value: any) => T;
+  storageType?: "local" | "session";
 }
 
-export function useLocalStorage<T>({
+export function useStorage<T>({
   key,
   toJson = identity,
   fromJson = identity,
-}: UseLocalStorageConfig<T>): [
+  storageType = "local",
+}: UseStorageConfig<T>): [
   value: T | undefined,
   setValue: (value: T | undefined) => void,
 ] {
   const loadFromStorage = () => {
-    if (typeof localStorage === "undefined") {
-      // We are probably in Next's server-side render.
-      return undefined;
-    }
-    const json = localStorage.getItem(key);
-    return json === null ? undefined : fromJson(JSON.parse(json));
+    const storage = getStorage(storageType);
+    const json = storage?.getItem(key);
+    return json == null ? undefined : fromJson(JSON.parse(json));
   };
   const [value, setState] = useState(loadFromStorage);
 
   const setValue = useCallback(
     (value: T | undefined) => {
+      const storage = getStorage(storageType);
+      if (!storage) {
+        return;
+      }
       if (value !== undefined) {
-        localStorage.setItem(key, JSON.stringify(toJson(value)));
+        storage.setItem(key, JSON.stringify(toJson(value)));
       } else {
-        localStorage.removeItem(key);
+        storage.removeItem(key);
       }
       setState(value);
     },
-    [key, toJson],
+    [key, toJson, storageType],
   );
 
   return [value, setValue];
+}
+
+/**
+ * Returns undefined if storage does not exist as a global variable, which probably means we're in NextJS's server-side rendering.
+ */
+function getStorage(type: "local" | "session"): Storage | undefined {
+  if (type === "local") {
+    return typeof localStorage === "undefined" ? undefined : localStorage;
+  } else {
+    return typeof sessionStorage === "undefined" ? undefined : sessionStorage;
+  }
 }
 
 function identity<T>(x: T): T {

@@ -50,6 +50,7 @@ export default function AppWrapper({
     return () => {
       window.console.error = orig;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

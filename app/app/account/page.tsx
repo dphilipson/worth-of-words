@@ -1,11 +1,13 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
-import Link from "next/link";
 import { memo, ReactNode, useCallback, useEffect, useState } from "react";
+import { FaAngleRight, FaFingerprint } from "react-icons/fa6";
 import { privateKeyToAddress } from "viem/accounts";
 
-import Card from "../_components/card";
 import LoadingButton from "../_components/loadingButton";
+import MainCard from "../_components/mainCard";
+import createPasskeyImage from "../_images/unlocked-account.png";
+import unlockedAccountImage from "../_images/unlocked-account.png";
 import { useHasMounted } from "../_lib/hooks";
 import { useRedirectAfterLogin } from "../_lib/loginRedirects";
 import {
@@ -21,6 +23,7 @@ import {
   createSubOrgAndWallet,
   getTurnkeySigner,
   login,
+  useHideWelcomeBack,
   useTurnkeyDetails,
 } from "../_lib/turnkey";
 
@@ -29,6 +32,7 @@ export default memo(function AccountPage(): ReactNode {
   const [, setAccountAddress] = useAccountAddress();
   const [sessionPrivateKey, setSessionPrivateKey] = useSessionPrivateKey();
   const [errorText, setErrorText] = useState("");
+  const [, setHideWelcomeBack] = useHideWelcomeBack();
 
   function getErrorHandler(text: string): (error: unknown) => void {
     return (error) => {
@@ -79,6 +83,7 @@ export default memo(function AccountPage(): ReactNode {
         });
         setAccountAddress(ownerAccount.address);
         setSessionPrivateKey(newSessionPrivateKey);
+        setHideWelcomeBack(true);
       },
       onSuccess: () => setErrorText(""),
       onError: getErrorHandler("Failed to create session key."),
@@ -104,62 +109,53 @@ export default memo(function AccountPage(): ReactNode {
     return <div />;
   }
 
-  const contents = !details ? (
-    <>
-      <h3>First things first</h3>
+  return !details ? (
+    <MainCard
+      title="Just one thing…"
+      image={createPasskeyImage}
+      imageAlt="Picture of creating a session key"
+    >
       <p>
         Worth of Words uses passkeys so you can secure your account without a
-        password. Create the passkey that will be used to access your account.{" "}
-        <Link href="/about#passkeys">What is this?</Link>
+        password or any other additional information.
       </p>
-      <div className="flex justify-center">
-        <LoadingButton
+      <div className="flex flex-col justify-center space-x-2 sm:flex-row">
+        <button
           className="btn btn-primary"
-          isLoading={isCreatingPasskey}
-          disabled={isLoading}
           onClick={createPasskey}
+          disabled={isLoading}
         >
-          Create new passkey
-        </LoadingButton>
-      </div>
-      <p>
-        Or{" "}
-        <button disabled={isLoading} onClick={chooseExistingPasskey}>
-          <a>choose an existing passkey</a>
+          <FaFingerprint /> Create new passkey
         </button>
-        .
-      </p>
-    </>
+        <button
+          className="btn btn-ghost"
+          onClick={chooseExistingPasskey}
+          disabled={isLoading}
+        >
+          Choose existing passkey <FaAngleRight />
+        </button>
+      </div>
+    </MainCard>
   ) : (
-    <>
-      <h3>Authenticate with your passkey</h3>
-      <p>Use your passkey to start a session.</p>
-      <div className="flex justify-center">
-        <LoadingButton
-          className="btn btn-primary"
-          isLoading={isCreatingSessionKey}
-          onClick={createSessionKey}
-        >
-          Start new session
-        </LoadingButton>
-      </div>
+    <MainCard
+      title="You've unlocked your own modular account!"
+      image={unlockedAccountImage}
+      imageAlt="Picture of an unlocked account"
+    >
       <p>
-        <button disabled={isLoading} onClick={cancelPasskeyChoice}>
-          <a>Use a different passkey</a>
-        </button>
+        Just like that, you&apos;re all set up with your own modular account,
+        powered by ERC-6900. Have fun playing Worth of Words!
       </p>
-    </>
-  );
-
-  return (
-    <div className="flex flex-col items-center pt-48">
-      <Card className="max-w-xl">
-        <div className="prose">{contents}</div>
-        {errorText && <div className="mt-2 text-error">{errorText}</div>}
-      </Card>
-      <div className="prose prose-lg mt-5">
-        <Link href="/">Return home</Link>
-      </div>
-    </div>
+      <LoadingButton
+        className="btn btn-primary"
+        isLoading={isCreatingSessionKey}
+        onClick={createSessionKey}
+      >
+        <FaFingerprint /> Start a new session
+      </LoadingButton>
+      <p>
+        <a>What&apos;s a modular account?</a>
+      </p>
+    </MainCard>
   );
 });

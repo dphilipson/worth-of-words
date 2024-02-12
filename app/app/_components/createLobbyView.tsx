@@ -1,20 +1,28 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { memo, ReactNode, useCallback, useState } from "react";
+import { memo, ReactNode, useCallback, useRef } from "react";
 
+import createLobbyImage from "../_images/unlocked-account.png";
 import { useCreateLobby } from "../_lib/createLobby";
 import { GameSpeed, getLobbyPreset } from "../_lib/lobbyPresets";
-import GameSpeedRadioGroup from "./gameSpeedRadioGroup";
+import { useHideWelcomeBack } from "../_lib/turnkey";
+import { useWallet } from "../_lib/useWallet";
+import Card from "./card";
 import LoadingButton from "./loadingButton";
+import MainCard from "./mainCard";
+import PulseOnEnterBox from "./pulseOnEnterBox";
 
 export default memo(function CreateLobbyView(): ReactNode {
   const createLobby = useCreateLobby();
   const navigateToLobby = useNavigateToLobby();
-  const [speed, setSpeed] = useState(GameSpeed.FAST);
+  const wallet = useWallet();
+  const [hideWelcomeBack, setHideWelcomeBack] = useHideWelcomeBack();
+  const initialHideWelcomeBack = useRef(hideWelcomeBack).current;
+  console.log({ initialHideWelcomeBack });
   const mutation = useMutation({
     mutationFn: async () => {
-      const config = await getLobbyPreset(speed);
+      const config = await getLobbyPreset(GameSpeed.FAST);
       return createLobby!(config);
     },
     onSuccess: navigateToLobby,
@@ -27,35 +35,43 @@ export default memo(function CreateLobbyView(): ReactNode {
     } else if (mutation.isPending) {
       return "Creating lobby";
     } else {
-      return "Create lobby";
+      return "Create a lobby";
     }
   })();
 
-  const isEnabled = createLobby && !mutation.isPending && !mutation.isSuccess;
+  const isLoading = !createLobby || mutation.isPending || mutation.isSuccess;
 
   return (
-    <div className="card w-full max-w-xl bg-base-100 shadow-xl">
-      <div className="card-body space-y-2">
-        <h2 className="card-title">Create a lobby</h2>
-        <p>Create a lobby, then find some opponents to play!</p>
-        <p>
-          Only one person in your group needs to create a lobby. They can send a
-          link to the other players.
-        </p>
-        <div />
-        <h2 className="mt-4 text-lg">Game speed</h2>
-        <GameSpeedRadioGroup speed={speed} onSpeedChange={setSpeed} />
-        <div className="card-actions justify-center">
-          <LoadingButton
-            className="btn btn-primary"
-            disabled={!isEnabled}
-            isLoading={mutation.isPending}
-            onClick={onClickCreateLobby}
+    <div className="flex flex-col space-y-6">
+      <MainCard
+        title="Find some opponents to play"
+        image={createLobbyImage}
+        imageAlt="Picture of finding opponents"
+      >
+        <p>Only one person in your group needs to create a lobby.</p>
+        <LoadingButton
+          className="btn btn-primary"
+          isLoading={isLoading}
+          onClick={onClickCreateLobby}
+        >
+          {buttonText}
+        </LoadingButton>
+      </MainCard>
+      {wallet && !initialHideWelcomeBack && (
+        <PulseOnEnterBox>
+          <Card
+            className="bg-[#EDE9FE]"
+            isFullWidth={true}
+            noDefaultBackground={true}
           >
-            {buttonText}
-          </LoadingButton>
-        </div>
-      </div>
+            <h4>Good to see you again!</h4>
+            <p>
+              You&apos;ve been automatically signed in with your modular account
+              through passkeys.
+            </p>
+          </Card>
+        </PulseOnEnterBox>
+      )}
     </div>
   );
 });

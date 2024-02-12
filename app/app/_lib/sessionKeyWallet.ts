@@ -7,7 +7,7 @@ import {
   REFRESH_SESSION_KEY_AT_TTL,
   WORTH_OF_WORDS_ADDRESS,
 } from "./constants";
-import { useLocalStorage, useSetTimeout } from "./hooks";
+import { useSetTimeout, useStorage } from "./hooks";
 import { useRedirectToLogin } from "./loginRedirects";
 import {
   createSessionKeyAccount,
@@ -22,14 +22,14 @@ const ACCOUNT_ADDRESS_KEY = "worth-of-words:wallet:account-address";
 const SESSION_PRIVATE_KEY_KEY = "worth-of-words:wallet:session-private-key";
 
 export function useAccountAddress() {
-  return useLocalStorage({
+  return useStorage({
     key: ACCOUNT_ADDRESS_KEY,
     fromJson: (s) => s as Hex,
   });
 }
 
 export function useSessionPrivateKey() {
-  return useLocalStorage({
+  return useStorage({
     key: SESSION_PRIVATE_KEY_KEY,
     fromJson: (s) => s as Hex,
   });

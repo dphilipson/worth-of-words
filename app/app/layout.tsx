@@ -21,12 +21,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={clsx(
-          "min-h-screen bg-gradient-to-br from-purple-400 to-blue-400",
-          inter.className,
-        )}
-      >
+      <body className={clsx("min-h-screen bg-primary", inter.className)}>
         <AppWrapper>{children}</AppWrapper>
         <Script src="/snarkjs.min.js" />
       </body>

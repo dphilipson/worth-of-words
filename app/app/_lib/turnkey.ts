@@ -17,12 +17,13 @@ import {
   TURNKEY_ORGANIZATION_ID,
   WORTH_OF_WORDS_API_URL,
 } from "./constants";
-import { useLocalStorage } from "./hooks";
+import { useStorage } from "./hooks";
 import { getTransport } from "./modularAccount";
 
 const CREATE_SUB_ORG_URL = `${WORTH_OF_WORDS_API_URL}/create-sub-org`;
 const LOGIN_URL = `${WORTH_OF_WORDS_API_URL}/login`;
 const DETAILS_KEY = "worth-of-words:turnkey-details";
+const HIDE_WELCOME_BACK_KEY = "worth-of-words:hide-welcome-back";
 
 type TAttestation = TurnkeyApiTypes["v1Attestation"];
 
@@ -45,7 +46,23 @@ const passkeyHttpClient = new TurnkeyClient(
 );
 
 export function useTurnkeyDetails() {
-  return useLocalStorage<TurnkeyDetails>({ key: DETAILS_KEY });
+  return useStorage<TurnkeyDetails>({ key: DETAILS_KEY });
+}
+
+// A flag to track whether we should show the "welcome back" message on the
+// Create Lobby screen. We want to display this message one time if the user is
+// already logged in when they arrive at this tab. Thus, we will keep this flag
+// in `sessionStorage` and set it to either true or false at first load at the
+// top level (in `AppWrapper`), then set it to false at the point of a login or
+// upon seeing the message.
+// how about: "hide it" flag, which gets set to true when either logging in or after seeing the message once?
+// but then it will appear for the moment when you see the create lobby page before you get redirected to login.
+// we could have another state flag that becomes true the moment we decide we're not redirecting?
+export function useHideWelcomeBack() {
+  return useStorage<boolean>({
+    key: HIDE_WELCOME_BACK_KEY,
+    storageType: "session",
+  });
 }
 
 export async function createSubOrgAndWallet(): Promise<TurnkeyDetails> {

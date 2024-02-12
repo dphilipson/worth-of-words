@@ -8,8 +8,8 @@ import { DEPLOYED_WORTH_OF_WORDS_ADDRESS } from "../_generated/deployedConstants
 import { notNull } from "./typechecks";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
-export const USE_ANVIL = false; // !IS_PRODUCTION;
-export const USE_DEBUG_ACCOUNTS = false; // !IS_PRODUCTION;
+export const USE_ANVIL = !IS_PRODUCTION;
+export const USE_DEBUG_ACCOUNTS = !IS_PRODUCTION;
 export const CHAIN = USE_ANVIL ? foundry : arbitrumSepolia;
 export const WORTH_OF_WORDS_API_URL = IS_PRODUCTION
   ? "https://api.worthofwords.com"
@@ -24,7 +24,7 @@ export const WORD_LENGTH = 5;
 // The next two constants correspond to the fixed sizes of the ZK-circuits.
 export const SECRET_WORDS_IN_PROOF = 3;
 export const GUESSES_IN_PROOF = 3;
-export const POLL_INTERVAL_MS = 1000;
+export const POLL_INTERVAL_MS = IS_PRODUCTION ? 1000 : 250;
 export const ENTRY_POINT_ADDRESS = "0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789";
 export const WORTH_OF_WORDS_ADDRESS = USE_ANVIL
   ? ANVIL_WORTH_OF_WORDS_ADDRESS

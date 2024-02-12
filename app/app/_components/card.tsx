@@ -3,17 +3,23 @@ import { memo, ReactNode } from "react";
 
 export interface CardProps {
   className?: string;
+  isFullWidth?: boolean;
+  noDefaultBackground?: boolean;
   children: ReactNode;
 }
 
 export default memo(function Card({
   className,
+  isFullWidth,
+  noDefaultBackground,
   children,
 }: CardProps): ReactNode {
   return (
     <div
       className={clsx(
-        "card bg-base-100 bg-opacity-80 px-8 py-4 shadow-2xl",
+        "prose card mx-4 p-8 text-center shadow-2xl",
+        isFullWidth && "max-w-[48rem] lg:w-[48rem]",
+        !noDefaultBackground && "bg-base-100",
         className,
       )}
     >
