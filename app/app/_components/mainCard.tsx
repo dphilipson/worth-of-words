@@ -25,7 +25,7 @@ export default memo(function MainCard({
       isFullWidth={true}
       {...cardProps}
     >
-      <Image src={image} alt={imageAlt} />
+      <Image className="w-full" src={image} alt={imageAlt} />
       <h1 className="mb-0">{title}</h1>
       {children}
     </Card>

@@ -1,12 +1,13 @@
 "use client";
 import clsx from "clsx";
 import { memo, ReactNode, useCallback, useMemo, useState } from "react";
+import { IoDiceOutline } from "react-icons/io5";
 import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
 import { WORD_LENGTH } from "../_lib/constants";
 import { GameSpeed } from "../_lib/lobbyPresets";
-import CopyLobbyUrlButton from "./copyLobbyUrlButton";
+import Card from "./card";
 import LoadingButton from "./loadingButton";
 import TextInput from "./textInput";
 
@@ -60,55 +61,46 @@ export default memo(function JoinLobbyView({
   }, [inputsAreValid, onJoin, playerName, words]);
 
   return (
-    <div className="flex w-full flex-col items-center space-y-10">
-      <CopyLobbyUrlButton />
-      <div className="card w-full max-w-sm bg-base-100 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title">Join Lobby</h2>
-          <p>Game speed: {speedPreset?.toLowerCase()}</p>
-          <div className="form-control max-w-xs">
-            <h2 className="card-title mt-4">Player Name</h2>
-            <p className="mb-2 text-sm">
-              This name will be publicly associated with your wallet address.
-              Avoid identifying information.
-            </p>
-            <TextInput
-              className="input input-bordered"
-              placeholder="Ana Steele"
-              value={playerName}
-              onValueChange={setPlayerName}
-            />
-            <h2 className="card-title mt-4">Secret words</h2>
-            <p className="mb-4 text-sm">
-              Choose your secret words. Other players will try to guess these!
-            </p>
-            {chainFrom(range(numSecrets))
-              .map((i) => (
-                <SecretInput
-                  key={i}
-                  validSecretWords={validSecretWords}
-                  validGuessWords={validGuessWords}
-                  validSecretWordlist={validSecretWordlist}
-                  index={i}
-                  value={words[i]}
-                  onChange={onChange}
-                />
-              ))
-              .toArray()}
-          </div>
-          <div className="card-actions justify-end">
-            <LoadingButton
-              className="btn btn-primary"
-              isLoading={isJoining}
-              disabled={!inputsAreValid}
-              onClick={onConfirmClicked}
-            >
-              {isJoining ? "Joining lobby" : "Join lobby"}
-            </LoadingButton>
-          </div>
-        </div>
-      </div>
-    </div>
+    <Card className="max-w-[36rem] lg:w-[36rem] lg:p-16">
+      <h1 className="mb-0 text-center">Player ready?</h1>
+      <h3 className="mb-2">What should we call you?</h3>
+      <p className="mb-2 text-sm text-secondary">
+        This name will be publically associated with your wallet address. Avoid
+        identifying information.
+      </p>
+      <TextInput
+        label="Player name"
+        placeholder="Ana Steele"
+        maxLength={50}
+        value={playerName}
+        onValueChange={setPlayerName}
+      />
+      <h3 className="mb-2">Choose your secret words</h3>
+      <p className="mb-2 text-sm text-secondary">
+        These are the words that other people will try to guess.
+      </p>
+      {chainFrom(range(numSecrets))
+        .map((i) => (
+          <SecretInput
+            key={i}
+            validSecretWords={validSecretWords}
+            validGuessWords={validGuessWords}
+            validSecretWordlist={validSecretWordlist}
+            index={i}
+            value={words[i]}
+            onChange={onChange}
+          />
+        ))
+        .toArray()}
+      <LoadingButton
+        className="btn btn-primary mt-10"
+        isLoading={isJoining}
+        disabled={!inputsAreValid}
+        onClick={onConfirmClicked}
+      >
+        {isJoining ? "Entering lobby" : "Enter the lobby"}
+      </LoadingButton>
+    </Card>
   );
 });
 
@@ -138,7 +130,7 @@ const SecretInput = memo(function SecretInput({
     [onChange, index],
   );
 
-  const useRandom = useCallback(
+  const chooseRandomWord = useCallback(
     () => onValueChange(chooseRandom(validSecretWordlist)),
     [onValueChange, validSecretWordlist],
   );
@@ -147,33 +139,34 @@ const SecretInput = memo(function SecretInput({
   const isValid = !error && value.length === WORD_LENGTH;
 
   return (
-    <>
-      <div className="flex items-center space-x-2">
-        <TextInput
-          placeholder={`Secret word ${index + 1}`}
-          className={clsx(
-            "input input-bordered font-medium",
-            error && "border-error text-red-700",
-            isValid && "border-success text-green-700",
-          )}
-          value={value}
-          onValueChange={onValueChange}
-        />
-        <button
-          className="btn btn-ghost btn-sm text-gray-500"
-          onClick={useRandom}
-        >
-          Random
-        </button>
-      </div>
-      <label className="label">
+    <div>
+      <TextInput
+        className={clsx(
+          "font-medium",
+          error && "border-error text-red-700",
+          isValid && "border-success text-green-700",
+        )}
+        label={`Secret word ${index + 1}`}
+        placeholder="Enter a word"
+        button={
+          <button
+            className="btn h-12 w-12 border-2 border-[#E2E8F0] px-1"
+            onClick={chooseRandomWord}
+          >
+            <IoDiceOutline className="text-3xl" />
+          </button>
+        }
+        value={value}
+        onValueChange={onValueChange}
+      />
+      <label className="label -mb-2 pb-0 pl-0 pt-1">
         <span
           className={clsx("label-text-alt text-error", !error && "invisible")}
         >
           {error ?? "A"}
         </span>
       </label>
-    </>
+    </div>
   );
 });
 

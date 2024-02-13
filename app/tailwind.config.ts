@@ -24,6 +24,7 @@ const config: Config = {
       {
         light: {
           ...themes["[data-theme=light]"],
+          secondary: "#64748B",
           a: {
             fontWeight: "400",
           },
