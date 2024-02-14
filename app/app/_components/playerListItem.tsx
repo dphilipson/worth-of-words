@@ -41,33 +41,33 @@ export default memo(function PlayerListItem({
   return (
     <div
       className={clsx(
-        "border-1 flex h-20 w-full max-w-sm items-center justify-between px-6",
+        "w-full py-4 pr-4",
         isEliminated ? "bg-gray-200 text-gray-400" : "bg-base-100",
-        isCurrentPlayer && "border-l-8 border-l-primary pl-4",
+        isCurrentPlayer ? "border-l-8 border-l-primary pl-2" : "pl-4",
         className,
       )}
     >
-      <div className="flex-col">
-        <div className="text-2xl">
-          {name}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-1">
+          <span className="text-lg font-bold">{name}</span>
           {isCurrentPlayer && (
-            <span className="ml-1 text-sm text-gray-500">(you)</span>
+            <span className="text-xs text-secondary">(you)</span>
           )}
           {isThinking && (
             <span className="loading loading-bars loading-xs ml-2 opacity-30" />
           )}
         </div>
-        <div className="w-20 overflow-hidden text-ellipsis text-xs text-gray-400">
-          {address}
-        </div>
-      </div>
-      <div className="flex-col text-right">
         <PulseOnDemandBox
-          className="text-3xl"
+          className="text-2xl font-bold"
           subscribeToPulses={subscribeToPulseScore}
         >
           {score}
         </PulseOnDemandBox>
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="w-20 overflow-hidden text-ellipsis text-xs text-secondary">
+          {address}
+        </div>
         <LivesIndicator
           maxLives={maxLives}
           livesLeft={livesLeft}

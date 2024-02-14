@@ -1,7 +1,7 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { memo, ReactNode, useCallback, useRef } from "react";
+import { memo, ReactNode, useCallback, useEffect, useRef } from "react";
 
 import createLobbyImage from "../_images/unlocked-account.png";
 import { useCreateLobby } from "../_lib/createLobby";
@@ -19,7 +19,7 @@ export default memo(function CreateLobbyView(): ReactNode {
   const wallet = useWallet();
   const [hideWelcomeBack, setHideWelcomeBack] = useHideWelcomeBack();
   const initialHideWelcomeBack = useRef(hideWelcomeBack).current;
-  console.log({ initialHideWelcomeBack });
+
   const mutation = useMutation({
     mutationFn: async () => {
       const config = await getLobbyPreset(GameSpeed.FAST);
@@ -27,7 +27,16 @@ export default memo(function CreateLobbyView(): ReactNode {
     },
     onSuccess: navigateToLobby,
   });
+
   const onClickCreateLobby = useCallback(() => mutation.mutate(), [mutation]);
+
+  const isDisplayingWelcomeBack = wallet && !initialHideWelcomeBack;
+
+  useEffect(() => {
+    if (isDisplayingWelcomeBack) {
+      setHideWelcomeBack(true);
+    }
+  }, [isDisplayingWelcomeBack, setHideWelcomeBack]);
 
   const buttonText = (() => {
     if (!createLobby) {
@@ -47,6 +56,7 @@ export default memo(function CreateLobbyView(): ReactNode {
         title="Find some opponents to play"
         image={createLobbyImage}
         imageAlt="Picture of finding opponents"
+        imageHasPriority={true}
       >
         <p>Only one person in your group needs to create a lobby.</p>
         <LoadingButton
@@ -57,7 +67,7 @@ export default memo(function CreateLobbyView(): ReactNode {
           {buttonText}
         </LoadingButton>
       </MainCard>
-      {wallet && !initialHideWelcomeBack && (
+      {isDisplayingWelcomeBack && (
         <PulseOnEnterBox>
           <Card
             className="bg-[#EDE9FE]"

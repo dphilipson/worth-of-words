@@ -9,6 +9,7 @@ export default function Home() {
       title="Worth of Words"
       image={image}
       imageAlt="Worth of Words logo"
+      imageHasPriority={true}
     >
       <p>
         Guess your opponents&apos; words before they guess yours in a

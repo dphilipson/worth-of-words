@@ -9,12 +9,14 @@ export interface MainCardProps extends Omit<CardProps, "isFullWidth"> {
   title: string;
   image: StaticImport;
   imageAlt: string;
+  imageHasPriority: boolean;
 }
 
 export default memo(function MainCard({
   title,
   image,
   imageAlt,
+  imageHasPriority,
   className,
   children,
   ...cardProps
@@ -25,7 +27,12 @@ export default memo(function MainCard({
       isFullWidth={true}
       {...cardProps}
     >
-      <Image className="w-full" src={image} alt={imageAlt} />
+      <Image
+        className="w-full"
+        src={image}
+        alt={imageAlt}
+        priority={imageHasPriority}
+      />
       <h1 className="mb-0">{title}</h1>
       {children}
     </Card>

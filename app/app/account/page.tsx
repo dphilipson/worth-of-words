@@ -114,6 +114,7 @@ export default memo(function AccountPage(): ReactNode {
       title="Just one thing…"
       image={createPasskeyImage}
       imageAlt="Picture of creating a session key"
+      imageHasPriority={true}
     >
       <p>
         Worth of Words uses passkeys so you can secure your account without a
@@ -141,6 +142,7 @@ export default memo(function AccountPage(): ReactNode {
       title="You've unlocked your own modular account!"
       image={unlockedAccountImage}
       imageAlt="Picture of an unlocked account"
+      imageHasPriority={false}
     >
       <p>
         Just like that, you&apos;re all set up with your own modular account,

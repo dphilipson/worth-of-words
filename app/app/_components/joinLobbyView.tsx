@@ -6,8 +6,8 @@ import { chainFrom, range, repeat } from "transducist";
 import { useImmer } from "use-immer";
 
 import { WORD_LENGTH } from "../_lib/constants";
-import { GameSpeed } from "../_lib/lobbyPresets";
 import Card from "./card";
+import CopyLobbyUrlButton from "./copyLobbyUrlButton";
 import LoadingButton from "./loadingButton";
 import TextInput from "./textInput";
 
@@ -15,7 +15,6 @@ export interface JoinLobbyViewProps {
   numSecrets: number;
   validSecretWords: Set<string>;
   validGuessWords: Set<string>;
-  speedPreset: GameSpeed | undefined;
   isJoining: boolean;
   onJoin(playerName: string, words: string[]): void;
 }
@@ -24,7 +23,6 @@ export default memo(function JoinLobbyView({
   numSecrets,
   validSecretWords,
   validGuessWords,
-  speedPreset,
   isJoining,
   onJoin,
 }: JoinLobbyViewProps): ReactNode {
@@ -61,46 +59,49 @@ export default memo(function JoinLobbyView({
   }, [inputsAreValid, onJoin, playerName, words]);
 
   return (
-    <Card className="max-w-[36rem] lg:w-[36rem] lg:p-16">
-      <h1 className="mb-0 text-center">Player ready?</h1>
-      <h3 className="mb-2">What should we call you?</h3>
-      <p className="mb-2 text-sm text-secondary">
-        This name will be publically associated with your wallet address. Avoid
-        identifying information.
-      </p>
-      <TextInput
-        label="Player name"
-        placeholder="Ana Steele"
-        maxLength={50}
-        value={playerName}
-        onValueChange={setPlayerName}
-      />
-      <h3 className="mb-2">Choose your secret words</h3>
-      <p className="mb-2 text-sm text-secondary">
-        These are the words that other people will try to guess.
-      </p>
-      {chainFrom(range(numSecrets))
-        .map((i) => (
-          <SecretInput
-            key={i}
-            validSecretWords={validSecretWords}
-            validGuessWords={validGuessWords}
-            validSecretWordlist={validSecretWordlist}
-            index={i}
-            value={words[i]}
-            onChange={onChange}
-          />
-        ))
-        .toArray()}
-      <LoadingButton
-        className="btn btn-primary mt-10"
-        isLoading={isJoining}
-        disabled={!inputsAreValid}
-        onClick={onConfirmClicked}
-      >
-        {isJoining ? "Entering lobby" : "Enter the lobby"}
-      </LoadingButton>
-    </Card>
+    <div className="w-full max-w-[36rem]">
+      <CopyLobbyUrlButton />
+      <Card className="mt-8 lg:p-16">
+        <h1 className="mb-0 text-center">Player ready?</h1>
+        <h3 className="mb-2">What should we call you?</h3>
+        <p className="mb-2 text-sm text-secondary">
+          This name will be publically associated with your wallet address.
+          Avoid identifying information.
+        </p>
+        <TextInput
+          label="Player name"
+          placeholder="Ana Steele"
+          maxLength={50}
+          value={playerName}
+          onValueChange={setPlayerName}
+        />
+        <h3 className="mb-2">Choose your secret words</h3>
+        <p className="mb-2 text-sm text-secondary">
+          These are the words that other people will try to guess.
+        </p>
+        {chainFrom(range(numSecrets))
+          .map((i) => (
+            <SecretInput
+              key={i}
+              validSecretWords={validSecretWords}
+              validGuessWords={validGuessWords}
+              validSecretWordlist={validSecretWordlist}
+              index={i}
+              value={words[i]}
+              onChange={onChange}
+            />
+          ))
+          .toArray()}
+        <LoadingButton
+          className="btn btn-primary mt-10"
+          isLoading={isJoining}
+          disabled={!inputsAreValid}
+          onClick={onConfirmClicked}
+        >
+          {isJoining ? "Entering lobby" : "Enter the lobby"}
+        </LoadingButton>
+      </Card>
+    </div>
   );
 });
 

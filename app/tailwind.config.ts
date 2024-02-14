@@ -16,6 +16,12 @@ const config: Config = {
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
+      boxShadow: {
+        flareUp:
+          "0px -10px 23px 0px rgba(143, 212, 255, 0.49), 0px -41px 41px 0px rgba(143, 212, 255, 0.43), 0px -93px 56px 0px rgba(143, 212, 255, 0.25), 0px -165px 66px 0px rgba(143, 212, 255, 0.07), 0px -257px 72px 0px rgba(143, 212, 255, 0.01)",
+        flareDown:
+          "0px 5px 11px 0px rgba(199, 168, 255, 0.59), 0px 20px 20px 0px rgba(199, 168, 255, 0.51), 0px 46px 27px 0px rgba(199, 168, 255, 0.30), 0px 81px 32px 0px rgba(199, 168, 255, 0.09), 0px 127px 35px 0px rgba(199, 168, 255, 0.01)",
+      },
     },
   },
   plugins: [require("@tailwindcss/typography"), require("daisyui")],

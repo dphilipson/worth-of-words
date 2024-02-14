@@ -1,8 +1,10 @@
+import clsx from "clsx";
 import { memo, ReactNode, useMemo } from "react";
 
 import PlayerListItem, { PlayerListItemProps } from "./playerListItem";
 
 export interface PlayerListProps {
+  className?: string;
   players: PlayerListItemPropsInList[];
   maxLives: number;
   currentPlayerAddress: string;
@@ -14,6 +16,7 @@ export type PlayerListItemPropsInList = Omit<
 >;
 
 export default memo(function PlayerList({
+  className,
   players,
   maxLives,
   currentPlayerAddress,
@@ -28,13 +31,14 @@ export default memo(function PlayerList({
     return items;
   }, [players, maxLives, currentPlayerAddress]);
   return (
-    <div className="w-full max-w-sm overflow-hidden rounded-lg shadow-xl">
+    <div
+      className={clsx(
+        "flex w-full flex-col space-y-2 overflow-auto",
+        className,
+      )}
+    >
       {sortedPlayers.map((player) => (
-        <PlayerListItem
-          key={player.address}
-          className="border-b-2 border-gray-300 last:border-b-0"
-          {...player}
-        />
+        <PlayerListItem key={player.address} {...player} />
       ))}
     </div>
   );

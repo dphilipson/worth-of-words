@@ -21,20 +21,21 @@ export default memo(function WaitingRoomView(): ReactNode {
   }, [setIsStarting, actions]);
 
   return (
-    <div className="flex w-full flex-col items-center space-y-20">
-      <CopyLobbyUrlButton />
-      <ConnectedPlayerList />
+    <div className="mt-16 flex w-full max-w-[38rem] flex-col items-center space-y-8 px-4">
+      <CopyLobbyUrlButton className="w-full" />
+      <ConnectedPlayerList className="max-h-[24rem]" />
       <LoadingButton
-        className="btn btn-primary"
+        // Need some !importants to override DaisyUIs aggressive disabled styles
+        className="btn btn-neutral w-full border-none !bg-black !bg-opacity-100 !text-white hover:!bg-gray-800 disabled:opacity-50"
         disabled={!hasEnoughPlayers || !isHost}
         isLoading={isStarting}
         onClick={onStartClick}
       >
         {!isHost
-          ? "Waiting for host"
+          ? "Waiting for host…"
           : !hasEnoughPlayers
-          ? "Waiting for players"
-          : "Start game"}
+          ? "Waiting for players…"
+          : "Begin the battle!"}
       </LoadingButton>
     </div>
   );
