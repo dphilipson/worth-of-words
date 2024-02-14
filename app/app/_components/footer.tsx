@@ -13,7 +13,7 @@ import {
 import poweredByAccountKit from "../_images/powered-by-account-kit.svg";
 
 export default memo(function Footer(): ReactNode {
-  const { footerHiddenCount } = useContext(FooterContext);
+  const { hideFooterCount: footerHiddenCount } = useContext(FooterContext);
   if (footerHiddenCount > 0) {
     return undefined;
   }
@@ -35,8 +35,8 @@ export default memo(function Footer(): ReactNode {
 // are in the tree.
 
 interface FooterContext {
-  footerHiddenCount: number;
-  addToFooterHiddenCount(n: number): void;
+  hideFooterCount: number;
+  addToHideFooterCount(n: number): void;
 }
 
 const FooterContext = createContext<FooterContext>(undefined!);
@@ -46,14 +46,14 @@ export interface FooterProviderProps {
 }
 
 export function FooterProvider({ children }: FooterProviderProps): ReactNode {
-  const [footerHiddenCount, setFooterHiddenCount] = useState(0);
-  const addToFooterHiddenCount = useCallback(
-    (n: number) => setFooterHiddenCount((current) => current + n),
-    [setFooterHiddenCount],
+  const [hideFooterCount, setHideFooterCount] = useState(0);
+  const addToHideFooterCount = useCallback(
+    (n: number) => setHideFooterCount((current) => current + n),
+    [setHideFooterCount],
   );
   const context = useMemo(
-    () => ({ footerHiddenCount, addToFooterHiddenCount }),
-    [footerHiddenCount, addToFooterHiddenCount],
+    () => ({ hideFooterCount, addToHideFooterCount }),
+    [hideFooterCount, addToHideFooterCount],
   );
 
   return (
@@ -62,7 +62,8 @@ export function FooterProvider({ children }: FooterProviderProps): ReactNode {
 }
 
 export function useHideFooter(): void {
-  const { addToFooterHiddenCount } = useContext(FooterContext);
+  const { addToHideFooterCount: addToFooterHiddenCount } =
+    useContext(FooterContext);
 
   useEffect(() => {
     addToFooterHiddenCount(1);

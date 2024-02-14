@@ -10,6 +10,7 @@ import { useHideWelcomeBack } from "../_lib/turnkey";
 import { useWallet } from "../_lib/useWallet";
 import Card from "./card";
 import LoadingButton from "./loadingButton";
+import { useDefaultLobbyId } from "./lobbyWrapper";
 import MainCard from "./mainCard";
 import PulseOnEnterBox from "./pulseOnEnterBox";
 
@@ -87,9 +88,13 @@ export default memo(function CreateLobbyView(): ReactNode {
 });
 
 function useNavigateToLobby(): (lobbyId: bigint) => void {
+  const [, setDefaultLobbyId] = useDefaultLobbyId();
   const router = useRouter();
   return useCallback(
-    (lobbyId: bigint) => router.push(`/app/lobby#${lobbyId}`),
-    [router],
+    (lobbyId: bigint) => {
+      setDefaultLobbyId(lobbyId + "");
+      router.push(`/app/lobby#${lobbyId}`);
+    },
+    [setDefaultLobbyId, router],
   );
 }
