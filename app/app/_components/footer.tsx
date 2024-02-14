@@ -24,7 +24,11 @@ export default memo(function Footer(): ReactNode {
       <div className="h-20 w-full" />
       <div className="fixed bottom-0 left-0 right-0 flex h-16 items-center bg-white bg-opacity-80 pl-24">
         <a href="https://accountkit.alchemy.com/">
-          <Image src={poweredByAccountKit} alt="Powered by AccountKit" />
+          <Image
+            src={poweredByAccountKit}
+            alt="Powered by AccountKit"
+            priority={true}
+          />
         </a>
       </div>
     </>

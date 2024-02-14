@@ -15,8 +15,11 @@ import {
   LocalAccountSigner,
   SmartAccountSigner,
   SmartContractAccount,
+  UserOperationReceipt,
 } from "@alchemy/aa-core";
 import {
+  createClient,
+  createPublicClient,
   custom,
   encodeFunctionData,
   getContract,
@@ -42,7 +45,9 @@ import {
 } from "./constants";
 
 export const getSmartAccountClient = memoized(() => {
-  const client = USE_ANVIL ? getLocalDevClient() : getAlchemyClient();
+  const client = USE_ANVIL
+    ? (getLocalDevClient() as unknown as ReturnType<typeof getAlchemyClient>)
+    : getAlchemyClient();
   return client.extend(sessionKeyPluginActions);
 });
 
@@ -223,7 +228,7 @@ function getSessionKeyPermissions(): Hex[] {
     .encode();
 }
 
-async function waitForOperation(hash: Hex): Promise<void> {
+async function waitForOperation(hash: Hex): Promise<UserOperationReceipt> {
   const client = getSmartAccountClient();
   await client.waitForUserOperationTransaction({ hash });
   const receipt = await client.getUserOperationReceipt(hash);
@@ -233,6 +238,7 @@ async function waitForOperation(hash: Hex): Promise<void> {
   if (!receipt.success) {
     throw new Error("Operation failed during execution.");
   }
+  return receipt;
 }
 
 export async function isDeployed(address: Address): Promise<boolean> {
