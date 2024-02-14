@@ -38,17 +38,17 @@ export default memo(function CreateLobbyView(): ReactNode {
     }
   }, [isDisplayingWelcomeBack, setHideWelcomeBack]);
 
+  const isLoading = !createLobby || mutation.isPending || mutation.isSuccess;
+
   const buttonText = (() => {
     if (!createLobby) {
       return "Loading";
-    } else if (mutation.isPending) {
+    } else if (isLoading) {
       return "Creating lobby";
     } else {
       return "Create a lobby";
     }
   })();
-
-  const isLoading = !createLobby || mutation.isPending || mutation.isSuccess;
 
   return (
     <div className="flex flex-col space-y-6">

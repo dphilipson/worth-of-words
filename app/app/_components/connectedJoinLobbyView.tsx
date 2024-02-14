@@ -14,13 +14,11 @@ export default memo(function ConnectedJoinLobbyView(): ReactNode {
     },
     [actions],
   );
-  const speedPreset = getSpeedFromConfig(lobby.config);
   return (
     <JoinLobbyView
       numSecrets={lobby.config.numLives}
       validGuessWords={validGuessWords}
       validSecretWords={validSecretWords}
-      speedPreset={speedPreset}
       isJoining={isJoining}
       onJoin={onJoin}
     />

@@ -19,6 +19,7 @@ import ConnectedGuessGrid from "./connectedGuessGrid";
 import ConnectedPlayerList from "./connectedPlayerList";
 import ConnectedPlayerListItem from "./connectedPlayerListItem";
 import { Countdown } from "./countdown";
+import { useHideFooter } from "./footer";
 import GameOverView from "./gameOverView";
 import KeyboardCapture from "./keyboardCapture";
 import Modal from "./modal";
@@ -58,6 +59,7 @@ export default memo(function GameplayView(): ReactNode {
 
   useRequestNotificationPermission();
   useNotifyOnYourTurn();
+  useHideFooter();
 
   const player = getPlayer(lobby, playerAddress);
   if (lobby.phase === Phase.GAME_OVER || player.isEliminated) {

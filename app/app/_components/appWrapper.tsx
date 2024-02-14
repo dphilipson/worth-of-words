@@ -13,6 +13,7 @@ import { createConfig, WagmiProvider } from "wagmi";
 
 import { CHAIN } from "../_lib/constants";
 import { getSmartAccountClient } from "../_lib/modularAccount";
+import Footer, { FooterProvider } from "./footer";
 import Header from "./header";
 
 const queryClient = new QueryClient({
@@ -56,9 +57,12 @@ export default function AppWrapper({
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <Header />
-        <main className="flex w-full flex-col items-center">{children}</main>
-        <ReactQueryDevtools initialIsOpen={false} />
+        <FooterProvider>
+          <Header />
+          <main className="flex w-full flex-col items-center">{children}</main>
+          <Footer />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </FooterProvider>
       </QueryClientProvider>
     </WagmiProvider>
   );
