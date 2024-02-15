@@ -19,6 +19,8 @@ import ConnectedGuessGrid from "./connectedGuessGrid";
 import ConnectedPlayerList from "./connectedPlayerList";
 import ConnectedPlayerListItem from "./connectedPlayerListItem";
 import { Countdown } from "./countdown";
+import DelayedMount from "./delayedMount";
+import DphilTidbits, { TIDBITS } from "./dphilTidbits";
 import { useHideFooter } from "./footer";
 import GameOverView from "./gameOverView";
 import KeyboardCapture from "./keyboardCapture";
@@ -70,6 +72,8 @@ export default memo(function GameplayView(): ReactNode {
     lobby.phase === Phase.COMMITING_GUESSES &&
     !isSubmitting &&
     !getPlayer(lobby, playerAddress).hasCommittedGuess;
+
+  const shouldDisplayTidbits = !isInputtingGuess && !advanceToNextRound;
 
   const statusComponent = (() => {
     if (advanceToNextRound) {
@@ -139,7 +143,7 @@ export default memo(function GameplayView(): ReactNode {
           onKey={onKey}
         />
       </div>
-      <div className="absolute bottom-16 right-8 hidden w-full max-w-xs lg:block">
+      <div className="absolute bottom-16 left-8 hidden w-full max-w-xs lg:block">
         <ConnectedPlayerListItem playerAddress={playerAddress} />
       </div>
       <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
@@ -162,6 +166,11 @@ export default memo(function GameplayView(): ReactNode {
           </div>
         )}
       </Modal>
+      {shouldDisplayTidbits && (
+        <DelayedMount delay={2000}>
+          <DphilTidbits tidbits={TIDBITS} positionForNoFooter={true} />
+        </DelayedMount>
+      )}
     </>
   );
 });

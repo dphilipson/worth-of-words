@@ -18,8 +18,8 @@ export interface GameSpeedConstants {
 }
 
 export const GAME_SPEED_CONSTANTS: Record<GameSpeed, GameSpeedConstants> = {
-  [GameSpeed.FAST]: { guessMinutes: 3, numLives: 2 },
-  [GameSpeed.FULL]: { guessMinutes: 5, numLives: 3 },
+  [GameSpeed.FAST]: { guessMinutes: 2, numLives: 2 },
+  [GameSpeed.FULL]: { guessMinutes: 4, numLives: 3 },
 };
 
 export async function getLobbyPreset(speed: GameSpeed): Promise<LobbyConfig> {
@@ -37,8 +37,8 @@ export async function getLobbyPreset(speed: GameSpeed): Promise<LobbyConfig> {
     maxPlayers: 10000,
     guessWordMerkleRoot,
     maxCommitGuessTime: 60 * guessMinutes,
-    maxRevealGuessTime: 60,
-    maxRevealMatchesTime: 60,
+    maxRevealGuessTime: 30,
+    maxRevealMatchesTime: 30,
     maxRounds: 0,
     numLives,
     pointsForYellow: POINTS_FOR_YELLOW,

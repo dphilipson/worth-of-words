@@ -4,6 +4,8 @@ import { useRequestNotificationPermission } from "../_lib/notifications";
 import { useLobby } from "../_lib/useLobby";
 import ConnectedPlayerList from "./connectedPlayerList";
 import CopyLobbyUrlButton from "./copyLobbyUrlButton";
+import DelayedMount from "./delayedMount";
+import DphilTidbits, { INITIAL_TIDBIT, TIDBITS } from "./dphilTidbits";
 import LoadingButton from "./loadingButton";
 
 export default memo(function WaitingRoomView(): ReactNode {
@@ -37,6 +39,9 @@ export default memo(function WaitingRoomView(): ReactNode {
           ? "Waiting for players…"
           : "Begin the battle!"}
       </LoadingButton>
+      <DelayedMount delay={3000}>
+        <DphilTidbits initialTidbit={INITIAL_TIDBIT} tidbits={TIDBITS} />
+      </DelayedMount>
     </div>
   );
 });

@@ -12,3 +12,15 @@ export function randomBytes32(): Hex {
 export function randomUint256(): bigint {
   return BigInt(randomBytes32());
 }
+
+export function shuffledCopy<T>(xs: T[]): T[] {
+  // Fisher-Yates
+  xs = [...xs];
+  for (let i = xs.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    const temp = xs[i];
+    xs[i] = xs[j];
+    xs[j] = temp;
+  }
+  return xs;
+}

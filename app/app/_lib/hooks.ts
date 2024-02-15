@@ -86,6 +86,38 @@ export function useUrlHash(): string | undefined {
 }
 
 /**
+ * Returns the current time, refreshing on every animation frame.
+ */
+export function useNow(enabled: boolean): number {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
+    let frameId: number | undefined;
+
+    function go(): void {
+      frameId = requestAnimationFrame(() => {
+        setNow(Date.now());
+        go();
+      });
+    }
+
+    go();
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+    };
+  }, [enabled]);
+
+  return now;
+}
+
+/**
  * Returns true after the first render. Used as a hack to hide elements from SSR
  * if it doesn't make sense to render them into the page (e.g. if they look very
  * different depending on client-side state).
