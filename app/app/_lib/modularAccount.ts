@@ -18,8 +18,6 @@ import {
   UserOperationReceipt,
 } from "@alchemy/aa-core";
 import {
-  createClient,
-  createPublicClient,
   custom,
   encodeFunctionData,
   getContract,

@@ -51,5 +51,6 @@ export const SESSION_KEY_PLUGIN_ADDRESS = USE_ANVIL
 export const ANVIL_PRIVATE_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
+export const ABOUT_MODULAR_ACCOUNTS_URL = "http://alchemy.com";
 export const ACCOUNT_KIT_URL =
   "https://www.alchemy.com/account-kit?a=worth-of-words";
