@@ -7,10 +7,12 @@ import PlayerList from "./playerList";
 
 export interface ConnectedPlayerListProps {
   className?: string;
+  compact?: boolean;
 }
 
 export default memo(function ConnectedPlayerList({
   className,
+  compact,
 }: ConnectedPlayerListProps): ReactNode {
   const context = useLobby();
   const players = chainFrom(context.lobby.playersByAddress.keys())
@@ -22,6 +24,7 @@ export default memo(function ConnectedPlayerList({
       players={players}
       maxLives={context.lobby.config.numLives}
       currentPlayerAddress={context.playerAddress}
+      compact={compact}
     />
   );
 });

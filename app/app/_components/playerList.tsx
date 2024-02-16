@@ -8,6 +8,7 @@ export interface PlayerListProps {
   players: PlayerListItemPropsInList[];
   maxLives: number;
   currentPlayerAddress: string;
+  compact?: boolean;
 }
 
 export type PlayerListItemPropsInList = Omit<
@@ -20,6 +21,7 @@ export default memo(function PlayerList({
   players,
   maxLives,
   currentPlayerAddress,
+  compact,
 }: PlayerListProps): ReactNode {
   const sortedPlayers = useMemo(() => {
     const items: PlayerListItemProps[] = players.map((player) => ({
@@ -33,7 +35,8 @@ export default memo(function PlayerList({
   return (
     <div
       className={clsx(
-        "flex w-full flex-col space-y-2 overflow-auto",
+        "flex w-full flex-col overflow-auto",
+        compact ? "space-y-0.5 rounded-lg bg-gray-300 shadow-xl" : "space-y-2",
         className,
       )}
     >

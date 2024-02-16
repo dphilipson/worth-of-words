@@ -22,9 +22,7 @@ export default memo(function Header(): ReactNode {
       </button>
       <div />
       <Modal subscribeToOpenModal={subscribeToOpenAccountModal}>
-        {({ isOpen, closeModal }) => (
-          <AccountView isOpen={isOpen} closeModal={closeModal} />
-        )}
+        {({ closeModal }) => <AccountView closeModal={closeModal} />}
       </Modal>
     </header>
   );

@@ -17,7 +17,7 @@ export default memo(function GameOverView(): ReactNode {
       <Card className="mb-10">
         <h1 className="text-4xl">{statusText}</h1>
       </Card>
-      <ConnectedPlayerList />
+      <ConnectedPlayerList className="max-h-[24rem]" />
       <Link className="mt-5 text-lg text-blue-900 hover:underline" href="/">
         Return home
       </Link>

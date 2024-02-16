@@ -1,4 +1,5 @@
 import { memo, ReactNode, useCallback, useEffect, useState } from "react";
+import { FaXmark } from "react-icons/fa6";
 
 import {
   getLivePlayerCount,
@@ -147,21 +148,29 @@ export default memo(function GameplayView(): ReactNode {
         <ConnectedPlayerListItem playerAddress={playerAddress} />
       </div>
       <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
-        {() => (
-          <div className="flex justify-center space-x-10">
+        {({ closeModal }) => (
+          <div className="relative flex max-h-[70vh] justify-center space-x-10">
+            <button
+              className="absolute -right-3 -top-3 text-xl text-secondary hover:text-black"
+              onClick={closeModal}
+            >
+              <FaXmark />
+            </button>
             <div className="flex w-full max-w-xs flex-col items-center space-y-4">
               <h5>Your status</h5>
-              <ConnectedPlayerListItem playerAddress={playerAddress} />
-              <ConnectedGuessGrid
-                playerAddress={playerAddress}
-                currentInput=""
-                isSelfGrid={true}
-                subscribeToInputConfirm={undefined}
-              />
+              <div className="overflow-auto">
+                <ConnectedPlayerListItem playerAddress={playerAddress} />
+                <ConnectedGuessGrid
+                  playerAddress={playerAddress}
+                  currentInput=""
+                  isSelfGrid={true}
+                  subscribeToInputConfirm={undefined}
+                />
+              </div>
             </div>
             <div className="flex w-96 min-w-fit flex-col items-center space-y-4">
               <h5>Rankings</h5>
-              <ConnectedPlayerList />
+              <ConnectedPlayerList compact={true} />
             </div>
           </div>
         )}

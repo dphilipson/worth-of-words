@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { memo, ReactNode } from "react";
+import { FaXmark } from "react-icons/fa6";
 import { Address } from "viem";
 
 import { ABOUT_MODULAR_ACCOUNTS_URL, CHAIN } from "../_lib/constants";
@@ -8,12 +9,10 @@ import { useLogOut } from "../_lib/turnkey";
 import BlockExplorerLink from "./blockExplorerLink";
 
 export interface AccountViewProps {
-  isOpen: boolean;
   closeModal(): void;
 }
 
 export default memo(function AccountView({
-  isOpen,
   closeModal,
 }: AccountViewProps): ReactNode {
   const [accountAddress] = useAccountAddress();
@@ -60,9 +59,15 @@ export default memo(function AccountView({
     : getLoggedOutView();
 
   return (
-    <div className="prose flex flex-col items-center text-center">
+    <div className="prose relative flex flex-col items-center text-center">
       <h2>Your Account</h2>
       {contents}
+      <button
+        className="absolute -right-3 -top-3 text-xl text-secondary hover:text-black"
+        onClick={closeModal}
+      >
+        <FaXmark />
+      </button>
     </div>
   );
 });
