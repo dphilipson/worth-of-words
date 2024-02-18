@@ -51,6 +51,11 @@ export const SESSION_KEY_PLUGIN_ADDRESS = USE_ANVIL
 export const ANVIL_PRIVATE_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
-export const ABOUT_MODULAR_ACCOUNTS_URL = "http://alchemy.com";
-export const ACCOUNT_KIT_URL =
+export const ABOUT_MODULAR_ACCOUNTS_URL =
+  "https://accountkit.alchemy.com/smart-accounts/accounts/guides/modular-account.html?a=worth-of-words";
+export const ABOUT_GAS_MANAGER_URL =
+  "https://docs.alchemy.com/docs/gas-manager-services?a=worth-of-words";
+export const ABOUT_ACCOUNT_KIT_URL =
   "https://www.alchemy.com/account-kit?a=worth-of-words";
+export const ABOUT_ZERO_KNOWLEDGE_PROOFS_URL =
+  "https://en.wikipedia.org/wiki/Zero-knowledge_proof";

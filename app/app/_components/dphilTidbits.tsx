@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import dphilImage from "../_images/dphil.jpeg";
-import { ACCOUNT_KIT_URL } from "../_lib/constants";
+import { ABOUT_ACCOUNT_KIT_URL } from "../_lib/constants";
 import { useNow, useStorage } from "../_lib/hooks";
 import { shuffledCopy } from "../_lib/random";
 import FadeInOnEnterBox from "./fadeInOnEnterBox";
@@ -46,7 +46,7 @@ export const TIDBITS: Tidbit[] = [
   {
     title: "Build your own app with Account Kit",
     body: "You can create a game like this by using Account Kit, your out-of-the-box smart accounts solution.",
-    learnMoreUrl: ACCOUNT_KIT_URL,
+    learnMoreUrl: ABOUT_ACCOUNT_KIT_URL,
   },
   {
     title: "This started as my hackathon project",

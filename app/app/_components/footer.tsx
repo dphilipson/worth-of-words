@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import poweredByAccountKit from "../_images/powered-by-account-kit.svg";
-import { ACCOUNT_KIT_URL } from "../_lib/constants";
+import { ABOUT_ACCOUNT_KIT_URL } from "../_lib/constants";
 
 export default memo(function Footer(): ReactNode {
   const { hideFooterCount: footerHiddenCount } = useContext(FooterContext);
@@ -24,7 +24,7 @@ export default memo(function Footer(): ReactNode {
     <>
       <div className="h-20 w-full" />
       <div className="fixed bottom-0 left-0 right-0 flex h-16 items-center bg-white bg-opacity-80 pl-24">
-        <a href={ACCOUNT_KIT_URL}>
+        <a href={ABOUT_ACCOUNT_KIT_URL}>
           <Image
             src={poweredByAccountKit}
             alt="Powered by AccountKit"
