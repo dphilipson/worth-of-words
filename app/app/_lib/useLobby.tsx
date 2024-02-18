@@ -8,8 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { Address, getContract } from "viem";
-import { usePublicClient } from "wagmi";
+import { Address, getContract, PublicClient } from "viem";
 
 import { iWorthOfWordsAbi } from "../_generated/wagmi";
 import {
@@ -27,6 +26,7 @@ import {
 import { useSetDeadline } from "./hooks";
 import { LobbyActions, LobbyActionsImpl } from "./lobbyActions";
 import { useLobbyStorage } from "./lobbyStorage";
+import { getSmartAccountClient } from "./modularAccount";
 import { useWallet } from "./useWallet";
 import { getGuessWordlist, getSecretWordlist } from "./words";
 
@@ -195,7 +195,7 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
 
 function useLobbyState(lobbyId: bigint): LobbyState | undefined {
   const [state, setState] = useState<LobbyState>();
-  const publicClient = usePublicClient();
+  const publicClient = getSmartAccountClient() as PublicClient;
 
   useEffect(() => {
     if (!publicClient) {

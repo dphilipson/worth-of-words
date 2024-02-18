@@ -1,21 +1,17 @@
 import { encodeFunctionData, PublicClient } from "viem";
-import { usePublicClient } from "wagmi";
 
 import { iWorthOfWordsAbi } from "../_generated/wagmi";
 import { POLL_INTERVAL_MS, WORTH_OF_WORDS_ADDRESS } from "./constants";
 import { LobbyConfig } from "./gameLogic";
+import { getSmartAccountClient } from "./modularAccount";
 import { useWallet, WalletLike } from "./useWallet";
 
 export function useCreateLobby():
   | ((config: LobbyConfig) => Promise<bigint>)
   | undefined {
-  const publicClient = usePublicClient();
+  const client = getSmartAccountClient() as PublicClient;
   const wallet = useWallet();
-  return (
-    publicClient &&
-    wallet &&
-    ((config) => createLobby(publicClient, wallet, config))
-  );
+  return wallet && ((config) => createLobby(client, wallet, config));
 }
 
 async function createLobby(

@@ -8,11 +8,7 @@ import {
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { enableMapSet } from "immer";
 import { ReactNode, useEffect } from "react";
-import { Chain } from "viem";
-import { createConfig, WagmiProvider } from "wagmi";
 
-import { CHAIN } from "../_lib/constants";
-import { getSmartAccountClient } from "../_lib/modularAccount";
 import Footer, { FooterProvider } from "./footer";
 import Header from "./header";
 
@@ -23,13 +19,6 @@ const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error) => console.error(error),
   }),
-});
-
-const config = createConfig({
-  // Wagmi is trying to be clever with types, but it makes a valid config fail
-  // typechecking.
-  chains: [CHAIN] as [Chain],
-  client: getSmartAccountClient,
 });
 
 export default function AppWrapper({
@@ -55,15 +44,13 @@ export default function AppWrapper({
   }, []);
 
   return (
-    <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <FooterProvider>
-          <Header />
-          <main className="flex w-full flex-col items-center">{children}</main>
-          <Footer />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </FooterProvider>
-      </QueryClientProvider>
-    </WagmiProvider>
+    <QueryClientProvider client={queryClient}>
+      <FooterProvider>
+        <Header />
+        <main className="flex w-full flex-col items-center">{children}</main>
+        <Footer />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </FooterProvider>
+    </QueryClientProvider>
   );
 }

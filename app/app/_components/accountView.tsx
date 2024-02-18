@@ -4,6 +4,7 @@ import { FaXmark } from "react-icons/fa6";
 import { Address } from "viem";
 
 import { ABOUT_MODULAR_ACCOUNTS_URL, CHAIN } from "../_lib/constants";
+import { useHasMounted } from "../_lib/hooks";
 import { useAccountAddress } from "../_lib/sessionKeyWallet";
 import { useLogOut } from "../_lib/turnkey";
 import BlockExplorerLink from "./blockExplorerLink";
@@ -16,6 +17,7 @@ export default memo(function AccountView({
   closeModal,
 }: AccountViewProps): ReactNode {
   const [accountAddress] = useAccountAddress();
+  const hasMounted = useHasMounted();
   const logOut = useLogOut();
 
   function getLoggedOutView(): ReactNode {
@@ -54,9 +56,10 @@ export default memo(function AccountView({
     );
   }
 
-  const contents = accountAddress
-    ? getLoggedInView(accountAddress)
-    : getLoggedOutView();
+  const contents =
+    hasMounted && accountAddress
+      ? getLoggedInView(accountAddress)
+      : getLoggedOutView();
 
   return (
     <div className="prose relative flex flex-col items-center text-center">

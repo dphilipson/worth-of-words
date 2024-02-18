@@ -20,6 +20,7 @@ import {
 import {
   custom,
   encodeFunctionData,
+  encodePacked,
   getContract,
   http,
   keccak256,
@@ -189,6 +190,13 @@ async function deployAccountWithSessionKey({
       [getSessionKeyPermissions()],
     ],
     pluginAddress: SESSION_KEY_PLUGIN_ADDRESS,
+    // Work around a dependency ordering bug on the current version.
+    dependencyOverrides: !USE_ANVIL
+      ? [
+          encodePacked(["address", "uint8"], [MULTI_OWNER_PLUGIN_ADDRESS, 0x1]),
+          encodePacked(["address", "uint8"], [MULTI_OWNER_PLUGIN_ADDRESS, 0x0]),
+        ]
+      : undefined,
   });
   await waitForOperation(op.hash);
 }
