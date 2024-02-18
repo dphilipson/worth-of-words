@@ -11,7 +11,11 @@ import {
 } from "react";
 
 import dphilImage from "../_images/dphil.jpeg";
-import { ABOUT_ACCOUNT_KIT_URL } from "../_lib/constants";
+import {
+  ABOUT_ACCOUNT_KIT_URL,
+  ABOUT_GAS_MANAGER_URL,
+  ABOUT_MODULAR_ACCOUNTS_URL,
+} from "../_lib/constants";
 import { useNow, useStorage } from "../_lib/hooks";
 import { shuffledCopy } from "../_lib/random";
 import FadeInOnEnterBox from "./fadeInOnEnterBox";
@@ -41,7 +45,7 @@ export const TIDBITS: Tidbit[] = [
   {
     title: "Alchemy launches Modular Accounts",
     body: "That's what you're playing on right now! Each action you're taking is happening onchain.",
-    learnMoreUrl: "https://www.youtube.com/watch?v=o-YBDTqX_ZU",
+    learnMoreUrl: ABOUT_MODULAR_ACCOUNTS_URL,
   },
   {
     title: "Build your own app with Account Kit",
@@ -51,6 +55,24 @@ export const TIDBITS: Tidbit[] = [
   {
     title: "This started as my hackathon project",
     body: "Worth of Words was my hackathon project at Alchemy. The people loved it. So here we are.",
+  },
+  {
+    title: "Zero-knowledge proofs let you keep your secrets",
+    body: "Blockchain transactions are public, but your secret words are hidden and safe!",
+    learnMoreUrl: "/about#zero-knowledge-proofs",
+  },
+  {
+    title: "We'll cover the gas",
+    body: "Normally you would need to pay to send transactions, but we're using Alchemy's Gas Manager API so you don't have to!",
+    learnMoreUrl: ABOUT_GAS_MANAGER_URL,
+  },
+  {
+    title: "Have a lot of friends?",
+    body: "Any number of players can join the same game!",
+  },
+  {
+    title: "We're fully decentralized",
+    body: "All game actions are written on the blockchain. No central server needed!",
   },
 ];
 

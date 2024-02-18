@@ -4,10 +4,13 @@ import { memo, ReactNode } from "react";
 import BlockExplorerLink from "../_components/blockExplorerLink";
 import Card from "../_components/card";
 import {
+  ABOUT_AA_SDK_URL,
   ABOUT_ACCOUNT_KIT_URL,
+  ABOUT_BUNDLER_URL,
   ABOUT_GAS_MANAGER_URL,
   ABOUT_MODULAR_ACCOUNTS_URL,
   ABOUT_ZERO_KNOWLEDGE_PROOFS_URL,
+  MSCA_FACTORY_ADDRESS,
   WORTH_OF_WORDS_ADDRESS,
 } from "../_lib/constants";
 import {
@@ -71,8 +74,8 @@ export default memo(function AboutPage(): ReactNode {
         </li>
       </ul>
       <p>
-        Further, a guess that correctly guesses a full word is awarded an
-        additional <b>{pluralize(POINTS_FOR_FULL_WORD, "point")}</b>.
+        Further, a guess that correctly guesses a full word earns an additional{" "}
+        <b>{pluralize(POINTS_FOR_FULL_WORD, "point")}</b>.
       </p>
       <h4>What words are valid?</h4>
       <p>
@@ -100,7 +103,7 @@ export default memo(function AboutPage(): ReactNode {
         to customize their account features using <b>plugins</b>.
       </p>
       <p>
-        Worth of Words&apos;s accounts use a *session key plugin* to create
+        Worth of Words&apos;s accounts use a <b>session key plugin</b> to create
         frontend session keys, so users can securely take many on-chain actions
         throughout a game without clicking through a security prompt each time.
       </p>
@@ -116,9 +119,13 @@ export default memo(function AboutPage(): ReactNode {
       <p>
         Modular Accounts and the Gas Manager are both part of{" "}
         <a href={ABOUT_ACCOUNT_KIT_URL}>Account Kit</a>, Alchemy&apos;s
-        framework for building applications with embedded accounts.
+        framework for building applications with embedded accounts. In addition
+        to the above, Worth of Words also uses Account Kit&apos;s
+        <a href={ABOUT_AA_SDK_URL}>aa-sdk</a> for working with smart accounts
+        and its <a href={ABOUT_BUNDLER_URL}>Bundler API</a> for submitting
+        operations to the blockchain.
       </p>
-      <h4>Zero-knowledge proofs</h4>
+      <h4 id="zero-knowledge-proofs">Zero-knowledge proofs</h4>
       <p>
         Data written to the blockchain is completely public, which is a
         challenge for a game based on hidden information. To avoid leaking
@@ -145,11 +152,14 @@ export default memo(function AboutPage(): ReactNode {
         and verification from{" "}
         <Link href="https://github.com/iden3/snarkjs">SnarkJS</Link>.
       </p>
-      <h4>TODO: Explain Modular Accounts and Gas Manager</h4>
       <h3>Contracts</h3>
       <ul>
         <li>
           Worth of Words: <BlockExplorerLink address={WORTH_OF_WORDS_ADDRESS} />
+        </li>
+        <li>
+          Modular Account factory:{" "}
+          <BlockExplorerLink address={MSCA_FACTORY_ADDRESS} />
         </li>
       </ul>
       <h3>License</h3>
