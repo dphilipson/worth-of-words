@@ -1,3 +1,4 @@
+import { keccak256 } from "viem";
 import { arbitrumSepolia, foundry } from "viem/chains";
 
 import {
@@ -50,6 +51,11 @@ export const SESSION_KEY_PLUGIN_ADDRESS = USE_ANVIL
   : "0x0000005B4b6A5a890fCD500095738Cb17B4DD042";
 export const ANVIL_PRIVATE_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+// Updating this will force all users to create a new account.
+export const ACCOUNT_VERSION = 0;
+export const ACCOUNT_SALT = BigInt(
+  keccak256(new TextEncoder().encode(`worth-of-words:v${ACCOUNT_VERSION}`)),
+);
 
 export const ABOUT_MODULAR_ACCOUNTS_URL =
   "https://accountkit.alchemy.com/smart-accounts/accounts/guides/modular-account.html?a=worth-of-words";

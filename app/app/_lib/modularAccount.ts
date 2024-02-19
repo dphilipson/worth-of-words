@@ -31,6 +31,7 @@ import { foundry } from "viem/chains";
 
 import { iSessionKeyAccountAbi } from "../_generated/wagmi";
 import {
+  ACCOUNT_SALT,
   CHAIN,
   ENTRY_POINT_ADDRESS,
   MSCA_FACTORY_ADDRESS,
@@ -88,12 +89,13 @@ export function createOwnerAccount(
   accountAddress?: Address,
 ): Promise<MultiOwnerModularAccount<SmartAccountSigner>> {
   return createMultiOwnerModularAccount({
-    transport: getTransport(),
-    chain: CHAIN,
-    owner,
     accountAddress,
+    chain: CHAIN,
     entryPoint: getVersion060EntryPoint(CHAIN, ENTRY_POINT_ADDRESS),
     factoryAddress: MSCA_FACTORY_ADDRESS,
+    owner,
+    salt: ACCOUNT_SALT,
+    transport: getTransport(),
   });
 }
 

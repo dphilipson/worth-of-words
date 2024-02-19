@@ -1,6 +1,5 @@
 import { memo, ReactNode, useCallback, useState } from "react";
 
-import { getSpeedFromConfig } from "../_lib/lobbyPresets";
 import { useLobby } from "../_lib/useLobby";
 import JoinLobbyView from "./joinLobbyView";
 

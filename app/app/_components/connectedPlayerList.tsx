@@ -1,5 +1,5 @@
 import { memo, ReactNode } from "react";
-import { chainFrom, repeat } from "transducist";
+import { chainFrom } from "transducist";
 
 import { useLobby } from "../_lib/useLobby";
 import { playerPropsFromContext } from "./connectedPlayerListItem";

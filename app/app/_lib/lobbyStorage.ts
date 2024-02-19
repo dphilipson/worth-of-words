@@ -1,6 +1,6 @@
 import { Address } from "viem";
 
-import { useStorage } from "./hooks";
+import { useStorage } from "./localStorage";
 
 export interface SecretsAndSalt {
   words: string[];

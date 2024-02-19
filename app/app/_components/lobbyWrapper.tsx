@@ -2,7 +2,8 @@
 import { useRouter } from "next/navigation";
 import { memo, ReactNode, useEffect } from "react";
 
-import { useStorage, useUrlHash } from "../_lib/hooks";
+import { useUrlHash } from "../_lib/hooks";
+import { useStorage } from "../_lib/localStorage";
 import { LobbyProvider } from "../_lib/useLobby";
 
 const DEFAULT_LOBBY_ID_KEY = "worth-of-words:default-lobby-id";

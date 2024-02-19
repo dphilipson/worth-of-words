@@ -7,7 +7,8 @@ import {
   REFRESH_SESSION_KEY_AT_TTL,
   WORTH_OF_WORDS_ADDRESS,
 } from "./constants";
-import { useSetTimeout, useStorage } from "./hooks";
+import { useSetTimeout } from "./hooks";
+import { useStorage } from "./localStorage";
 import { useRedirectToLogin } from "./loginRedirects";
 import {
   createSessionKeyAccount,

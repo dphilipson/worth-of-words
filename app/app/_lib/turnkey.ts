@@ -18,7 +18,7 @@ import {
   TURNKEY_ORGANIZATION_ID,
   WORTH_OF_WORDS_API_URL,
 } from "./constants";
-import { useStorage } from "./hooks";
+import { useStorage } from "./localStorage";
 import { getTransport } from "./modularAccount";
 import { useAccountAddress, useSessionPrivateKey } from "./sessionKeyWallet";
 

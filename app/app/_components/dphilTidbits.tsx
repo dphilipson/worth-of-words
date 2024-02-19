@@ -16,7 +16,8 @@ import {
   ABOUT_GAS_MANAGER_URL,
   ABOUT_MODULAR_ACCOUNTS_URL,
 } from "../_lib/constants";
-import { useNow, useStorage } from "../_lib/hooks";
+import { useNow } from "../_lib/hooks";
+import { useStorage } from "../_lib/localStorage";
 import { shuffledCopy } from "../_lib/random";
 import FadeInOnEnterBox from "./fadeInOnEnterBox";
 import ProgressBar from "./progressBar";
