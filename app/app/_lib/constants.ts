@@ -21,6 +21,11 @@ export const TURNKEY_ORGANIZATION_ID = notNull(
   process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID,
 );
 export const DOMAIN_NAME = IS_PRODUCTION ? "www.worthofwords.com" : "localhost";
+export const HEAP_ID = notNull(
+  IS_PRODUCTION
+    ? process.env.NEXT_PUBLIC_PROD_HEAP_ID
+    : process.env.NEXT_PUBLIC_DEV_HEAP_ID,
+);
 export const WORD_LENGTH = 5;
 // The next two constants correspond to the fixed sizes of the ZK-circuits.
 export const SECRET_WORDS_IN_PROOF = 3;
