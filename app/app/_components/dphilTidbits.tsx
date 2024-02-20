@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 
-import dphilImage from "../_images/dphil.jpeg";
+import dphilImage from "../_images/dphil.png";
 import {
   ABOUT_ACCOUNT_KIT_URL,
   ABOUT_GAS_MANAGER_URL,

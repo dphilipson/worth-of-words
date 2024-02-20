@@ -1,13 +1,13 @@
 import Link from "next/link";
 
 import MainCard from "./_components/mainCard";
-import image from "./_images/unlocked-account.png";
+import titleImage from "./_images/title.png";
 
 export default function Home() {
   return (
     <MainCard
       title="Worth of Words"
-      image={image}
+      image={titleImage}
       imageAlt="Worth of Words logo"
       imageHasPriority={true}
     >

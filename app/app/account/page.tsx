@@ -6,7 +6,7 @@ import { privateKeyToAddress } from "viem/accounts";
 
 import LoadingButton from "../_components/loadingButton";
 import MainCard from "../_components/mainCard";
-import createPasskeyImage from "../_images/unlocked-account.png";
+import titleImage from "../_images/title.png";
 import unlockedAccountImage from "../_images/unlocked-account.png";
 import { useHasMounted } from "../_lib/hooks";
 import { useRedirectAfterLogin } from "../_lib/loginRedirects";
@@ -112,7 +112,7 @@ export default memo(function AccountPage(): ReactNode {
   return !details ? (
     <MainCard
       title="Just one thing…"
-      image={createPasskeyImage}
+      image={titleImage}
       imageAlt="Picture of creating a session key"
       imageHasPriority={true}
     >

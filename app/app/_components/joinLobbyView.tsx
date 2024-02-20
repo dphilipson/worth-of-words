@@ -65,8 +65,7 @@ export default memo(function JoinLobbyView({
         <h1 className="mb-0 text-center">Player ready?</h1>
         <h3 className="mb-2">What should we call you?</h3>
         <p className="mb-2 text-sm text-secondary">
-          This name will be publically associated with your wallet address.
-          Avoid identifying information.
+          This name will be publically visible. Avoid identifying information.
         </p>
         <TextInput
           label="Player name"

@@ -3,7 +3,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { memo, ReactNode, useCallback, useEffect, useRef } from "react";
 
-import createLobbyImage from "../_images/unlocked-account.png";
+import findOpponentsImage from "../_images/find-opponents.png";
 import { useCreateLobby } from "../_lib/createLobby";
 import { GameSpeed, getLobbyPreset } from "../_lib/lobbyPresets";
 import { useHideWelcomeBack } from "../_lib/turnkey";
@@ -55,7 +55,7 @@ export default memo(function CreateLobbyView(): ReactNode {
     <div className="flex flex-col space-y-6">
       <MainCard
         title="Find some opponents to play"
-        image={createLobbyImage}
+        image={findOpponentsImage}
         imageAlt="Picture of finding opponents"
         imageHasPriority={true}
       >
