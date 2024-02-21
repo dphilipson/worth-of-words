@@ -8,6 +8,7 @@ import LoadingButton from "../_components/loadingButton";
 import MainCard from "../_components/mainCard";
 import titleImage from "../_images/title.png";
 import unlockedAccountImage from "../_images/unlocked-account.png";
+import { ABOUT_MODULAR_ACCOUNTS_URL } from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
 import { useRedirectAfterLogin } from "../_lib/loginRedirects";
 import {
@@ -156,7 +157,9 @@ export default memo(function AccountPage(): ReactNode {
         <FaFingerprint /> Start a new session
       </LoadingButton>
       <p>
-        <a>What&apos;s a modular account?</a>
+        <a href={ABOUT_MODULAR_ACCOUNTS_URL} target="_blank" rel="noopener">
+          What&apos;s a modular account?
+        </a>
       </p>
     </MainCard>
   );

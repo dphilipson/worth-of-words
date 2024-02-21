@@ -63,7 +63,7 @@ export const ACCOUNT_SALT = BigInt(
 );
 
 export const ABOUT_MODULAR_ACCOUNTS_URL =
-  "https://accountkit.alchemy.com/smart-accounts/accounts/guides/modular-account.html?a=worth-of-words";
+  "https://accountkit.alchemy.com/smart-accounts/modular-account?a=worth-of-words";
 export const ABOUT_GAS_MANAGER_URL =
   "https://docs.alchemy.com/docs/gas-manager-services?a=worth-of-words";
 export const ABOUT_BUNDLER_URL =

@@ -120,7 +120,7 @@ export default memo(function AboutPage(): ReactNode {
         Modular Accounts and the Gas Manager are both part of{" "}
         <a href={ABOUT_ACCOUNT_KIT_URL}>Account Kit</a>, Alchemy&apos;s
         framework for building applications with embedded accounts. In addition
-        to the above, Worth of Words also uses Account Kit&apos;s
+        to the above, Worth of Words also uses Account Kit&apos;s{" "}
         <a href={ABOUT_AA_SDK_URL}>aa-sdk</a> for working with smart accounts
         and its <a href={ABOUT_BUNDLER_URL}>Bundler API</a> for submitting
         operations to the blockchain.
