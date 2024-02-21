@@ -23,7 +23,7 @@ export default memo(function MainCard({
 }: MainCardProps): ReactNode {
   return (
     <Card
-      className={clsx(className, "mt-16 items-center text-center lg:p-16")}
+      className={clsx(className, "items-center text-center sm:mt-16 lg:p-16")}
       isFullWidth={true}
       {...cardProps}
     >
