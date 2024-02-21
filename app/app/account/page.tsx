@@ -142,7 +142,7 @@ export default memo(function AccountPage(): ReactNode {
       title="You've unlocked your own modular account!"
       image={unlockedAccountImage}
       imageAlt="Picture of an unlocked account"
-      imageHasPriority={false}
+      imageHasPriority={true}
     >
       <p>
         Just like that, you&apos;re all set up with your own modular account,

@@ -53,11 +53,11 @@ export const MULTI_OWNER_PLUGIN_ADDRESS = USE_ANVIL
   : "0xcE0000007B008F50d762D155002600004cD6c647";
 export const SESSION_KEY_PLUGIN_ADDRESS = USE_ANVIL
   ? "0x7De4f50078F34833C5FA619bafE4519A83a7C23F"
-  : "0x0000005B4b6A5a890fCD500095738Cb17B4DD042";
+  : "0x0000003E0000a96de4058e1E02a62FaaeCf23d8d";
 export const ANVIL_PRIVATE_KEY =
   "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 // Updating this will force all users to create a new account.
-export const ACCOUNT_VERSION = 0;
+export const ACCOUNT_VERSION = 1;
 export const ACCOUNT_SALT = BigInt(
   keccak256(new TextEncoder().encode(`worth-of-words:v${ACCOUNT_VERSION}`)),
 );
