@@ -25,13 +25,18 @@ export function useStorage<T>({
   value: T | undefined,
   setValue: (value: T | undefined) => void,
 ] {
-  const loadFromStorage = () => {
+  const loadFromStorage = useCallback(() => {
     const storage = getStorage(storageType);
     const json = storage?.getItem(key);
     return json == null ? undefined : fromJson(JSON.parse(json));
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, storageType]);
   const [value, setState] = useState(loadFromStorage);
   const multisetKey = `${storageType}:${key}`;
+
+  useEffect(() => {
+    setState(loadFromStorage());
+  }, [loadFromStorage]);
 
   const setValue = useCallback(
     (value: T | undefined) => {

@@ -30,7 +30,6 @@ export default memo(function CreateLobbyView(): ReactNode {
   });
 
   const onClickCreateLobby = useCallback(() => mutation.mutate(), [mutation]);
-
   const isDisplayingWelcomeBack = wallet && !initialHideWelcomeBack;
 
   useEffect(() => {

@@ -144,12 +144,12 @@ export default memo(function GameplayView(): ReactNode {
           onKey={onKey}
         />
       </div>
-      <div className="absolute bottom-16 left-8 hidden w-full max-w-xs lg:block">
+      <div className="fixed bottom-16 left-8 hidden w-full max-w-xs lg:block">
         <ConnectedPlayerListItem playerAddress={playerAddress} />
       </div>
       <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
         {({ closeModal }) => (
-          <div className="relative flex max-h-[70vh] justify-center space-x-10">
+          <div className="relative flex max-h-[70vh] flex-col items-center justify-center space-y-10 md:flex-row md:items-start md:space-y-0">
             <button
               className="absolute -right-3 -top-3 text-xl text-secondary hover:text-black"
               onClick={closeModal}
@@ -157,8 +157,8 @@ export default memo(function GameplayView(): ReactNode {
               <FaXmark />
             </button>
             <div className="flex w-full max-w-xs flex-col items-center space-y-4">
-              <h5>Your status</h5>
-              <div className="overflow-auto">
+              <h4 className="text-xl font-semibold">Your status</h4>
+              <div className="space-y-2 overflow-auto">
                 <ConnectedPlayerListItem playerAddress={playerAddress} />
                 <ConnectedGuessGrid
                   playerAddress={playerAddress}
@@ -168,8 +168,8 @@ export default memo(function GameplayView(): ReactNode {
                 />
               </div>
             </div>
-            <div className="flex w-96 min-w-fit flex-col items-center space-y-4">
-              <h5>Rankings</h5>
+            <div className="flex w-96 min-w-fit flex-col items-center space-y-4 md:ml-10">
+              <h4 className="text-xl font-semibold">Rankings</h4>
               <ConnectedPlayerList compact={true} />
             </div>
           </div>
@@ -196,17 +196,17 @@ function useInputKeys(
 ): InputKeysContext {
   const [input, setInput] = useState("");
   const onKey = useCallback(
-    (keyCode: string) => {
-      if (input.length > 0 && keyCode === "Backspace") {
+    (key: string) => {
+      if (input.length > 0 && key === "Backspace") {
         setInput(input.slice(0, -1));
       } else if (
         input.length === 5 &&
-        keyCode === "Enter" &&
+        key === "Enter" &&
         validGuessWords.has(input)
       ) {
         onSubmit(input);
-      } else if (input.length < 5 && isLetter(keyCode)) {
-        setInput(input + keyCode.toUpperCase());
+      } else if (input.length < 5 && isLetter(key)) {
+        setInput(input + key.toUpperCase());
       }
     },
     [input, onSubmit, validGuessWords],

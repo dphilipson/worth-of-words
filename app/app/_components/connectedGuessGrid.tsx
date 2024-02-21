@@ -20,12 +20,13 @@ export default memo(function ConnectedGuessGrid({
   isSelfGrid,
   subscribeToInputConfirm,
 }: ConnectedGuessGridProps): ReactNode {
+  const lobs = useLobby();
   const {
     playerAddress: currentPlayerAddress,
     lobby,
     validGuessWords,
     secrets,
-  } = useLobby();
+  } = lobs;
   const gridPlayer = getPlayer(lobby, gridPlayerAddress);
   const scoredRows: ScoredRowProps[] = gridPlayer.matchHistory.map((guess) => ({
     word: guess.guess,

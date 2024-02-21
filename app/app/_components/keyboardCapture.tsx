@@ -10,6 +10,10 @@ export default memo(function KeyboardCapture({
 }: KeyboardCaptureProps): ReactNode {
   useEffect(() => {
     function handleKeydown(event: KeyboardEvent): void {
+      if (event.key === "Enter") {
+        // Stop attempts to submit a word from activating a focused button.
+        event.preventDefault();
+      }
       onKey(event.key);
     }
     window.addEventListener("keydown", handleKeydown);
