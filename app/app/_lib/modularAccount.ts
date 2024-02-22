@@ -247,7 +247,7 @@ export async function isDeployed(address: Address): Promise<boolean> {
   return bytecode != null && bytecode !== "0x";
 }
 
-export interface GetSessionKeyTimeRangeParams {
+export interface GetSessionKeyInfoParams {
   accountAddress: Address;
   sessionPublicKey: Address;
 }
@@ -255,7 +255,7 @@ export interface GetSessionKeyTimeRangeParams {
 export async function getSessionKeyExpiryTime({
   accountAddress,
   sessionPublicKey,
-}: GetSessionKeyTimeRangeParams): Promise<number> {
+}: GetSessionKeyInfoParams): Promise<number> {
   const client = getSmartAccountClient();
   const loupe = getContract({
     address: SESSION_KEY_PLUGIN_ADDRESS,
@@ -267,6 +267,24 @@ export async function getSessionKeyExpiryTime({
     sessionPublicKey,
   ]);
   return 1000 * validUntil;
+}
+
+export async function canSessionKeyAccessGame({
+  accountAddress,
+  sessionPublicKey,
+}: GetSessionKeyInfoParams): Promise<boolean> {
+  const client = getSmartAccountClient();
+  const loupe = getContract({
+    address: SESSION_KEY_PLUGIN_ADDRESS,
+    abi: SessionKeyPluginAbi,
+    client,
+  });
+  const [isOnList] = await loupe.read.getAccessControlEntry([
+    accountAddress,
+    sessionPublicKey,
+    WORTH_OF_WORDS_ADDRESS,
+  ]);
+  return isOnList;
 }
 
 /**

@@ -13,6 +13,7 @@ import { useStorage } from "./localStorage";
 import { useRedirectToLogin } from "./loginRedirects";
 import { isOnMobile } from "./mobile";
 import {
+  canSessionKeyAccessGame,
   createSessionKeyAccount,
   getSessionKeyExpiryTime,
   isDeployed,
@@ -57,6 +58,7 @@ export function useSessionKeyWallet(): WalletLike | undefined {
       return;
     }
     if (!data) {
+      setSessionPrivateKey(undefined);
       redirectToLogin();
       return;
     }
@@ -98,16 +100,15 @@ function useSessionKeyWalletQuery(): UseQueryResult<WalletQueryOut | null> {
         return null;
       }
       const sessionPublicKey = privateKeyToAddress(sessionPrivateKey);
-      const [exactExpiryTime, account, deployed] = await Promise.all([
-        getSessionKeyExpiryTime({ accountAddress, sessionPublicKey }),
-        createSessionKeyAccount({ accountAddress, sessionPrivateKey }),
-        isDeployed(accountAddress),
-      ]);
-      if (!deployed) {
-        return null;
-      }
+      const [exactExpiryTime, canAccessGame, account, deployed] =
+        await Promise.all([
+          getSessionKeyExpiryTime({ accountAddress, sessionPublicKey }),
+          canSessionKeyAccessGame({ accountAddress, sessionPublicKey }),
+          createSessionKeyAccount({ accountAddress, sessionPrivateKey }),
+          isDeployed(accountAddress),
+        ]);
       const expiryTime = exactExpiryTime - REFRESH_SESSION_KEY_AT_TTL;
-      if (expiryTime < Date.now()) {
+      if (!deployed || !canAccessGame || expiryTime < Date.now()) {
         return null;
       }
       const wallet: WalletLike = {

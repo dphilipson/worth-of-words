@@ -168,6 +168,11 @@ export default memo(function AboutPage(): ReactNode {
         on{" "}
         <Link href="https://github.com/dphilipson/worth-of-words">GitHub</Link>.
       </p>
+      <p>
+        &ldquo;Wordle&rdquo; is a registered trademark of The New York Times
+        Company. Worth of Words is not affiliated with or sponsored by The New
+        York Times Company in any way.
+      </p>
       <p>Copyright © 2024 David Philipson</p>
       <p>
         <Link href="/">Return home</Link>

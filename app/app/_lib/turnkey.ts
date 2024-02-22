@@ -78,7 +78,7 @@ export function useLogOut(): () => void {
 
 export async function createSubOrgAndWallet(): Promise<TurnkeyDetails> {
   const challenge = generateRandomBuffer();
-  const subOrgName = `Worth of Words User - ${subOrgFriendlyDateString()}`;
+  const passkeyName = `Worth of Words - ${lexicographicDateString()}`;
   const authenticatorUserId = generateRandomBuffer();
   const attestation = await getWebAuthnAttestation({
     publicKey: {
@@ -90,11 +90,12 @@ export async function createSubOrgAndWallet(): Promise<TurnkeyDetails> {
       ],
       user: {
         id: authenticatorUserId,
-        name: subOrgName,
-        displayName: subOrgName,
+        name: passkeyName,
+        displayName: passkeyName,
       },
     },
   });
+  const subOrgName = toSuborgFriendlyName(passkeyName);
   const request: CreateSubOrgWithPrivateKeyRequest = {
     subOrgName,
     attestation,
@@ -161,7 +162,22 @@ function base64UrlEncode(challenge: ArrayBuffer): string {
     .replace(/=/g, "");
 }
 
-function subOrgFriendlyDateString(): string {
-  // Sub-org names can't have / or : characters.
-  return new Date().toLocaleString().replaceAll("/", "-").replaceAll(":", ".");
+function lexicographicDateString(): string {
+  // I don't want to install a date library just for this. Sue me.
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = withTwoDigits(date.getMonth() + 1);
+  const day = withTwoDigits(date.getDate());
+  const hour = withTwoDigits(date.getHours());
+  const minutes = withTwoDigits(date.getMinutes());
+  const seconds = withTwoDigits(date.getSeconds());
+  return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
+}
+
+function withTwoDigits(n: number): string {
+  return n.toString().padStart(2, "0");
+}
+
+function toSuborgFriendlyName(s: string): string {
+  return s.replaceAll("/", "-").replaceAll(":", ".");
 }
