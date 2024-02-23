@@ -2,6 +2,7 @@ import clsx from "clsx";
 import {
   ChangeEvent,
   ComponentProps,
+  KeyboardEvent,
   memo,
   ReactNode,
   useCallback,
@@ -12,11 +13,13 @@ export interface TextInputProps extends ComponentProps<"input"> {
   label?: string;
   button?: ReactNode;
   onValueChange(value: string): void;
+  onEnter?(): void;
 }
 
 export default memo(function TextInput({
   className,
   onValueChange,
+  onEnter,
   label,
   button,
   ...otherProps
@@ -25,6 +28,15 @@ export default memo(function TextInput({
     (event: ChangeEvent<HTMLInputElement>) =>
       onValueChange(event.currentTarget.value),
     [onValueChange],
+  );
+
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        onEnter?.();
+      }
+    },
+    [onEnter],
   );
 
   const input = (
@@ -36,6 +48,7 @@ export default memo(function TextInput({
       )}
       type="text"
       onChange={onChange}
+      onKeyDown={onKeyDown}
       {...otherProps}
     />
   );
