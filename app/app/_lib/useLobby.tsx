@@ -92,14 +92,19 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
   const actionsRef = useRef<LobbyActionsImpl>();
   const setDeadline = useSetDeadline();
   const advancedToRoundNumber = storage?.advancedToRound ?? 0;
+  const player =
+    lobby && playerAddress && lobby.playersByAddress.get(playerAddress);
 
   const advanceToNextRound = useCallback(() => {
     const roundNumber = lobby?.roundNumber;
     const setAdvancedToRound = storage?.setAdvancedToRound;
     if (roundNumber !== undefined && setAdvancedToRound) {
-      setAdvancedToRound(roundNumber);
+      // Somewhat of a hack: if the player is eliminated, then we don't need
+      // their input to advance rounds again, so treat them as having advanced
+      // to a very high round number.
+      setAdvancedToRound(player?.isEliminated ? 10000 : roundNumber);
     }
-  }, [lobby?.roundNumber, storage?.setAdvancedToRound]);
+  }, [lobby?.roundNumber, storage?.setAdvancedToRound, player?.isEliminated]);
 
   if (wallet && lobby && storage) {
     if (actionsRef.current === undefined) {
@@ -115,8 +120,6 @@ function useLoadLobby(lobbyId: bigint): LobbyContext | undefined {
     }
   }
   const actions = actionsRef.current;
-  const player =
-    lobby && playerAddress && lobby.playersByAddress.get(playerAddress);
   const hasRevealedGuess = player?.revealedGuess !== undefined;
 
   // When the player has finished a phase, set a timeout to move on to the next
