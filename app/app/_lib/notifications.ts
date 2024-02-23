@@ -5,7 +5,7 @@ import { useLobby } from "./useLobby";
 
 export function useRequestNotificationPermission(): void {
   useEffect(() => {
-    Notification.requestPermission();
+    getSafeNotification()?.requestPermission();
   }, []);
 }
 
@@ -27,6 +27,10 @@ export function useNotifyOnYourTurn(): void {
   }
 
   useEffect(() => {
+    const Notification = getSafeNotification();
+    if (!Notification) {
+      return;
+    }
     if (lobby.phase !== Phase.COMMITING_GUESSES) {
       closeNotification();
     } else if (!isEliminated && !document.hasFocus()) {
@@ -39,4 +43,8 @@ export function useNotifyOnYourTurn(): void {
     window.addEventListener("focus", closeNotification);
     return () => window.removeEventListener("focus", closeNotification);
   }, []);
+}
+
+function getSafeNotification(): typeof Notification | undefined {
+  return typeof Notification === "undefined" ? undefined : Notification;
 }
