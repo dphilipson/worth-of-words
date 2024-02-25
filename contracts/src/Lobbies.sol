@@ -220,7 +220,7 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessesVerifier, ValidWordsVerifier 
         internal
         requireInOrReadyForPhase(lobby, Phase.RevealingGuesses, Phase.RevealingMatches)
     {
-        if (lobby.currentPhase == Phase.CommittingGuesses) {
+        if (lobby.currentPhase == Phase.RevealingGuesses) {
             // We can take this action because we're past the deadline of the
             // previous phase.
             _transitionToRevealMatchesPhase(lobby, lobbyId);
@@ -233,7 +233,6 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessesVerifier, ValidWordsVerifier 
         // Handle each attacker in sequence.
         AttackAccumulator memory accumulator =
             AttackAccumulator({history: player.matchHistory, revealedSecretWord: "", wasAttacked: false});
-        // TODO: the zero-proof/nonattacker case!!!
         if (!this.verifyScoreGuessesProof(proof._pA, proof._pB, proof._pC, proof._pubSignals)) {
             revert InvalidMatchProof();
         }
