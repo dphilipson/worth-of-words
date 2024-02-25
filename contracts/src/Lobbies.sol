@@ -11,11 +11,7 @@ import {Words} from "./Words.sol";
 import {ScoreGuessesVerifier} from "./generated/ScoreGuessesVerifier.sol";
 import {ValidWordsVerifier} from "./generated/ValidWordsVerifier.sol";
 
-contract Lobbies is
-    WorthOfWordsTypes,
-    ScoreGuessesVerifier,
-    ValidWordsVerifier
-{
+contract Lobbies is WorthOfWordsTypes, ScoreGuessesVerifier, ValidWordsVerifier {
     using Scoring for MatchHistory;
     using Words for Word;
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -76,22 +72,14 @@ contract Lobbies is
         _;
     }
 
-    modifier requireInOrReadyForPhase(
-        Lobby storage lobby,
-        Phase previousPhase,
-        Phase phase
-    ) {
+    modifier requireInOrReadyForPhase(Lobby storage lobby, Phase previousPhase, Phase phase) {
         if (!_isInOrReadyForPhase(lobby, previousPhase, phase)) {
             revert WrongPhase(phase, lobby.currentPhase);
         }
         _;
     }
 
-    modifier kindlyRequireInOrReadyForPhase(
-        Lobby storage lobby,
-        Phase previousPhase,
-        Phase phase
-    ) {
+    modifier kindlyRequireInOrReadyForPhase(Lobby storage lobby, Phase previousPhase, Phase phase) {
         if (!_isInOrReadyForPhase(lobby, previousPhase, phase)) {
             return;
         }
@@ -102,11 +90,7 @@ contract Lobbies is
     // * Internal mutable functions
     // *************************************************************************
 
-    function _initializeLobby(
-        Lobby storage lobby,
-        LobbyId lobbyId,
-        LobbyConfig calldata config
-    ) internal {
+    function _initializeLobby(Lobby storage lobby, LobbyId lobbyId, LobbyConfig calldata config) internal {
         // Checks
         if (config.secretWordMerkleRoot == 0) {
             revert MissingSecretWordMerkleRoot();
@@ -147,35 +131,25 @@ contract Lobbies is
         if (lobby.livePlayerAddressesByRound[0].contains(msg.sender)) {
             revert AlreadyInLobby();
         }
-        if (
-            lobby.livePlayerAddressesByRound[0].length() >=
-            uint256(lobby.config.maxPlayers)
-        ) {
+        if (lobby.livePlayerAddressesByRound[0].length() >= uint256(lobby.config.maxPlayers)) {
             revert LobbyIsFull(lobby.config.maxPlayers);
         }
         if (!_isValidPassword(lobby, password)) {
             revert IncorrectLobbyPassword();
         }
-        _verifyValidWords(
-            secretWordsCommitment,
-            lobby.config.secretWordMerkleRoot
-        );
+        _verifyValidWords(secretWordsCommitment, lobby.config.secretWordMerkleRoot);
 
         // Effects
         Player storage player = lobby.playersByAddress[msg.sender];
         for (uint32 i = 0; i < lobby.config.numLives; i++) {
-            player.secretWordCommitments.push() = secretWordsCommitment
-                ._pubSignals[i];
+            player.secretWordCommitments.push() = secretWordsCommitment._pubSignals[i];
         }
         lobby.livePlayerAddressesByRound[0].add(msg.sender);
 
         emit JoinedLobby(lobbyId, msg.sender, playerName);
     }
 
-    function _startGame(
-        Lobby storage lobby,
-        LobbyId lobbyId
-    ) internal kindlyRequirePhase(lobby, Phase.NotStarted) {
+    function _startGame(Lobby storage lobby, LobbyId lobbyId) internal kindlyRequirePhase(lobby, Phase.NotStarted) {
         // Checks
         if (msg.sender != lobby.host) {
             revert NotHost(lobby.host);
@@ -191,11 +165,10 @@ contract Lobbies is
         _startRound(lobby, lobbyId);
     }
 
-    function _commitGuess(
-        Lobby storage lobby,
-        LobbyId lobbyId,
-        bytes32 commitment
-    ) internal requirePhase(lobby, Phase.CommittingGuesses) {
+    function _commitGuess(Lobby storage lobby, LobbyId lobbyId, bytes32 commitment)
+        internal
+        requirePhase(lobby, Phase.CommittingGuesses)
+    {
         // Checks
         Player storage player = _validateCurrentPlayer(lobby);
         player.guessCommitment = commitment;
@@ -212,14 +185,7 @@ contract Lobbies is
         Word guess,
         uint256 salt,
         bytes32[] calldata merkleProof
-    )
-        internal
-        requireInOrReadyForPhase(
-            lobby,
-            Phase.CommittingGuesses,
-            Phase.RevealingGuesses
-        )
-    {
+    ) internal requireInOrReadyForPhase(lobby, Phase.CommittingGuesses, Phase.RevealingGuesses) {
         if (lobby.currentPhase == Phase.CommittingGuesses) {
             // We can take this action because we're past the deadline of the
             // previous phase.
@@ -231,20 +197,12 @@ contract Lobbies is
         if (uint256(player.guessCommitment) <= uint256(NO_GUESS_COMMITMENT)) {
             revert NoGuessCommitted();
         }
-        if (
-            keccak256(abi.encodePacked(guess, salt)) != player.guessCommitment
-        ) {
+        if (keccak256(abi.encodePacked(guess, salt)) != player.guessCommitment) {
             revert GuessDoesNotMatchCommitment(player.guessCommitment);
         }
         // See https://github.com/OpenZeppelin/merkle-tree#leaf-hash
         bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(guess))));
-        if (
-            !MerkleProof.verifyCalldata(
-                merkleProof,
-                lobby.config.guessWordMerkleRoot,
-                leaf
-            )
-        ) {
+        if (!MerkleProof.verifyCalldata(merkleProof, lobby.config.guessWordMerkleRoot, leaf)) {
             revert InvalidMerkleProofInGuessReveal();
         }
 
@@ -258,17 +216,9 @@ contract Lobbies is
         }
     }
 
-    function _revealMatches(
-        Lobby storage lobby,
-        LobbyId lobbyId,
-        ScoreGuessesProof calldata proof
-    )
+    function _revealMatches(Lobby storage lobby, LobbyId lobbyId, ScoreGuessesProof calldata proof)
         internal
-        requireInOrReadyForPhase(
-            lobby,
-            Phase.RevealingGuesses,
-            Phase.RevealingMatches
-        )
+        requireInOrReadyForPhase(lobby, Phase.RevealingGuesses, Phase.RevealingMatches)
     {
         if (lobby.currentPhase == Phase.CommittingGuesses) {
             // We can take this action because we're past the deadline of the
@@ -281,32 +231,14 @@ contract Lobbies is
         uint32[] memory offsets = _getTargetOffsets(lobby);
 
         // Handle each attacker in sequence.
-        AttackAccumulator memory accumulator = AttackAccumulator({
-            history: player.matchHistory,
-            revealedSecretWord: "",
-            wasAttacked: false
-        });
+        AttackAccumulator memory accumulator =
+            AttackAccumulator({history: player.matchHistory, revealedSecretWord: "", wasAttacked: false});
         // TODO: the zero-proof/nonattacker case!!!
-        if (
-            !this.verifyScoreGuessesProof(
-                proof._pA,
-                proof._pB,
-                proof._pC,
-                proof._pubSignals
-            )
-        ) {
+        if (!this.verifyScoreGuessesProof(proof._pA, proof._pB, proof._pC, proof._pubSignals)) {
             revert InvalidMatchProof();
         }
         for (uint32 i = 0; i < offsets.length; i++) {
-            _handleAttack(
-                lobby,
-                lobbyId,
-                player,
-                offsets[i],
-                proof,
-                i,
-                accumulator
-            );
+            _handleAttack(lobby, lobbyId, player, offsets[i], proof, i, accumulator);
         }
         player.matchHistory = accumulator.history;
         if (!accumulator.wasAttacked) {
@@ -314,12 +246,7 @@ contract Lobbies is
         }
         bool playerIsEliminated;
         if (bytes(accumulator.revealedSecretWord).length > 0) {
-            playerIsEliminated = _handleSecretWordFound(
-                lobby,
-                lobbyId,
-                player,
-                accumulator.revealedSecretWord
-            );
+            playerIsEliminated = _handleSecretWordFound(lobby, lobbyId, player, accumulator.revealedSecretWord);
         }
         if (!playerIsEliminated) {
             _setUpPlayerForNextRound(lobby, player);
@@ -329,15 +256,12 @@ contract Lobbies is
         }
     }
 
-    function _endRevealMatchesPhase(
-        Lobby storage lobby,
-        LobbyId lobbyId
-    ) internal kindlyRequirePhase(lobby, Phase.RevealingMatches) {
+    function _endRevealMatchesPhase(Lobby storage lobby, LobbyId lobbyId)
+        internal
+        kindlyRequirePhase(lobby, Phase.RevealingMatches)
+    {
         if (block.timestamp <= uint256(lobby.phaseDeadline)) {
-            revert DeadlineNotExpired(
-                uint48(block.timestamp),
-                lobby.phaseDeadline
-            );
+            revert DeadlineNotExpired(uint48(block.timestamp), lobby.phaseDeadline);
         }
         _transitionToNewRoundOrGameEnd(lobby, lobbyId);
     }
@@ -346,20 +270,13 @@ contract Lobbies is
     // * Internal view functions
     // *************************************************************************
 
-    function _isValidPassword(
-        Lobby storage lobby,
-        bytes calldata password
-    ) internal view returns (bool) {
+    function _isValidPassword(Lobby storage lobby, bytes calldata password) internal view returns (bool) {
         bytes20 publicKey = lobby.config.privateGamePublicKey;
         if (publicKey == bytes20(0)) {
             return true;
         }
-        (address signer, , ) = ECDSA.tryRecover(
-            MessageHashUtils.toEthSignedMessageHash(
-                abi.encodePacked(msg.sender)
-            ),
-            password
-        );
+        (address signer,,) =
+            ECDSA.tryRecover(MessageHashUtils.toEthSignedMessageHash(abi.encodePacked(msg.sender)), password);
         return bytes20(signer) == publicKey;
     }
 
@@ -371,33 +288,20 @@ contract Lobbies is
         _setDeadline(lobby, lobby.config.maxCommitGuessTime);
         lobby.numPlayersYetToAct = _getLivePlayerCount(lobby);
         lobby.currentPhase = Phase.CommittingGuesses;
-        emit NewRound(
-            lobbyId,
-            lobby.roundNumber,
-            _getTargetOffsets(lobby),
-            lobby.numPlayersYetToAct
-        );
+        emit NewRound(lobbyId, lobby.roundNumber, _getTargetOffsets(lobby), lobby.numPlayersYetToAct);
         _emitNewPhaseEvent(lobby, lobbyId);
     }
 
-    function _transitionToRevealGuessPhase(
-        Lobby storage lobby,
-        LobbyId lobbyId
-    ) private {
+    function _transitionToRevealGuessPhase(Lobby storage lobby, LobbyId lobbyId) private {
         _setDeadline(lobby, lobby.config.maxRevealGuessTime);
         // Only players who committed a guess can act in this phase.
-        lobby.numPlayersYetToAct =
-            _getLivePlayerCount(lobby) -
-            lobby.numPlayersYetToAct;
+        lobby.numPlayersYetToAct = _getLivePlayerCount(lobby) - lobby.numPlayersYetToAct;
         lobby.currentPhase = Phase.RevealingGuesses;
 
         _emitNewPhaseEvent(lobby, lobbyId);
     }
 
-    function _transitionToRevealMatchesPhase(
-        Lobby storage lobby,
-        LobbyId lobbyId
-    ) private {
+    function _transitionToRevealMatchesPhase(Lobby storage lobby, LobbyId lobbyId) private {
         _setDeadline(lobby, lobby.config.maxRevealMatchesTime);
         lobby.numPlayersYetToAct = _getLivePlayerCount(lobby);
         lobby.currentPhase = Phase.RevealingMatches;
@@ -414,61 +318,36 @@ contract Lobbies is
         uint32 attackerIndex,
         AttackAccumulator memory accumulator
     ) private {
-        (
-            address attackerAddress,
-            Player storage attacker
-        ) = _getAttackerForOffset(lobby, _getCurrentPlayerIndex(lobby), offset);
+        (address attackerAddress, Player storage attacker) =
+            _getAttackerForOffset(lobby, _getCurrentPlayerIndex(lobby), offset);
         if (attacker.roundForGuessPlusOne != lobby.roundNumber + 1) {
             // Attacker didn't reveal a guess this round.
             return;
         }
         accumulator.wasAttacked = true;
         uint32[5] memory guessLetters = attacker.guess.toLetters();
-        _verifyMatches(
-            player,
-            proof,
-            attackerIndex,
-            attacker.guess,
-            guessLetters
-        );
+        _verifyMatches(player, proof, attackerIndex, attacker.guess, guessLetters);
         Color[5] memory matches = _getMatchesFromProof(proof, attackerIndex);
-        (uint32 newYellowCount, uint32 newGreenCount) = player
-            .matchHistory
-            .scoreMatches(guessLetters, matches);
-        uint32 reward = newYellowCount *
-            lobby.config.pointsForYellow +
-            newGreenCount *
-            lobby.config.pointsForGreen;
+        (uint32 newYellowCount, uint32 newGreenCount) = player.matchHistory.scoreMatches(guessLetters, matches);
+        uint32 reward = newYellowCount * lobby.config.pointsForYellow + newGreenCount * lobby.config.pointsForGreen;
         string memory guessAsString = attacker.guess.toString();
         if (_isFullMatch(matches)) {
             reward += lobby.config.pointsForFullWord;
             accumulator.revealedSecretWord = guessAsString;
         }
-        accumulator.history = accumulator.history.accumulateMatches(
-            guessLetters,
-            matches
-        );
+        accumulator.history = accumulator.history.accumulateMatches(guessLetters, matches);
 
         // Effects
         attacker.score += reward;
         emit MatchesRevealed(
-            lobbyId,
-            attackerAddress,
-            msg.sender,
-            guessAsString,
-            matches,
-            newYellowCount,
-            newGreenCount,
-            reward
+            lobbyId, attackerAddress, msg.sender, guessAsString, matches, newYellowCount, newGreenCount, reward
         );
     }
 
-    function _handleSecretWordFound(
-        Lobby storage lobby,
-        LobbyId lobbyId,
-        Player storage player,
-        string memory word
-    ) private returns (bool playerIsEliminated) {
+    function _handleSecretWordFound(Lobby storage lobby, LobbyId lobbyId, Player storage player, string memory word)
+        private
+        returns (bool playerIsEliminated)
+    {
         player.matchHistory = MatchHistory.wrap(0);
         uint32 secretWordIndex = player.secretWordIndex++;
         emit SecretWordFound(lobbyId, msg.sender, word, secretWordIndex);
@@ -482,10 +361,7 @@ contract Lobbies is
      * Clear the player's guess commitment and add them to the next round's set
      * of live players.
      */
-    function _setUpPlayerForNextRound(
-        Lobby storage lobby,
-        Player storage player
-    ) private {
+    function _setUpPlayerForNextRound(Lobby storage lobby, Player storage player) private {
         uint32 nextRoundNumber = lobby.roundNumber + 1;
         if (lobby.livePlayerAddressesByRound.length < nextRoundNumber + 1) {
             lobby.livePlayerAddressesByRound.push();
@@ -496,10 +372,7 @@ contract Lobbies is
         // to reveal their matches.
     }
 
-    function _transitionToNewRoundOrGameEnd(
-        Lobby storage lobby,
-        LobbyId lobbyId
-    ) private {
+    function _transitionToNewRoundOrGameEnd(Lobby storage lobby, LobbyId lobbyId) private {
         if (_shouldEndGame(lobby)) {
             lobby.currentPhase = Phase.GameOver;
             emit GameEnded(lobbyId);
@@ -514,50 +387,33 @@ contract Lobbies is
     }
 
     function _emitNewPhaseEvent(Lobby storage lobby, LobbyId lobbyId) private {
-        emit NewPhase(
-            lobbyId,
-            lobby.currentPhase,
-            lobby.roundNumber,
-            lobby.phaseDeadline
-        );
+        emit NewPhase(lobbyId, lobby.currentPhase, lobby.roundNumber, lobby.phaseDeadline);
     }
 
     // *************************************************************************
     // * Private view functions
     // *************************************************************************
 
-    function _isInOrReadyForPhase(
-        Lobby storage lobby,
-        Phase previousPhase,
-        Phase phase
-    ) private view returns (bool) {
-        return
-            lobby.currentPhase == phase ||
-            (lobby.currentPhase == previousPhase &&
-                block.timestamp > uint256(lobby.phaseDeadline));
+    function _isInOrReadyForPhase(Lobby storage lobby, Phase previousPhase, Phase phase) private view returns (bool) {
+        return lobby.currentPhase == phase
+            || (lobby.currentPhase == previousPhase && block.timestamp > uint256(lobby.phaseDeadline));
     }
 
-    function _validateCurrentPlayer(
-        Lobby storage lobby
-    ) private view returns (Player storage) {
+    function _validateCurrentPlayer(Lobby storage lobby) private view returns (Player storage) {
         Player storage player = lobby.playersByAddress[msg.sender];
         if (player.secretWordCommitments.length == 0) {
             revert PlayerNotInLobby();
         }
         if (
-            player.secretWordIndex == player.secretWordCommitments.length ||
-            !lobby.livePlayerAddressesByRound[lobby.roundNumber].contains(
-                msg.sender
-            )
+            player.secretWordIndex == player.secretWordCommitments.length
+                || !lobby.livePlayerAddressesByRound[lobby.roundNumber].contains(msg.sender)
         ) {
             revert PlayerIsEliminated();
         }
         return player;
     }
 
-    function _getTargetOffsets(
-        Lobby storage lobby
-    ) private view returns (uint32[] memory) {
+    function _getTargetOffsets(Lobby storage lobby) private view returns (uint32[] memory) {
         uint32 playerCount = _getLivePlayerCount(lobby);
         if (playerCount <= NUM_TARGETS + 1) {
             // All opponents are targets.
@@ -567,64 +423,37 @@ contract Lobbies is
             }
             return offsets;
         } else {
-            return
-                _chooseRandomishOffsets(
-                    playerCount,
-                    lobby.randomishSeed,
-                    lobby.roundNumber
-                );
+            return _chooseRandomishOffsets(playerCount, lobby.randomishSeed, lobby.roundNumber);
         }
     }
 
-    function _getLivePlayerCount(
-        Lobby storage lobby
-    ) private view returns (uint32) {
+    function _getLivePlayerCount(Lobby storage lobby) private view returns (uint32) {
         return uint32(_getLivePlayerAddresses(lobby).length());
     }
 
-    function _getCurrentPlayerIndex(
-        Lobby storage lobby
-    ) private view returns (uint32) {
+    function _getCurrentPlayerIndex(Lobby storage lobby) private view returns (uint32) {
         // Annoyingly, EnumerableSet doesn't intentionally expose this "indexOf"
         // operation. Oh well, we'll reach in and take what we want.
-        return
-            uint32(
-                _getLivePlayerAddresses(lobby)._inner._positions[
-                    bytes32(uint256(uint160(msg.sender)))
-                ] - 1
-            );
+        return uint32(_getLivePlayerAddresses(lobby)._inner._positions[bytes32(uint256(uint160(msg.sender)))] - 1);
     }
 
-    function _getAttackerForOffset(
-        Lobby storage lobby,
-        uint256 playerIndex,
-        uint32 offset
-    ) private view returns (address, Player storage) {
+    function _getAttackerForOffset(Lobby storage lobby, uint256 playerIndex, uint32 offset)
+        private
+        view
+        returns (address, Player storage)
+    {
         uint32 playerCount = _getLivePlayerCount(lobby);
-        address attackerAddress = _getLivePlayerAddresses(lobby).at(
-            uint256((playerIndex + playerCount - offset) % playerCount)
-        );
+        address attackerAddress =
+            _getLivePlayerAddresses(lobby).at(uint256((playerIndex + playerCount - offset) % playerCount));
         return (attackerAddress, lobby.playersByAddress[attackerAddress]);
     }
 
-    function _getLivePlayerAddresses(
-        Lobby storage lobby
-    ) private view returns (EnumerableSet.AddressSet storage) {
+    function _getLivePlayerAddresses(Lobby storage lobby) private view returns (EnumerableSet.AddressSet storage) {
         return lobby.livePlayerAddressesByRound[lobby.roundNumber];
     }
 
-    function _verifyValidWords(
-        ValidWordsProof calldata proof,
-        uint256 secretWordMerkleRoot
-    ) private view {
-        if (
-            !this.verifyValidWordsProof(
-                proof._pA,
-                proof._pB,
-                proof._pC,
-                proof._pubSignals
-            )
-        ) {
+    function _verifyValidWords(ValidWordsProof calldata proof, uint256 secretWordMerkleRoot) private view {
+        if (!this.verifyValidWordsProof(proof._pA, proof._pB, proof._pC, proof._pubSignals)) {
             revert InvalidSecretWordsProof();
         }
         if (proof._pubSignals[MAX_LIVES] != secretWordMerkleRoot) {
@@ -639,22 +468,12 @@ contract Lobbies is
         Word guess,
         uint32[5] memory guessLetters
     ) private view {
-        if (
-            proof._pubSignals[0] !=
-            player.secretWordCommitments[player.secretWordIndex]
-        ) {
-            revert WrongSecretWordOrSaltInMatchProof(
-                attackerIndex,
-                player.secretWordIndex,
-                guess.toString()
-            );
+        if (proof._pubSignals[0] != player.secretWordCommitments[player.secretWordIndex]) {
+            revert WrongSecretWordOrSaltInMatchProof(attackerIndex, player.secretWordIndex, guess.toString());
         }
         // Public signals: [commitment, ...scores[3][5], ...guessLetters[3][5]].
         for (uint32 i = 0; i < 5; i++) {
-            if (
-                proof._pubSignals[i + 5 * (NUM_TARGETS + attackerIndex) + 1] !=
-                uint256(guessLetters[i])
-            ) {
+            if (proof._pubSignals[i + 5 * (NUM_TARGETS + attackerIndex) + 1] != uint256(guessLetters[i])) {
                 revert WrongGuessInMatchProof(attackerIndex, guess.toString());
             }
         }
@@ -667,14 +486,11 @@ contract Lobbies is
     function _shouldEndGame(Lobby storage lobby) private view returns (bool) {
         uint32 roundNumber = lobby.roundNumber;
         uint32 maxRounds = uint32(lobby.config.maxRounds);
-        return
-            (maxRounds > 0 && roundNumber == maxRounds - 1) ||
-            lobby.livePlayerAddressesByRound[roundNumber + 1].length() <= 1;
+        return (maxRounds > 0 && roundNumber == maxRounds - 1)
+            || lobby.livePlayerAddressesByRound[roundNumber + 1].length() <= 1;
     }
 
-    function _getMinPlayerCount(
-        Lobby storage lobby
-    ) private view returns (uint32) {
+    function _getMinPlayerCount(Lobby storage lobby) private view returns (uint32) {
         uint32 count = lobby.config.minPlayers;
         return count < 2 ? 2 : count;
     }
@@ -683,21 +499,17 @@ contract Lobbies is
     // * Private pure functions
     // *************************************************************************
 
-    function _chooseRandomishOffsets(
-        uint32 playerCount,
-        uint32 randomishSeed,
-        uint32 roundNumber
-    ) private pure returns (uint32[] memory) {
+    function _chooseRandomishOffsets(uint32 playerCount, uint32 randomishSeed, uint32 roundNumber)
+        private
+        pure
+        returns (uint32[] memory)
+    {
         uint32[] memory offsets = new uint32[](NUM_TARGETS);
         uint32 salt = 0;
         for (uint32 i = 0; i < NUM_TARGETS; i++) {
             while (true) {
-                bytes32 randomishHash = keccak256(
-                    abi.encodePacked(randomishSeed, roundNumber, salt++)
-                );
-                uint32 offset = uint32(
-                    (uint256(randomishHash) % (playerCount - 1)) + 1
-                );
+                bytes32 randomishHash = keccak256(abi.encodePacked(randomishSeed, roundNumber, salt++));
+                uint32 offset = uint32((uint256(randomishHash) % (playerCount - 1)) + 1);
                 if (!_arrayContainsBeforeIndex(offsets, offset, i)) {
                     offsets[i] = offset;
                     break;
@@ -707,11 +519,11 @@ contract Lobbies is
         return offsets;
     }
 
-    function _arrayContainsBeforeIndex(
-        uint32[] memory array,
-        uint32 x,
-        uint32 indexBound
-    ) private pure returns (bool) {
+    function _arrayContainsBeforeIndex(uint32[] memory array, uint32 x, uint32 indexBound)
+        private
+        pure
+        returns (bool)
+    {
         for (uint32 i = 0; i < indexBound; i++) {
             if (array[i] == x) {
                 return true;
@@ -720,10 +532,11 @@ contract Lobbies is
         return false;
     }
 
-    function _getMatchesFromProof(
-        ScoreGuessesProof calldata proof,
-        uint32 attackerIndex
-    ) private pure returns (Color[5] memory) {
+    function _getMatchesFromProof(ScoreGuessesProof calldata proof, uint32 attackerIndex)
+        private
+        pure
+        returns (Color[5] memory)
+    {
         Color[5] memory matches;
         // Public signals: [commitment, ...scores[3][5], ...guessLetters[3][5]].
         for (uint32 i = 0; i < 5; i++) {

@@ -10,7 +10,10 @@ import {UserOperation} from "account-abstraction/interfaces/UserOperation.sol";
  */
 contract DevPaymaster is IPaymaster {
     function validatePaymasterUserOp(UserOperation calldata, bytes32, uint256)
-    external override returns (bytes memory, uint256) {}
+        external
+        override
+        returns (bytes memory, uint256)
+    {}
 
     function postOp(PostOpMode, bytes calldata, uint256) external override {}
 }

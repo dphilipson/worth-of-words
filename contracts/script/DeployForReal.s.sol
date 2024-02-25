@@ -6,11 +6,6 @@ import {BaseDeploy} from "./BaseDeploy.sol";
 
 contract DeployForRealScript is BaseDeploy {
     function run() external {
-        runWithPrivateKey(
-            vm.envUint("PRIVATE_KEY"),
-            "deployedConstants.ts",
-            "DEPLOYED",
-            true
-        );
+        runWithPrivateKey(vm.envUint("PRIVATE_KEY"), "deployedConstants.ts", "DEPLOYED", true);
     }
 }

@@ -7,9 +7,7 @@ import {Lobbies} from "./Lobbies.sol";
 contract WorthOfWords is IWorthOfWords, Lobbies {
     Lobby[] private _lobbies;
 
-    function createLobby(
-        LobbyConfig calldata config
-    ) external override returns (LobbyId) {
+    function createLobby(LobbyConfig calldata config) external override returns (LobbyId) {
         LobbyId lobbyId = LobbyId.wrap(_lobbies.length);
         Lobby storage lobby = _lobbies.push();
         _initializeLobby(lobby, lobbyId, config);
@@ -22,39 +20,22 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
         bytes calldata password,
         ValidWordsProof calldata secretWordsCommitment
     ) external override {
-        _addPlayer(
-            _getLobby(lobbyId),
-            lobbyId,
-            playerName,
-            password,
-            secretWordsCommitment
-        );
+        _addPlayer(_getLobby(lobbyId), lobbyId, playerName, password, secretWordsCommitment);
     }
 
     function startGame(LobbyId lobbyId) external override {
         _startGame(_getLobby(lobbyId), lobbyId);
     }
 
-    function commitGuess(
-        LobbyId lobbyId,
-        bytes32 commitment
-    ) external override {
+    function commitGuess(LobbyId lobbyId, bytes32 commitment) external override {
         _commitGuess(_getLobby(lobbyId), lobbyId, commitment);
     }
 
-    function revealGuess(
-        LobbyId lobbyId,
-        Word guess,
-        uint256 salt,
-        bytes32[] calldata merkleProof
-    ) external override {
+    function revealGuess(LobbyId lobbyId, Word guess, uint256 salt, bytes32[] calldata merkleProof) external override {
         _revealGuess(_getLobby(lobbyId), lobbyId, guess, salt, merkleProof);
     }
 
-    function revealMatches(
-        LobbyId lobbyId,
-        ScoreGuessesProof calldata proof
-    ) external override {
+    function revealMatches(LobbyId lobbyId, ScoreGuessesProof calldata proof) external override {
         _revealMatches(_getLobby(lobbyId), lobbyId, proof);
     }
 
@@ -62,16 +43,11 @@ contract WorthOfWords is IWorthOfWords, Lobbies {
         _endRevealMatchesPhase(_getLobby(lobbyId), lobbyId);
     }
 
-    function getLobbyConfig(
-        LobbyId lobbyId
-    ) external view override returns (LobbyConfig memory) {
+    function getLobbyConfig(LobbyId lobbyId) external view override returns (LobbyConfig memory) {
         return _getLobby(lobbyId).config;
     }
 
-    function isValidLobbyPassword(
-        LobbyId lobbyId,
-        bytes calldata password
-    ) external view override returns (bool) {
+    function isValidLobbyPassword(LobbyId lobbyId, bytes calldata password) external view override returns (bool) {
         return _isValidPassword(_getLobby(lobbyId), password);
     }
 

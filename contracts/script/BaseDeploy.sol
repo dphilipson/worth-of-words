@@ -8,8 +8,7 @@ import {DevPaymaster} from "../src/DevPaymaster.sol";
 import {WorthOfWords} from "../src/WorthOfWords.sol";
 
 contract BaseDeploy is Script {
-    IEntryPoint private constant ENTRY_POINT =
-        IEntryPoint(0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789);
+    IEntryPoint private constant ENTRY_POINT = IEntryPoint(0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789);
 
     function runWithPrivateKey(
         uint256 privateKey,
@@ -32,11 +31,7 @@ contract BaseDeploy is Script {
         vm.writeLine(
             path,
             string.concat(
-                "export const ",
-                variablePrefix,
-                '_WORTH_OF_WORDS_ADDRESS = "',
-                vm.toString(worthOfWords),
-                '";'
+                "export const ", variablePrefix, '_WORTH_OF_WORDS_ADDRESS = "', vm.toString(worthOfWords), '";'
             )
         );
         if (!isProduction) {
@@ -45,11 +40,7 @@ contract BaseDeploy is Script {
             vm.writeLine(
                 path,
                 string.concat(
-                    "export const ",
-                    variablePrefix,
-                    '_PAYMASTER_ADDRESS = "',
-                    vm.toString(devPaymaster),
-                    '";'
+                    "export const ", variablePrefix, '_PAYMASTER_ADDRESS = "', vm.toString(devPaymaster), '";'
                 )
             );
         }
@@ -62,42 +53,25 @@ contract BaseDeploy is Script {
 
     function deployWorthOfWords() private returns (address) {
         address addr = Create2.computeAddress(
-            bytes32(0),
-            keccak256(
-                abi.encodePacked(type(WorthOfWords).creationCode, abi.encode())
-            ),
-            CREATE2_FACTORY
+            bytes32(0), keccak256(abi.encodePacked(type(WorthOfWords).creationCode, abi.encode())), CREATE2_FACTORY
         );
         if (addr.code.length > 0) {
             return addr;
         }
         address worthOfWords = address(new WorthOfWords{salt: 0}());
-        require(
-            worthOfWords == addr,
-            "WorthOfWords address did not match predicted"
-        );
+        require(worthOfWords == addr, "WorthOfWords address did not match predicted");
         return worthOfWords;
     }
 
     function deployDevPaymaster() private returns (address) {
         address addr = Create2.computeAddress(
-            bytes32(0),
-            keccak256(
-                abi.encodePacked(
-                    type(DevPaymaster).creationCode,
-                    abi.encode()
-                )
-            ),
-            CREATE2_FACTORY
+            bytes32(0), keccak256(abi.encodePacked(type(DevPaymaster).creationCode, abi.encode())), CREATE2_FACTORY
         );
         if (addr.code.length > 0) {
             return addr;
         }
         address paymaster = address(new DevPaymaster{salt: 0}());
-        require(
-            paymaster == addr,
-            "DevPaymaster address did not match predicted"
-        );
+        require(paymaster == addr, "DevPaymaster address did not match predicted");
         ENTRY_POINT.depositTo{value: 1 ether}(addr);
         return paymaster;
     }

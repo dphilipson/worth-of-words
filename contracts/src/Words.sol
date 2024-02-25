@@ -20,9 +20,7 @@ library Words {
         return string(outBytes);
     }
 
-    function toLetters(
-        Word self
-    ) internal pure returns (uint32[WORD_LENGTH] memory) {
+    function toLetters(Word self) internal pure returns (uint32[WORD_LENGTH] memory) {
         uint32[WORD_LENGTH] memory letters;
         uint24 w = Word.unwrap(self);
         for (uint32 i = 0; i < WORD_LENGTH; i++) {

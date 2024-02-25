@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 type LobbyId is uint256;
+
 type Word is uint24;
 
 struct LobbyConfig {
@@ -65,34 +66,12 @@ struct ScoreGuessesProof {
 
 interface WorthOfWordsTypes {
     event LobbyCreated(LobbyId indexed lobbyId, address indexed creator);
-    event JoinedLobby(
-        LobbyId indexed lobbyId,
-        address indexed player,
-        string playerName
-    );
+    event JoinedLobby(LobbyId indexed lobbyId, address indexed player, string playerName);
     event GameStarted(LobbyId indexed lobbyId, uint32 playerCount);
-    event NewRound(
-        LobbyId indexed lobbyId,
-        uint32 roundNumber,
-        uint32[] targetOffsets,
-        uint32 remainingPlayerCount
-    );
-    event NewPhase(
-        LobbyId indexed lobbyId,
-        Phase indexed phase,
-        uint32 roundNumber,
-        uint48 deadline
-    );
-    event GuessCommitted(
-        LobbyId indexed lobbyId,
-        address indexed player,
-        uint32 currentScore
-    );
-    event GuessRevealed(
-        LobbyId indexed lobbyId,
-        address indexed player,
-        string guess
-    );
+    event NewRound(LobbyId indexed lobbyId, uint32 roundNumber, uint32[] targetOffsets, uint32 remainingPlayerCount);
+    event NewPhase(LobbyId indexed lobbyId, Phase indexed phase, uint32 roundNumber, uint48 deadline);
+    event GuessCommitted(LobbyId indexed lobbyId, address indexed player, uint32 currentScore);
+    event GuessRevealed(LobbyId indexed lobbyId, address indexed player, string guess);
     event MatchesRevealed(
         LobbyId indexed lobbyId,
         address indexed attacker,
@@ -103,16 +82,8 @@ interface WorthOfWordsTypes {
         uint32 newGreenCount,
         uint32 pointsAwarded
     );
-    event PlayerAdvancedWithNoAttackers(
-        LobbyId indexed lobbyId,
-        address indexed player
-    );
-    event SecretWordFound(
-        LobbyId indexed lobbyId,
-        address indexed player,
-        string word,
-        uint32 secretWordIndex
-    );
+    event PlayerAdvancedWithNoAttackers(LobbyId indexed lobbyId, address indexed player);
+    event SecretWordFound(LobbyId indexed lobbyId, address indexed player, string word, uint32 secretWordIndex);
     event PlayerEliminated(LobbyId indexed lobbyId, address indexed player);
     event GameEnded(LobbyId indexed lobbyId);
 
@@ -149,11 +120,7 @@ interface WorthOfWordsTypes {
     error InvalidMerkleProofInGuessReveal();
 
     // Errors for revealMatches.
-    error WrongSecretWordOrSaltInMatchProof(
-        uint32 attackerIndex,
-        uint32 secretWordIndex,
-        string guess
-    );
+    error WrongSecretWordOrSaltInMatchProof(uint32 attackerIndex, uint32 secretWordIndex, string guess);
     error WrongGuessInMatchProof(uint32 attackerIndex, string requiredGuess);
     error InvalidMatchProof();
 
@@ -162,9 +129,7 @@ interface WorthOfWordsTypes {
 }
 
 interface IWorthOfWords is WorthOfWordsTypes {
-    function createLobby(
-        LobbyConfig calldata config
-    ) external returns (LobbyId);
+    function createLobby(LobbyConfig calldata config) external returns (LobbyId);
 
     function joinLobby(
         LobbyId lobbyId,
@@ -177,26 +142,13 @@ interface IWorthOfWords is WorthOfWordsTypes {
 
     function commitGuess(LobbyId lobbyId, bytes32 commitment) external;
 
-    function revealGuess(
-        LobbyId lobbyId,
-        Word guess,
-        uint256 salt,
-        bytes32[] calldata merkleProof
-    ) external;
+    function revealGuess(LobbyId lobbyId, Word guess, uint256 salt, bytes32[] calldata merkleProof) external;
 
-    function revealMatches(
-        LobbyId lobbyId,
-        ScoreGuessesProof calldata proof
-    ) external;
+    function revealMatches(LobbyId lobbyId, ScoreGuessesProof calldata proof) external;
 
     function endRevealMatchesPhase(LobbyId lobbyId) external;
 
-    function getLobbyConfig(
-        LobbyId lobbyId
-    ) external view returns (LobbyConfig memory);
+    function getLobbyConfig(LobbyId lobbyId) external view returns (LobbyConfig memory);
 
-    function isValidLobbyPassword(
-        LobbyId lobbyId,
-        bytes calldata password
-    ) external view returns (bool);
+    function isValidLobbyPassword(LobbyId lobbyId, bytes calldata password) external view returns (bool);
 }

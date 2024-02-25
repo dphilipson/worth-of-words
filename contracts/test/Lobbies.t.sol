@@ -16,8 +16,7 @@ contract LobbiesTest is Test, Lobbies {
     function test_runthrough() public {
         vm.prank(ALICE);
         this.initialize(getDefaultLobbyConfig());
-        ValidWordsProof
-            memory secretWordsCommitment = getMammaSecretWordsCommitment();
+        ValidWordsProof memory secretWordsCommitment = getMammaSecretWordsCommitment();
         vm.prank(ALICE);
         this.addPlayer("Alice", bytes(""), secretWordsCommitment);
         vm.prank(BOB);
@@ -44,11 +43,7 @@ contract LobbiesTest is Test, Lobbies {
         this.revealMatches(scoreProof);
         // IMAMS against MAMMA has two yellows and one green. With the test
         // config, thats 2 + 10 points.
-        assertEq(
-            lobby.playersByAddress[ALICE].score,
-            12,
-            "wrong score for Alice"
-        );
+        assertEq(lobby.playersByAddress[ALICE].score, 12, "wrong score for Alice");
         // Bob should get no points because he didn't submit a guess.
         assertEq(lobby.playersByAddress[BOB].score, 0, "wrong score for Bob");
         assertEq(lobby.roundNumber, 1, "round should have advanced");
@@ -63,13 +58,7 @@ contract LobbiesTest is Test, Lobbies {
         bytes calldata password,
         ValidWordsProof calldata secretWordsCommitment
     ) external {
-        _addPlayer(
-            lobby,
-            LOBBY_ID,
-            playerName,
-            password,
-            secretWordsCommitment
-        );
+        _addPlayer(lobby, LOBBY_ID, playerName, password, secretWordsCommitment);
     }
 
     function startGame() external {
@@ -80,11 +69,7 @@ contract LobbiesTest is Test, Lobbies {
         _commitGuess(lobby, LOBBY_ID, commitment);
     }
 
-    function revealGuess(
-        Word guess,
-        uint256 salt,
-        bytes32[] calldata merkleProof
-    ) external {
+    function revealGuess(Word guess, uint256 salt, bytes32[] calldata merkleProof) external {
         _revealGuess(lobby, LOBBY_ID, guess, salt, merkleProof);
     }
 
@@ -93,69 +78,57 @@ contract LobbiesTest is Test, Lobbies {
     }
 
     function getDefaultLobbyConfig() private pure returns (LobbyConfig memory) {
-        return
-            LobbyConfig({
-                secretWordMerkleRoot: 0xfdbe8835fd6ad7b4a03d89ce621ab3a1fb4c990b687e77b5d502b3f09df6438,
-                privateGamePublicKey: 0,
-                minPlayers: 2,
-                maxPlayers: 2,
-                guessWordMerkleRoot: bytes32(
-                    0x3d7f08c5bb8f1ce2219d2ee5eb6f26d3400fd98ef774c2d74c1e03931692360d
-                ),
-                maxCommitGuessTime: 1000,
-                maxRevealGuessTime: 1000,
-                maxRevealMatchesTime: 1000,
-                maxRounds: 5,
-                numLives: 2,
-                pointsForYellow: 1,
-                pointsForGreen: 10,
-                pointsForFullWord: 100
-            });
+        return LobbyConfig({
+            secretWordMerkleRoot: 0xfdbe8835fd6ad7b4a03d89ce621ab3a1fb4c990b687e77b5d502b3f09df6438,
+            privateGamePublicKey: 0,
+            minPlayers: 2,
+            maxPlayers: 2,
+            guessWordMerkleRoot: bytes32(0x3d7f08c5bb8f1ce2219d2ee5eb6f26d3400fd98ef774c2d74c1e03931692360d),
+            maxCommitGuessTime: 1000,
+            maxRevealGuessTime: 1000,
+            maxRevealMatchesTime: 1000,
+            maxRounds: 5,
+            numLives: 2,
+            pointsForYellow: 1,
+            pointsForGreen: 10,
+            pointsForFullWord: 100
+        });
     }
 
     /**
      * Proof for the word "MAMMA" and two others not used in this test.
      * Generated from `printTestData` in the app (frontend) module.
      */
-    function getMammaSecretWordsCommitment()
-        private
-        pure
-        returns (ValidWordsProof memory)
-    {
-        return
-            ValidWordsProof(
+    function getMammaSecretWordsCommitment() private pure returns (ValidWordsProof memory) {
+        return ValidWordsProof(
+            [
+                17881595491463269564028249543491327440928342057208551375603995221815423818362,
+                13731895407756928260451318329930734688585234889194182604340302047082970113064
+            ],
+            [
                 [
-                    17881595491463269564028249543491327440928342057208551375603995221815423818362,
-                    13731895407756928260451318329930734688585234889194182604340302047082970113064
+                    10041729348039128096846126424245821030280463087898957209323267876832189337229,
+                    4585173980328929416560052129055439130840871716497738781184710780744001411657
                 ],
                 [
-                    [
-                        10041729348039128096846126424245821030280463087898957209323267876832189337229,
-                        4585173980328929416560052129055439130840871716497738781184710780744001411657
-                    ],
-                    [
-                        2073478311500690531758885553064726059849489367930319487872664731113310725767,
-                        1671061633064024332847138202429134250370577539303100503152382948003779992620
-                    ]
-                ],
-                [
-                    1227574819873297095949033528010595514908399406658348126919702485914703415683,
-                    11684528560275350585037846583396184014992507441463324031984922255681160841032
-                ],
-                [
-                    5171736603042482243320905874870331627894653004354088196836570650861053951069,
-                    8561268086786338597719598234748529167157446697220990872578671534870233569341,
-                    10366956229969468420673216372240379198377488389397733760441536651340128113246,
-                    7173236982933911777820733145493173871226223723182762917932632264146841199672
+                    2073478311500690531758885553064726059849489367930319487872664731113310725767,
+                    1671061633064024332847138202429134250370577539303100503152382948003779992620
                 ]
-            );
+            ],
+            [
+                1227574819873297095949033528010595514908399406658348126919702485914703415683,
+                11684528560275350585037846583396184014992507441463324031984922255681160841032
+            ],
+            [
+                5171736603042482243320905874870331627894653004354088196836570650861053951069,
+                8561268086786338597719598234748529167157446697220990872578671534870233569341,
+                10366956229969468420673216372240379198377488389397733760441536651340128113246,
+                7173236982933911777820733145493173871226223723182762917932632264146841199672
+            ]
+        );
     }
 
-    function getImamsMerkleProof()
-        private
-        pure
-        returns (bytes32[] memory proof)
-    {
+    function getImamsMerkleProof() private pure returns (bytes32[] memory proof) {
         uint256[14] memory copyPastedProof = [
             0x1cdeb52b0977cd0ae69d8103f4429881c6b1ada8f31e9c8cb7e76f744f4438a6,
             0x0289ee5ac3eedd295b18fc82b3ab658c7c1c4c606d5eb62ebc9ba4ca6fdf8f09,
@@ -179,64 +152,59 @@ contract LobbiesTest is Test, Lobbies {
         return proof;
     }
 
-    function getImamsOnMammaScoreProof()
-        private
-        pure
-        returns (ScoreGuessesProof memory)
-    {
-        return
-            ScoreGuessesProof(
+    function getImamsOnMammaScoreProof() private pure returns (ScoreGuessesProof memory) {
+        return ScoreGuessesProof(
+            [
+                15693239736464155968943120648313727508491978725751295945152830771130753012582,
+                9764223623244957491282176177134973110395736897559787596874877041253769484354
+            ],
+            [
                 [
-                    15693239736464155968943120648313727508491978725751295945152830771130753012582,
-                    9764223623244957491282176177134973110395736897559787596874877041253769484354
+                    3488833506423774319360670602070037271224240358954407852260427213742871500625,
+                    2893461148445015230262491105662613756517495680284484997509679004510422945192
                 ],
                 [
-                    [
-                        3488833506423774319360670602070037271224240358954407852260427213742871500625,
-                        2893461148445015230262491105662613756517495680284484997509679004510422945192
-                    ],
-                    [
-                        638883980693004260327686765048482955791133217504465860210714550850825747765,
-                        16332317062985708606605983089533126610969069843277862487364725643788024838442
-                    ]
-                ],
-                [
-                    3363024327997736643710643267981701686192711446567955247724498059633144479480,
-                    3726766078545050752983425371113336650661259272508959025235662413574467496086
-                ],
-                [
-                    5171736603042482243320905874870331627894653004354088196836570650861053951069,
-                    0,
-                    1,
-                    1,
-                    2,
-                    0,
-                    2,
-                    0,
-                    0,
-                    0,
-                    0,
-                    0,
-                    2,
-                    0,
-                    0,
-                    0,
-                    8,
-                    12,
-                    0,
-                    12,
-                    18,
-                    12,
-                    14,
-                    14,
-                    2,
-                    7,
-                    15,
-                    0,
-                    11,
-                    4,
-                    14
+                    638883980693004260327686765048482955791133217504465860210714550850825747765,
+                    16332317062985708606605983089533126610969069843277862487364725643788024838442
                 ]
-            );
+            ],
+            [
+                3363024327997736643710643267981701686192711446567955247724498059633144479480,
+                3726766078545050752983425371113336650661259272508959025235662413574467496086
+            ],
+            [
+                5171736603042482243320905874870331627894653004354088196836570650861053951069,
+                0,
+                1,
+                1,
+                2,
+                0,
+                2,
+                0,
+                0,
+                0,
+                0,
+                0,
+                2,
+                0,
+                0,
+                0,
+                8,
+                12,
+                0,
+                12,
+                18,
+                12,
+                14,
+                14,
+                2,
+                7,
+                15,
+                0,
+                11,
+                4,
+                14
+            ]
+        );
     }
 }
