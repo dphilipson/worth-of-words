@@ -362,7 +362,7 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessesVerifier, ValidWordsVerifier 
      */
     function _setUpPlayerForNextRound(Lobby storage lobby, Player storage player) private {
         uint32 nextRoundNumber = lobby.roundNumber + 1;
-        if (lobby.livePlayerAddressesByRound.length < nextRoundNumber + 1) {
+        if (lobby.livePlayerAddressesByRound.length <= nextRoundNumber) {
             lobby.livePlayerAddressesByRound.push();
         }
         lobby.livePlayerAddressesByRound[nextRoundNumber].add(msg.sender);
@@ -486,6 +486,7 @@ contract Lobbies is WorthOfWordsTypes, ScoreGuessesVerifier, ValidWordsVerifier 
         uint32 roundNumber = lobby.roundNumber;
         uint32 maxRounds = uint32(lobby.config.maxRounds);
         return (maxRounds > 0 && roundNumber == maxRounds - 1)
+            || lobby.livePlayerAddressesByRound.length <= roundNumber + 1
             || lobby.livePlayerAddressesByRound[roundNumber + 1].length() <= 1;
     }
 

@@ -42,7 +42,7 @@ export function useLobbyStorage(
     toJson: ({ guess, salt }) => ({ guess, salt: salt.toString() }),
     fromJson: ({ guess, salt }) => ({ guess, salt: BigInt(salt) }),
   });
-  const [advancedToRound, advanceToRound] = useStorage<number>({
+  const [advancedToRound, setAdvancedToRound] = useStorage<number>({
     key: getFullKey(ADVANCED_TO_ROUND_KEY),
   });
   if (lobbyId === undefined || walletAddress === undefined) {
@@ -55,6 +55,6 @@ export function useLobbyStorage(
     setSecrets,
     setGuess,
     clearGuess: () => setGuess(undefined),
-    setAdvancedToRound: advanceToRound,
+    setAdvancedToRound,
   };
 }
