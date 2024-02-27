@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.21;
 
+import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {Script, console2} from "forge-std/Script.sol";
 
 contract AaDeploys is Script {
@@ -32,9 +33,17 @@ contract AaDeploys is Script {
     }
 
     function deploy(bytes memory saltAndInitCode) private returns (address) {
+        address addr = Create2.computeAddress(
+            bytes32(saltAndInitCode), keccak256(this.getInitCode(saltAndInitCode)), CREATE2_FACTORY
+        );
+        if (addr.code.length > 0) {
+            return addr;
+        }
         (bool success, bytes memory result) = CREATE2_FACTORY.call(saltAndInitCode);
         rethrowIfError(success, result);
-        return address(uint160(bytes20(result)));
+        address deployedAddr = address(uint160(bytes20(result)));
+        require(deployedAddr == addr, "Deployed bytecode address did not match predicted");
+        return deployedAddr;
     }
 
     function rethrowIfError(bool success, bytes memory result) private pure {
@@ -43,5 +52,12 @@ contract AaDeploys is Script {
                 revert(add(result, 32), mload(result))
             }
         }
+    }
+
+    function getInitCode(bytes calldata saltAndInitCode) external pure returns (bytes memory) {
+        // External function to convert bytes to calldata so we can slice them.
+        // Not the most efficient, but easy to write and efficiency doesn't
+        // matter in a script.
+        return saltAndInitCode[32:];
     }
 }

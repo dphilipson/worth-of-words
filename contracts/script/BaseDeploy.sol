@@ -17,10 +17,9 @@ contract BaseDeploy is Script {
         bool isProduction
     ) internal {
         vm.startBroadcast(privateKey);
-        bool shouldDeployPaymaster = !isProduction && address(ENTRY_POINT).code.length > 0;
         address worthOfWords = deployWorthOfWords();
         address devPaymaster;
-        if (shouldDeployPaymaster) {
+        if (!isProduction) {
             devPaymaster = deployDevPaymaster();
         }
         string memory path = string.concat("./out/", outFilename);
@@ -35,8 +34,6 @@ contract BaseDeploy is Script {
             )
         );
         if (!isProduction) {
-            // Write the paymaster address even if not deploying a paymaster so
-            // imports work.
             vm.writeLine(
                 path,
                 string.concat(
@@ -45,7 +42,7 @@ contract BaseDeploy is Script {
             );
         }
         console2.log("WorthOfWords: %s", worthOfWords);
-        if (shouldDeployPaymaster) {
+        if (!isProduction) {
             console2.log("DevPaymaster: %s", devPaymaster);
         }
         vm.stopBroadcast();
