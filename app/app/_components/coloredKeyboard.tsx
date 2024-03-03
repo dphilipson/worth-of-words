@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { memo, ReactNode, useCallback, useMemo } from "react";
+import { FaDeleteLeft } from "react-icons/fa6";
 import { chainFrom } from "transducist";
 
 import { backgroundClassForColor } from "../_lib/colors";
@@ -21,7 +22,7 @@ export default memo(function ColoredKeyboard({
   return (
     <div
       className={clsx(
-        "text-1xl select-none flex-col space-y-2 font-bold",
+        "text-1xl w-screen max-w-[500px] touch-manipulation select-none flex-col space-y-2 px-2 font-bold",
         disabled && "pointer-events-none opacity-30",
       )}
     >
@@ -65,9 +66,16 @@ const ColoredKeyboardRow = memo(function ColoredKeyboardRow({
   hasMetaButtons,
   onKey,
 }: ColoredKeyboardRowProps): ReactNode {
+  const hasSpacers = !hasMetaButtons && letters.length < 10;
+  const spacer = hasSpacers && <div className="flex-[0.5_0.5_0%]" />;
   return (
-    <div className="flex justify-center space-x-2">
-      {hasMetaButtons && <MetaKey text="ENTER" keyCode="Enter" onKey={onKey} />}
+    <div className="flex space-x-1 sm:space-x-2">
+      {hasMetaButtons && (
+        <MetaKey keyCode="Enter" onKey={onKey}>
+          <span className="text-xs">ENTER</span>
+        </MetaKey>
+      )}
+      {spacer}
       {chainFrom(letters)
         .map((letter) => (
           <ColoredKey
@@ -79,8 +87,11 @@ const ColoredKeyboardRow = memo(function ColoredKeyboardRow({
           />
         ))
         .toArray()}
+      {spacer}
       {hasMetaButtons && (
-        <MetaKey text="DELETE" keyCode="Backspace" onKey={onKey} />
+        <MetaKey keyCode="Backspace" onKey={onKey}>
+          <FaDeleteLeft />
+        </MetaKey>
       )}
     </div>
   );
@@ -120,7 +131,7 @@ const ColoredKey = memo(function ColoredKey({
   return (
     <div
       className={clsx(
-        "relative flex h-14 w-11 cursor-pointer items-center justify-center overflow-hidden rounded-lg shadow-xl transition-transform hover:scale-105 active:scale-95",
+        "relative flex h-14 flex-1 cursor-pointer items-center justify-center overflow-hidden rounded-lg shadow-xl transition-transform hover:scale-105 active:scale-95",
         fullColor !== undefined
           ? backgroundClassForColor(fullColor) + " text-white"
           : "bg-gray-300 text-black",
@@ -146,23 +157,23 @@ const ColoredKey = memo(function ColoredKey({
 });
 
 interface MetaKeyProps {
-  text: string;
+  children: ReactNode;
   keyCode: string;
   onKey(keyCode: string): void;
 }
 
 const MetaKey = memo(function MetaKey({
-  text,
+  children,
   keyCode,
   onKey,
 }: MetaKeyProps): ReactNode {
   const onClick = useCallback(() => onKey(keyCode), [onKey, keyCode]);
   return (
     <div
-      className="flex h-14 w-24 cursor-pointer items-center justify-center rounded-lg bg-gray-300 text-black shadow-xl"
+      className="flex h-14 w-24 flex-[1.5_1.5_0%] cursor-pointer items-center justify-center rounded-lg bg-gray-300 text-black shadow-xl hover:scale-105 active:scale-95"
       onClick={onClick}
     >
-      {text}
+      {children}
     </div>
   );
 });

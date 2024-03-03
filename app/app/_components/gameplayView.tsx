@@ -137,7 +137,7 @@ export default memo(function GameplayView(): ReactNode {
       >
         View game status
       </button>
-      <div className="mt-2">
+      <div className="my-2">
         <ConnectedColoredKeyboard
           selectedIndex={selectedTargetIndex}
           disabled={!isInputtingGuess}
