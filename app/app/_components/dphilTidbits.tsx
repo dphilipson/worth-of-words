@@ -183,7 +183,7 @@ export default memo(function DPhilTidbits({
   return (
     <motion.div
       className={clsx(
-        "fixed right-12",
+        "fixed right-12 hidden sm:block",
         positionForNoFooter ? "bottom-12" : "bottom-28",
       )}
       initial={{ opacity: 0.5, translateY: 16 }}
