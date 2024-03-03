@@ -93,8 +93,11 @@ export default memo(function GameplayView(): ReactNode {
         : `Waiting for players ${getWaitingPlayerText()}`;
       return (
         <>
-          <Countdown className="text-5xl" deadline={lobby.phaseDeadline} />
-          <p className="mt-2 text-gray-700">{statusText}</p>
+          <Countdown
+            className="text-2xl sm:text-5xl"
+            deadline={lobby.phaseDeadline}
+          />
+          <p className="mt-0 text-sm text-gray-700 sm:mt-2">{statusText}</p>
         </>
       );
     } else if (lobby.phase === Phase.REVEALING_GUESSES) {
@@ -121,28 +124,35 @@ export default memo(function GameplayView(): ReactNode {
   return (
     <>
       {isInputtingGuess && <KeyboardCapture onKey={onKey} />}
-      <div className="min-h-[400px] w-full">
-        <TargetsView
-          currentInput={input}
-          onHoverChange={setSelectedTargetIndex}
-          subscribeToInputConfirm={subscribeToPulseInput}
-        />
-      </div>
-      <Card className="mt-10 flex flex-col items-center">
-        {statusComponent}
-      </Card>
-      <button
-        className="btn btn-sm mt-5 text-gray-800"
-        onClick={openStatusModal}
-      >
-        View game status
-      </button>
-      <div className="my-2">
-        <ConnectedColoredKeyboard
-          selectedIndex={selectedTargetIndex}
-          disabled={!isInputtingGuess}
-          onKey={onKey}
-        />
+      <div className="grid min-h-full grid-rows-[1fr_auto]">
+        <div className="w-full">
+          <TargetsView
+            currentInput={input}
+            onHoverChange={setSelectedTargetIndex}
+            subscribeToInputConfirm={subscribeToPulseInput}
+          />
+        </div>
+        <div className="flex flex-col items-center sm:mb-4">
+          <Card
+            className="mt-10 flex flex-col items-center p-2 sm:p-4"
+            noDefaultPadding={true}
+          >
+            {statusComponent}
+          </Card>
+          <button
+            className="btn btn-sm mt-5 text-gray-800"
+            onClick={openStatusModal}
+          >
+            View game status
+          </button>
+          <div className="my-2">
+            <ConnectedColoredKeyboard
+              selectedIndex={selectedTargetIndex}
+              disabled={!isInputtingGuess}
+              onKey={onKey}
+            />
+          </div>
+        </div>
       </div>
       <div className="fixed bottom-16 left-8 hidden w-full max-w-xs lg:block">
         <ConnectedPlayerListItem playerAddress={playerAddress} />
