@@ -168,7 +168,7 @@ export default memo(function GameplayView(): ReactNode {
                 />
               </div>
             </div>
-            <div className="flex w-96 min-w-fit flex-col items-center space-y-4 md:ml-10">
+            <div className="flex w-full max-w-sm flex-col items-center space-y-4 md:ml-10 md:w-96">
               <h4 className="text-xl font-semibold">Rankings</h4>
               <ConnectedPlayerList compact={true} />
             </div>
