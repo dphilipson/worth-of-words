@@ -46,9 +46,13 @@ export default function AppWrapper({
   return (
     <QueryClientProvider client={queryClient}>
       <FooterProvider>
-        <Header />
-        <main className="flex w-full flex-col items-center">{children}</main>
-        <Footer />
+        <div className="grid min-h-screen grid-rows-[auto_1fr_auto]">
+          <Header />
+          <main className="flex w-full flex-auto flex-col items-center">
+            {children}
+          </main>
+          <Footer />
+        </div>
         <ReactQueryDevtools initialIsOpen={false} />
       </FooterProvider>
     </QueryClientProvider>

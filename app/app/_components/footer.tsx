@@ -18,21 +18,16 @@ export default memo(function Footer(): ReactNode {
   if (footerHiddenCount > 0) {
     return undefined;
   }
-  // First div is a spacer so page content doesn't overlap the footer when
-  // scrolled to the bottom.
   return (
-    <>
-      <div className="h-20 w-full" />
-      <div className="fixed bottom-0 left-0 right-0 flex h-16 items-center bg-white bg-opacity-80 pl-24">
-        <a href={ABOUT_ACCOUNT_KIT_URL}>
-          <Image
-            src={poweredByAccountKit}
-            alt="Powered by AccountKit"
-            priority={true}
-          />
-        </a>
-      </div>
-    </>
+    <footer className="mt-8 flex h-16 items-center bg-white bg-opacity-80 pl-8 sm:mt-16 sm:pl-24">
+      <a href={ABOUT_ACCOUNT_KIT_URL}>
+        <Image
+          src={poweredByAccountKit}
+          alt="Powered by AccountKit"
+          priority={true}
+        />
+      </a>
+    </footer>
   );
 });
 
