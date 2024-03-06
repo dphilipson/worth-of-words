@@ -7,7 +7,7 @@ import {
   getPlayersDoneWithPhaseCount,
   Phase,
 } from "../_lib/gameLogic";
-import { usePrevious } from "../_lib/hooks";
+import { useIsLargeWindow, usePrevious } from "../_lib/hooks";
 import {
   useNotifyOnYourTurn,
   useRequestNotificationPermission,
@@ -36,6 +36,7 @@ export default memo(function GameplayView(): ReactNode {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const roundNumberLastRender = usePrevious(lobby.roundNumber);
   const [pulseInput, subscribeToPulseInput] = useCreateSubscription<void>();
+  const isLargeWindow = useIsLargeWindow();
   const commitGuess = useCallback(
     (guess: string) => {
       setIsSubmitting(true);
@@ -76,6 +77,9 @@ export default memo(function GameplayView(): ReactNode {
     !getPlayer(lobby, playerAddress).hasCommittedGuess;
 
   const shouldDisplayTidbits = !isInputtingGuess && !advanceToNextRound;
+  const selectedIndex = isLargeWindow
+    ? hoveredTargetIndex
+    : selectedMobileIndex;
 
   const statusComponent = (() => {
     if (advanceToNextRound) {
@@ -150,7 +154,7 @@ export default memo(function GameplayView(): ReactNode {
           </button>
           <div className="my-2">
             <ConnectedColoredKeyboard
-              selectedIndex={hoveredTargetIndex}
+              selectedIndex={selectedIndex}
               disabled={!isInputtingGuess}
               onKey={onKey}
             />

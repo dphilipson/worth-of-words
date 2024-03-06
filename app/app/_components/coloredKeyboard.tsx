@@ -117,7 +117,7 @@ const ColoredKey = memo(function ColoredKey({
   const onClick = useCallback(() => onKey(letter), [onKey, letter]);
   const fullColor = (() => {
     if (selectedIndex !== undefined) {
-      return colors[selectedIndex];
+      return colors[selectedIndex < colors.length ? selectedIndex : 0];
     } else if (
       colors.length > 0 &&
       colors.every((color) => color === colors[0])
