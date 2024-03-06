@@ -31,7 +31,8 @@ import TargetsView from "./targetsView";
 export default memo(function GameplayView(): ReactNode {
   const { playerAddress, lobby, validGuessWords, actions, advanceToNextRound } =
     useLobby();
-  const [selectedTargetIndex, setSelectedTargetIndex] = useState<number>();
+  const [hoveredTargetIndex, setHoveredTargetIndex] = useState<number>();
+  const [selectedMobileIndex, setSelectedMobileIndex] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const roundNumberLastRender = usePrevious(lobby.roundNumber);
   const [pulseInput, subscribeToPulseInput] = useCreateSubscription<void>();
@@ -125,14 +126,16 @@ export default memo(function GameplayView(): ReactNode {
     <>
       {isInputtingGuess && <KeyboardCapture onKey={onKey} />}
       <div className="grid min-h-full grid-rows-[1fr_auto]">
-        <div className="w-full">
+        <div className="w-screen">
           <TargetsView
             currentInput={input}
-            onHoverChange={setSelectedTargetIndex}
+            selectedMobileIndex={selectedMobileIndex}
+            setSelectedMobileIndex={setSelectedMobileIndex}
+            onHoverChange={setHoveredTargetIndex}
             subscribeToInputConfirm={subscribeToPulseInput}
           />
         </div>
-        <div className="flex flex-col items-center sm:mb-4">
+        <div className="mb-2 flex flex-col items-center sm:mb-4">
           <Card
             className="mt-10 flex flex-col items-center p-2 sm:p-4"
             noDefaultPadding={true}
@@ -147,7 +150,7 @@ export default memo(function GameplayView(): ReactNode {
           </button>
           <div className="my-2">
             <ConnectedColoredKeyboard
-              selectedIndex={selectedTargetIndex}
+              selectedIndex={hoveredTargetIndex}
               disabled={!isInputtingGuess}
               onKey={onKey}
             />

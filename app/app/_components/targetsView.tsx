@@ -1,19 +1,24 @@
 import { memo, ReactNode, useMemo } from "react";
 
 import { getSortedDefenders } from "../_lib/gameLogic";
+import { useIsLargeWindow } from "../_lib/hooks";
 import { SubscribeFunction } from "../_lib/subscriptions";
 import { useLobby } from "../_lib/useLobby";
-import ConnectedGuessGrid from "./connectedGuessGrid";
-import ConnectedPlayerListItem from "./connectedPlayerListItem";
+import DesktopTargetsView from "./desktopTargetsView";
+import MobileTargetsView from "./mobileTargetsView";
 
 export interface TargetsViewProps {
   currentInput: string;
+  selectedMobileIndex: number;
+  setSelectedMobileIndex(index: number): void;
   onHoverChange(index: number | undefined): void;
   subscribeToInputConfirm: SubscribeFunction<void>;
 }
 
 export default memo(function TargetsView({
   currentInput,
+  selectedMobileIndex,
+  setSelectedMobileIndex,
   onHoverChange,
   subscribeToInputConfirm,
 }: TargetsViewProps): ReactNode {
@@ -22,26 +27,27 @@ export default memo(function TargetsView({
     () => getSortedDefenders(lobby, playerAddress),
     [lobby, playerAddress],
   );
-  return (
-    <div className="flex w-full justify-around">
-      {defenders.map((defender, i) => {
-        return (
-          <div
-            key={defender.address}
-            className="flex w-full max-w-xs cursor-pointer flex-col items-center space-y-4 rounded-xl p-3 transition-colors hover:bg-black hover:bg-opacity-10"
-            onMouseEnter={() => onHoverChange(i)}
-            onMouseLeave={() => onHoverChange(undefined)}
-          >
-            <ConnectedPlayerListItem playerAddress={defender.address} />
-            <ConnectedGuessGrid
-              playerAddress={defender.address}
-              currentInput={currentInput}
-              isSelfGrid={false}
-              subscribeToInputConfirm={subscribeToInputConfirm}
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
+  const isLargeWindow = useIsLargeWindow();
+  if (isLargeWindow === undefined) {
+    return undefined;
+  } else if (isLargeWindow) {
+    return (
+      <DesktopTargetsView
+        defenders={defenders}
+        currentInput={currentInput}
+        onHoverChange={onHoverChange}
+        subscribeToInputConfirm={subscribeToInputConfirm}
+      />
+    );
+  } else {
+    return (
+      <MobileTargetsView
+        defenders={defenders}
+        defenderIndex={selectedMobileIndex}
+        currentInput={currentInput}
+        subscribeToInputConfirm={subscribeToInputConfirm}
+        setDefenderIndex={setSelectedMobileIndex}
+      />
+    );
+  }
 });

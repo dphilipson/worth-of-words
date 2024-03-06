@@ -79,6 +79,24 @@ export function useUrlHash(): string | undefined {
   return hash;
 }
 
+export function useIsLargeWindow(): boolean | undefined {
+  const [isLargeWindow, setIsLargeWindow] = useState<boolean>();
+  useEffect(() => {
+    let isLarge = window.innerWidth >= 1024;
+    setIsLargeWindow(isLarge);
+    const onResize = () => {
+      const newIsLarge = window.innerWidth >= 1024;
+      if (newIsLarge !== isLarge) {
+        isLarge = newIsLarge;
+        setIsLargeWindow(isLarge);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isLargeWindow;
+}
+
 /**
  * Returns the current time, refreshing on every animation frame.
  */
