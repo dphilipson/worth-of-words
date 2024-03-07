@@ -22,8 +22,10 @@ export default memo(function WaitingRoomView(): ReactNode {
     actions.startGame();
   }, [setIsStarting, actions]);
 
+  // Needs margin-bottom on mobile so the tidbits don't completely cover the
+  // "start game" button.
   return (
-    <div className="mt-16 flex w-full max-w-[38rem] flex-col items-center space-y-8 px-4">
+    <div className="mb-32 flex w-full max-w-[38rem] flex-col items-center space-y-8 px-4 sm:mb-0 sm:mt-16">
       <CopyLobbyUrlButton className="w-full" />
       <ConnectedPlayerList className="max-h-[24rem]" />
       <LoadingButton

@@ -10,7 +10,7 @@ import FadeInOnEnterBox from "./fadeInOnEnterBox";
  * If the player grid is dragged for longer than this, then change to the next
  * target.
  */
-const SWIPE_THRESHOLD_FRACTION_OF_SCREEN = 0.4;
+const SWIPE_THRESHOLD_FRACTION_OF_SCREEN = 0.25;
 
 export interface MobileTargetsViewProps {
   defenders: Player[];
@@ -72,7 +72,7 @@ export default memo(function MobileTargetsView({
         dragSnapToOrigin={true}
         onDragEnd={handleDragEnd}
       >
-        <FadeInOnEnterBox fadeDuration={0.3}>
+        <FadeInOnEnterBox fadeDuration={0.5}>
           <ConnectedTarget
             playerAddress={defender.address}
             currentInput={currentInput}
