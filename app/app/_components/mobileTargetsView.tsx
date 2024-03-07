@@ -10,7 +10,7 @@ import FadeInOnEnterBox from "./fadeInOnEnterBox";
  * If the player grid is dragged for longer than this, then change to the next
  * target.
  */
-const SWIPE_THRESHOLD = 150;
+const SWIPE_THRESHOLD_FRACTION_OF_SCREEN = 0.4;
 
 export interface MobileTargetsViewProps {
   defenders: Player[];
@@ -34,7 +34,10 @@ export default memo(function MobileTargetsView({
   const handleDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {
       const { x } = info.offset;
-      if (Math.abs(x) >= SWIPE_THRESHOLD) {
+      if (
+        Math.abs(x) >=
+        SWIPE_THRESHOLD_FRACTION_OF_SCREEN * window.innerWidth
+      ) {
         const nextIndex =
           (defenderIndex + Math.sign(x) + numDefenders) % numDefenders;
         setDefenderIndex(nextIndex);

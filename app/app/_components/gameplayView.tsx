@@ -166,7 +166,7 @@ export default memo(function GameplayView(): ReactNode {
       </div>
       <Modal subscribeToOpenModal={subscribeToOpenStatusModal}>
         {({ closeModal }) => (
-          <div className="relative flex max-h-[70vh] flex-col items-center justify-center space-y-10 md:flex-row md:items-start md:space-y-0">
+          <div className="relative flex flex-col items-center justify-center space-y-10 md:flex-row md:items-start md:space-y-0">
             <button
               className="absolute -right-3 -top-3 text-xl text-secondary hover:text-black"
               onClick={closeModal}
