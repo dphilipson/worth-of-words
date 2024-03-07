@@ -121,57 +121,61 @@ export default memo(function DPhilTidbits({
       ? initialTidbit!
       : shuffledTidbits[tidbitIndex % tidbits.length];
 
-  const icon = (
-    <Image
-      className="h-16 w-16 rounded"
-      width={64}
-      height={64}
-      src={dphilImage}
-      alt="Icon of dphil's portrait"
-    />
-  );
-
   function getClosedComponent(): ReactNode {
     return (
       <FadeInOnEnterBox
-        className="cursor-pointer rounded-2xl bg-gray-800 p-6 shadow-xl transition-transform hover:scale-105 active:scale-95"
+        className="cursor-pointer rounded-2xl bg-gray-800 p-2 shadow-xl transition-transform hover:scale-105 active:scale-95 sm:p-6"
         fadeDuration={0.25}
         onClick={openTidbits}
       >
-        {icon}
+        <DPhilIcon />
       </FadeInOnEnterBox>
     );
   }
 
   function getOpenComponent(): ReactNode {
     return (
-      <div className="max-w-[32rem] space-y-4 rounded-2xl bg-gray-800 p-6 shadow-xl">
-        <div className="flex space-x-4">
-          {icon}
-          <FadeInOnEnterBox
-            key={tidbitIndex}
-            className="prose -mt-1"
-            fadeDuration={0.75}
-            noFadeIn={tidbitIndex === -1}
-          >
-            <h4 className="mt-0 text-white">{tidbit.title}</h4>
-            <p className="mb-2 leading-6 text-gray-400">{tidbit.body}</p>
-            <div className="flex space-x-2">
-              {tidbitIndex === -1 && (
-                <TextButton onClick={advanceTidbit}>
-                  Cool, thanks dphil!
-                </TextButton>
-              )}
-              {tidbit.learnMoreUrl && (
-                <a href={tidbit.learnMoreUrl} target="_blank" rel="noopener">
-                  <TextButton>Tell me more</TextButton>
-                </a>
-              )}
-              <TextButton isSecondary={true} onClick={closeTidbits}>
-                Not now, dphil!
-              </TextButton>
+      <div className="ml-2 max-w-[32rem] space-y-4 rounded-2xl bg-gray-800 p-3 shadow-xl sm:p-6">
+        <div className="sm:flex sm:space-x-4">
+          <DPhilIcon className="hidden sm:block" onClick={closeTidbits} />
+          <div className="space-y-2">
+            <div className="flex items-center space-x-3 sm:space-x-0">
+              <DPhilIcon className="sm:hidden" onClick={closeTidbits} />
+              <FadeInOnEnterBox
+                key={tidbitIndex}
+                className="prose -mt-1"
+                fadeDuration={0.75}
+                noFadeIn={tidbitIndex === -1}
+              >
+                <h4 className="mt-0 text-white">{tidbit.title}</h4>
+              </FadeInOnEnterBox>
             </div>
-          </FadeInOnEnterBox>
+            <FadeInOnEnterBox
+              key={tidbitIndex}
+              className="prose -mt-1"
+              fadeDuration={0.75}
+              noFadeIn={tidbitIndex === -1}
+            >
+              <p className="mb-2 text-sm leading-6 text-gray-400 sm:text-base">
+                {tidbit.body}
+              </p>
+              <div className="flex space-x-2">
+                {tidbitIndex === -1 && (
+                  <TextButton onClick={advanceTidbit}>
+                    Cool, thanks dphil!
+                  </TextButton>
+                )}
+                {tidbit.learnMoreUrl && (
+                  <a href={tidbit.learnMoreUrl} target="_blank" rel="noopener">
+                    <TextButton>Tell me more</TextButton>
+                  </a>
+                )}
+                <TextButton isSecondary={true} onClick={closeTidbits}>
+                  Not now, dphil!
+                </TextButton>
+              </div>
+            </FadeInOnEnterBox>
+          </div>
         </div>
         <ProgressBar fillFraction={progressFraction} />
       </div>
@@ -183,8 +187,8 @@ export default memo(function DPhilTidbits({
   return (
     <motion.div
       className={clsx(
-        "fixed right-12 hidden sm:block",
-        positionForNoFooter ? "bottom-12" : "bottom-28",
+        "fixed bottom-2 right-2 sm:right-12",
+        positionForNoFooter ? "sm:bottom-12" : "sm:bottom-28",
       )}
       initial={{ opacity: 0.5, translateY: 16 }}
       animate={{ opacity: 1, translateY: 0 }}
@@ -192,6 +196,30 @@ export default memo(function DPhilTidbits({
     >
       {contents}
     </motion.div>
+  );
+});
+
+interface DPhilIconProps {
+  className?: string;
+  onClick?(): void;
+}
+
+const DPhilIcon = memo(function DPhilIcon({
+  className,
+  onClick,
+}: DPhilIconProps): ReactNode {
+  return (
+    <Image
+      className={clsx(
+        "h-12 w-12 rounded sm:h-16 sm:w-16",
+        onClick && "cursor-pointer",
+        className,
+      )}
+      width={64}
+      height={64}
+      src={dphilImage}
+      alt="Icon of dphil's portrait"
+    />
   );
 });
 

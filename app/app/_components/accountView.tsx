@@ -3,11 +3,7 @@ import { memo, ReactNode } from "react";
 import { FaXmark } from "react-icons/fa6";
 import { Address } from "viem";
 
-import {
-  ABOUT_MODULAR_ACCOUNTS_URL,
-  CHAIN,
-  MSCA_FACTORY_ADDRESS,
-} from "../_lib/constants";
+import { ABOUT_MODULAR_ACCOUNTS_URL, CHAIN } from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
 import { useAccountAddress } from "../_lib/sessionKeyWallet";
 import { useLogOut } from "../_lib/turnkey";
