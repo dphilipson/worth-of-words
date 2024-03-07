@@ -74,25 +74,25 @@ function getAlchemyClient() {
       feeOptions: {
         // Jack up the verification gas limit to work around an estimation bug
         // in the session key plugin.
-        verificationGasLimit: { percentage: 200 },
+        verificationGasLimit: { multiplier: 3 },
         // Jack up the call gas limit for cases when state changes cause the
         // execution gas to increase.
-        callGasLimit: { percentage: 100 },
+        callGasLimit: { multiplier: 2 },
       },
     },
   });
 }
 
 export function createOwnerAccount(
-  owner: SmartAccountSigner,
+  signer: SmartAccountSigner,
   accountAddress?: Address,
 ): Promise<MultiOwnerModularAccount<SmartAccountSigner>> {
   return createMultiOwnerModularAccount({
     accountAddress,
     chain: CHAIN,
+    signer,
     entryPoint: getVersion060EntryPoint(CHAIN, ENTRY_POINT_ADDRESS),
     factoryAddress: MSCA_FACTORY_ADDRESS,
-    owner,
     salt: ACCOUNT_SALT,
     transport: getTransport(),
   });
