@@ -1,5 +1,4 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Hex } from "viem";
 import { privateKeyToAddress } from "viem/accounts";
@@ -11,7 +10,6 @@ import {
 import { useSetTimeout } from "./hooks";
 import { useStorage } from "./localStorage";
 import { useRedirectToLogin } from "./loginRedirects";
-import { isOnMobile } from "./mobile";
 import {
   canSessionKeyAccessGame,
   createSessionKeyAccount,
@@ -43,17 +41,9 @@ export function useSessionKeyWallet(): WalletLike | undefined {
   const { isSuccess, data } = useSessionKeyWalletQuery();
   const [, setSessionPrivateKey] = useSessionPrivateKey();
   const redirectToLogin = useRedirectToLogin();
-  const router = useRouter();
   const setTimeout = useSetTimeout();
 
   useEffect(() => {
-    if (isOnMobile()) {
-      // Hacky to put this check here, but we want it to have priority over the
-      // redirect to login, and hopefully we'll have mobile support soon and
-      // won't need it anymore.
-      router.replace("/mobile-notice");
-      return;
-    }
     if (!isSuccess) {
       return;
     }

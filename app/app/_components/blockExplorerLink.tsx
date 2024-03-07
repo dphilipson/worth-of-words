@@ -6,6 +6,7 @@ import { CHAIN } from "../_lib/constants";
 export interface EtherscanishLinkProps {
   className?: string;
   address: Address;
+  text?: string;
   newTab?: boolean;
 }
 
@@ -14,6 +15,7 @@ const EXPLORER_URL = CHAIN.blockExplorers?.default.url ?? "unknown-chain";
 export default memo(function BlockExplorerLink({
   className,
   address,
+  text,
   newTab,
 }: EtherscanishLinkProps): ReactNode {
   const href = `${EXPLORER_URL}/address/${address}`;
@@ -24,7 +26,7 @@ export default memo(function BlockExplorerLink({
       target={newTab ? "_blank" : undefined}
       rel={newTab ? "noopener" : undefined}
     >
-      {address}
+      {text ?? address}
     </a>
   );
 });

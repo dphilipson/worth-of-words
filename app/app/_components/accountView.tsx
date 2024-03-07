@@ -3,7 +3,11 @@ import { memo, ReactNode } from "react";
 import { FaXmark } from "react-icons/fa6";
 import { Address } from "viem";
 
-import { ABOUT_MODULAR_ACCOUNTS_URL, CHAIN } from "../_lib/constants";
+import {
+  ABOUT_MODULAR_ACCOUNTS_URL,
+  CHAIN,
+  MSCA_FACTORY_ADDRESS,
+} from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
 import { useAccountAddress } from "../_lib/sessionKeyWallet";
 import { useLogOut } from "../_lib/turnkey";
@@ -41,15 +45,15 @@ export default memo(function AccountView({
           </a>{" "}
           on {CHAIN.name}!
         </p>
-        <p className="mt-0">
-          Your address:{" "}
+        <div>Your address:</div>
+        <div className="w-[200px] overflow-hidden overflow-ellipsis sm:w-auto">
           <BlockExplorerLink
             className="!font-semibold"
             address={accountAddress}
             newTab={true}
           />
-        </p>
-        <button className="btn btn-neutral" onClick={logOut}>
+        </div>
+        <button className="btn btn-neutral mt-4" onClick={logOut}>
           Log out
         </button>
       </>
