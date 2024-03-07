@@ -56,6 +56,7 @@ export function useLocalWallet(): WalletLike | undefined {
       createAndSetWallet(privateKey);
       delete (window as any).useAnvilAccount;
     };
+
     return () => {
       delete (window as any).useAnvilAccount;
     };
