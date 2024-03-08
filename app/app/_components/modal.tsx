@@ -29,7 +29,7 @@ export default memo(function Modal({
 
   return (
     <dialog id={id} ref={dialogRef} className="modal" onClose={handleClose}>
-      <div className="modal-box min-w-fit bg-opacity-95">
+      <div className="modal-box min-w-fit">
         {children({ isOpen, closeModal })}
       </div>
       <form method="dialog" className="modal-backdrop">

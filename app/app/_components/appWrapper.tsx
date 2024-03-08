@@ -7,8 +7,10 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { enableMapSet } from "immer";
+import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
+import { useTurnkeyDetails } from "../news/page";
 import Footer, { FooterProvider } from "./footer";
 import Header from "./header";
 
@@ -26,6 +28,9 @@ export default function AppWrapper({
 }: {
   children: ReactNode;
 }): ReactNode {
+  const router = useRouter();
+  const [turnkeyDetails] = useTurnkeyDetails();
+
   useEffect(() => {
     enableMapSet();
 
@@ -42,6 +47,16 @@ export default function AppWrapper({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const hasTurnkeyDetails = !!turnkeyDetails;
+
+  useEffect(() => {
+    if (hasTurnkeyDetails) {
+      // This user previously logged in with Turnkey, which is no longer
+      // supported. Take them to a page telling them what has changed.
+      router.replace("/news");
+    }
+  }, [hasTurnkeyDetails, router]);
 
   return (
     <QueryClientProvider client={queryClient}>
