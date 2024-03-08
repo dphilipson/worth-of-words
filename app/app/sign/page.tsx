@@ -31,7 +31,7 @@ export default memo(function SignPage(): ReactNode {
       <TextInput
         value={message}
         onValueChange={setMessage}
-        onEnter={mutate}
+        onPressEnter={mutate}
         placeholder="Enter message…"
       />
       <button

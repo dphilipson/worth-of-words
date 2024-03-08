@@ -13,21 +13,9 @@ export function useRedirectToLogin(): () => void {
   }, [router]);
 }
 
-export function useRedirectAfterLogin(): () => void {
-  const router = useRouter();
+export function useRedirectTargetFromUrl(): string {
   const urlHash = useUrlHash();
-
-  return useCallback(() => {
-    if (!urlHash) {
-      router.replace("/");
-      return;
-    }
-    const params = new URLSearchParams(urlHash);
-    const redirect = params.get("redirect");
-    if (redirect?.startsWith("/")) {
-      router.replace(redirect);
-    } else {
-      router.replace("/");
-    }
-  }, [urlHash, router]);
+  const params = new URLSearchParams(urlHash);
+  const redirect = params.get("redirect");
+  return redirect?.startsWith("/") ? redirect : "/";
 }

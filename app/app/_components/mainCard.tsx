@@ -33,7 +33,7 @@ export default memo(function MainCard({
         alt={imageAlt}
         priority={imageHasPriority}
       />
-      <h1 className="mb-0">{title}</h1>
+      {title && <h1 className="mb-0 text-2xl sm:text-4xl">{title}</h1>}
       {children}
     </Card>
   );

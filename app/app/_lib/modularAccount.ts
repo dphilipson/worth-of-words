@@ -6,7 +6,10 @@ import {
   SessionKeyPluginAbi,
   sessionKeyPluginActions,
 } from "@alchemy/aa-accounts";
-import { createAlchemySmartAccountClient } from "@alchemy/aa-alchemy";
+import {
+  AlchemySigner,
+  createAlchemySmartAccountClient,
+} from "@alchemy/aa-alchemy";
 import {
   Address,
   createSmartAccountClient,
@@ -82,6 +85,18 @@ function getAlchemyClient() {
     },
   });
 }
+
+export const IFRAME_CONTAINER_ID = "turnkey-iframe-container";
+
+export const getAlchemySigner = memoized(
+  () =>
+    new AlchemySigner({
+      client: {
+        connection: { rpcUrl: WORTH_OF_WORDS_API_URL },
+        iframeConfig: { iframeContainerId: IFRAME_CONTAINER_ID },
+      },
+    }),
+);
 
 export function createOwnerAccount(
   signer: SmartAccountSigner,

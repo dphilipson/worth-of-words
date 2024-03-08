@@ -1,166 +1,327 @@
 "use client";
+import { MultiOwnerModularAccount } from "@alchemy/aa-accounts";
+import { AuthParams } from "@alchemy/aa-alchemy";
 import { useMutation } from "@tanstack/react-query";
-import { memo, ReactNode, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  memo,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { FaAngleRight, FaFingerprint } from "react-icons/fa6";
 import { privateKeyToAddress } from "viem/accounts";
 
 import LoadingButton from "../_components/loadingButton";
 import MainCard from "../_components/mainCard";
+import OrDivider from "../_components/orDivider";
+import TextInput from "../_components/textInput";
 import titleImage from "../_images/title.png";
 import unlockedAccountImage from "../_images/unlocked-account.png";
 import { ABOUT_MODULAR_ACCOUNTS_URL } from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
-import { useRedirectAfterLogin } from "../_lib/loginRedirects";
+import { useStorage } from "../_lib/localStorage";
+import { generatePasskeyName, useHideWelcomeBack } from "../_lib/login";
+import { useRedirectTargetFromUrl } from "../_lib/loginRedirects";
 import {
   addSessionKeyDeployingIfNeeded,
   createOwnerAccount,
+  getAlchemySigner,
 } from "../_lib/modularAccount";
 import { randomBytes32 } from "../_lib/random";
 import {
   useAccountAddress,
+  useOwnerAddress,
   useSessionPrivateKey,
 } from "../_lib/sessionKeyWallet";
-import {
-  createSubOrgAndWallet,
-  getTurnkeySigner,
-  login,
-  useHideWelcomeBack,
-  useTurnkeyDetails,
-} from "../_lib/turnkey";
+
+enum AuthType {
+  NONE,
+  EMAIL,
+  EMAIL_REDUX,
+  NEW_PASSKEY,
+  EXISTING_PASSKEY,
+}
 
 export default memo(function AccountPage(): ReactNode {
-  const [details, setDetails] = useTurnkeyDetails();
+  const [email, setEmail] = useState("");
+  const [inProgressAuthType, setInProgressAuthType] = useState(AuthType.NONE);
+  const [ownerAccount, setOwnerAccount] = useState<MultiOwnerModularAccount>();
+  const [, setOwnerAddress] = useOwnerAddress();
   const [, setAccountAddress] = useAccountAddress();
   const [sessionPrivateKey, setSessionPrivateKey] = useSessionPrivateKey();
-  const [errorText, setErrorText] = useState("");
   const [, setHideWelcomeBack] = useHideWelcomeBack();
+  const [emailRedirectTarget, setEmailRedirectTarget] =
+    useEmailRedirectTarget();
+  const redirectTargetFromUrl = useRedirectTargetFromUrl();
+  const router = useRouter();
+  const hasMounted = useHasMounted();
+  const searchParams = useSearchParams();
+  const cancelAuthRef = useRef(() => {});
 
-  function getErrorHandler(text: string): (error: unknown) => void {
-    return (error) => {
+  const authenticate = useMutation({
+    mutationFn: async ({
+      params,
+      type,
+    }: {
+      params: AuthParams;
+      type: AuthType;
+    }) => {
+      let isCancelled = false;
+      cancelAuthRef.current = () => (isCancelled = true);
+      const signer = getAlchemySigner();
+      setInProgressAuthType(type);
+      await signer.authenticate(params);
+      const ownerAccount = await createOwnerAccount(signer);
+      if (isCancelled) {
+        return;
+      }
+      setOwnerAddress(ownerAccount.address);
+      setOwnerAccount(ownerAccount);
+    },
+    onError: (error) => {
+      setInProgressAuthType(AuthType.NONE);
       if (error instanceof DOMException) {
         // This can indicate the user canceled out of the passkey flow.
         // Unfortunately we don't get a better indication than this.
         return;
       }
-      console.error(text, error);
-      setErrorText(text);
-    };
-  }
-
-  const { mutate: createPasskey, isPending: isCreatingPasskey } = useMutation({
-    mutationFn: (_: unknown) => createSubOrgAndWallet(),
-    onSuccess: (details) => {
-      setDetails(details);
-      setErrorText("");
+      console.error("Failed to login", error);
     },
-    onError: getErrorHandler("Failed to create passkey."),
   });
 
-  const {
-    mutate: chooseExistingPasskey,
-    isPending: isChoosingExistingPasskey,
-  } = useMutation({
-    mutationFn: (_: unknown) => login(),
-    onSuccess: (details) => {
-      setDetails(details);
-      setErrorText("");
+  // Extremely lazy, but the complexity related to local storage changing from
+  // a different tab in the email magic link flow is not worth dealing with.
+  const cancelEmailAuth = useCallback(() => window.location.reload(), []);
+
+  const createSessionKey = useMutation({
+    mutationFn: async () => {
+      if (!ownerAccount) {
+        throw new Error(
+          "Cannot create session key before owner account is initialized.",
+        );
+      }
+      const newSessionPrivateKey = randomBytes32();
+      const sessionPublicKey = privateKeyToAddress(newSessionPrivateKey);
+      await addSessionKeyDeployingIfNeeded({ ownerAccount, sessionPublicKey });
+      setAccountAddress(ownerAccount.address);
+      setSessionPrivateKey(newSessionPrivateKey);
+      setHideWelcomeBack(true);
     },
-    onError: getErrorHandler("Failed to select passkey."),
   });
 
-  const { mutate: createSessionKey, isPending: isCreatingSessionKey } =
-    useMutation({
-      mutationFn: async (_: unknown) => {
-        if (!details) {
-          return;
-        }
-        const newSessionPrivateKey = randomBytes32();
-        const sessionPublicKey = privateKeyToAddress(newSessionPrivateKey);
-        const owner = await getTurnkeySigner(details);
-        const ownerAccount = await createOwnerAccount(owner);
-        await addSessionKeyDeployingIfNeeded({
-          ownerAccount,
-          sessionPublicKey,
-        });
-        setAccountAddress(ownerAccount.address);
-        setSessionPrivateKey(newSessionPrivateKey);
-        setHideWelcomeBack(true);
-      },
-      onSuccess: () => setErrorText(""),
-      onError: getErrorHandler("Failed to create session key."),
+  const authenticateWithEmail = useCallback(() => {
+    setEmailRedirectTarget(redirectTargetFromUrl);
+    return authenticate.mutate({
+      params: { type: "email", email },
+      type: AuthType.EMAIL,
     });
+  }, [authenticate, email, setEmailRedirectTarget, redirectTargetFromUrl]);
 
-  const cancelPasskeyChoice = useCallback(() => {
-    setDetails(undefined);
-    setAccountAddress(undefined);
-  }, [setDetails, setAccountAddress]);
+  const authenticateWithNewPasskey = useCallback(
+    () =>
+      authenticate.mutate({
+        params: {
+          type: "passkey",
+          createNew: true,
+          username: generatePasskeyName(),
+        },
+        type: AuthType.NEW_PASSKEY,
+      }),
+    [authenticate],
+  );
 
-  const isLoading =
-    isCreatingPasskey || isChoosingExistingPasskey || isCreatingSessionKey;
-  const redirectAfterLogin = useRedirectAfterLogin();
-  const hasMounted = useHasMounted();
+  const authenticateWithExistingPasskey = useCallback(
+    () =>
+      authenticate.mutate({
+        params: {
+          type: "passkey",
+          createNew: false,
+        },
+        type: AuthType.EXISTING_PASSKEY,
+      }),
+    [authenticate],
+  );
+
+  const handleCreateSessionKeyClick = useCallback(
+    () => createSessionKey.mutate(),
+    [createSessionKey],
+  );
+
+  const bundle = searchParams.get("bundle");
 
   useEffect(() => {
-    if (sessionPrivateKey) {
-      redirectAfterLogin();
+    if (sessionPrivateKey && inProgressAuthType !== AuthType.EMAIL_REDUX) {
+      router.replace(redirectTargetFromUrl);
+    } else if (bundle) {
+      authenticate.mutate({
+        params: { type: "email", bundle },
+        type: AuthType.EMAIL_REDUX,
+      });
     }
-  }, [sessionPrivateKey, redirectAfterLogin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionPrivateKey, bundle, inProgressAuthType]);
+
+  const ownerAccountIsLoaded = !!ownerAccount;
+
+  useEffect(() => {
+    if (ownerAccountIsLoaded && inProgressAuthType === AuthType.EMAIL_REDUX) {
+      createSessionKey.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ownerAccountIsLoaded, inProgressAuthType]);
+
+  const canSubmitEmail = isValidEmail(email);
 
   if (!hasMounted) {
-    return <div />;
+    return undefined;
   }
 
-  return !details ? (
-    <MainCard
-      title="Just one thing…"
-      image={titleImage}
-      imageAlt="Picture of creating a session key"
-      imageHasPriority={true}
-    >
-      <p>
-        Worth of Words uses passkeys so you can secure your account without a
-        password or any other additional information.
-      </p>
-      <div className="flex flex-col justify-center space-x-2 sm:flex-row">
-        <button
-          className="btn btn-primary"
-          onClick={createPasskey}
-          disabled={isLoading}
+  switch (inProgressAuthType) {
+    case AuthType.EMAIL:
+      return (
+        <MainCard
+          title="Just one thing…"
+          image={titleImage}
+          imageAlt="Picture of creating a session key"
+          imageHasPriority={true}
         >
-          <FaFingerprint /> Create new passkey
-        </button>
-        <button
-          className="btn btn-ghost"
-          onClick={chooseExistingPasskey}
-          disabled={isLoading}
+          <p>Check your email and click the link to complete login.</p>
+          <a className="cursor-pointer" onClick={cancelEmailAuth}>
+            Go back
+          </a>
+        </MainCard>
+      );
+    case AuthType.EMAIL_REDUX:
+      if (!sessionPrivateKey) {
+        return (
+          <MainCard
+            title="Almost there…"
+            image={unlockedAccountImage}
+            imageAlt="Picture of an unlocked account"
+            imageHasPriority={true}
+          >
+            <p>Completing login.</p>
+          </MainCard>
+        );
+      }
+      return (
+        <MainCard
+          title="You've unlocked your own modular account!"
+          image={unlockedAccountImage}
+          imageAlt="Picture of an unlocked account"
+          imageHasPriority={true}
         >
-          Choose existing passkey <FaAngleRight />
-        </button>
-      </div>
-    </MainCard>
-  ) : (
-    <MainCard
-      title="You've unlocked your own modular account!"
-      image={unlockedAccountImage}
-      imageAlt="Picture of an unlocked account"
-      imageHasPriority={true}
-    >
-      <p>
-        Just like that, you&apos;re all set up with your own modular account,
-        powered by ERC-6900. Have fun playing Worth of Words!
-      </p>
-      <LoadingButton
-        className="btn btn-primary"
-        isLoading={isCreatingSessionKey}
-        onClick={createSessionKey}
-      >
-        <FaFingerprint /> Start a new session
-      </LoadingButton>
-      <p>
-        <a href={ABOUT_MODULAR_ACCOUNTS_URL} target="_blank" rel="noopener">
-          What&apos;s a modular account?
-        </a>
-      </p>
-    </MainCard>
-  );
+          <p>
+            Just like that, you&apos;re all set up with your own modular
+            account, powered by ERC-6900. Have fun playing Worth of Words!
+          </p>
+          <Link className="btn btn-primary" href={emailRedirectTarget ?? "/"}>
+            Let&apos;s go!
+          </Link>
+          <p>
+            <a href={ABOUT_MODULAR_ACCOUNTS_URL} target="_blank" rel="noopener">
+              What&apos;s a modular account?
+            </a>
+          </p>
+        </MainCard>
+      );
+    default:
+      if (ownerAccount) {
+        return (
+          <MainCard
+            title="You've unlocked your own modular account!"
+            image={unlockedAccountImage}
+            imageAlt="Picture of an unlocked account"
+            imageHasPriority={true}
+          >
+            <p>
+              Just like that, you&apos;re all set up with your own modular
+              account, powered by ERC-6900. Have fun playing Worth of Words!
+            </p>
+            <LoadingButton
+              className="btn btn-primary"
+              isLoading={createSessionKey.isPending}
+              onClick={handleCreateSessionKeyClick}
+            >
+              <FaFingerprint /> Start a new session
+            </LoadingButton>
+            <p>
+              <a
+                href={ABOUT_MODULAR_ACCOUNTS_URL}
+                target="_blank"
+                rel="noopener"
+              >
+                What&apos;s a modular account?
+              </a>
+            </p>
+          </MainCard>
+        );
+      }
+      return (
+        <MainCard
+          title="Just one thing…"
+          image={titleImage}
+          imageAlt="Picture of creating a session key"
+          imageHasPriority={true}
+        >
+          <p>Log in with your email or a passkey.</p>
+          <div className="flex w-full max-w-md space-x-1">
+            <TextInput
+              className="flex-1"
+              type="email"
+              placeholder="Enter email…"
+              disabled={authenticate.isPending}
+              disablePressEnter={!canSubmitEmail}
+              value={email}
+              onValueChange={setEmail}
+              onPressEnter={authenticateWithEmail}
+            />
+            <button
+              className="btn btn-primary flex-initial"
+              disabled={!canSubmitEmail || authenticate.isPending}
+              onClick={authenticateWithEmail}
+            >
+              Submit
+            </button>
+          </div>
+          <OrDivider className="max-w-md" />
+          <div className="flex flex-col justify-center space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+            <LoadingButton
+              className="btn btn-primary btn-sm"
+              disabled={authenticate.isPending}
+              isLoading={inProgressAuthType === AuthType.NEW_PASSKEY}
+              onClick={authenticateWithNewPasskey}
+            >
+              <FaFingerprint /> Create new passkey
+            </LoadingButton>
+            <LoadingButton
+              className="btn btn-ghost btn-sm"
+              onClick={authenticateWithExistingPasskey}
+              disabled={authenticate.isPending}
+              isLoading={inProgressAuthType === AuthType.EXISTING_PASSKEY}
+            >
+              Choose existing passkey <FaAngleRight />
+            </LoadingButton>
+          </div>
+        </MainCard>
+      );
+  }
 });
+
+function isValidEmail(s: string): boolean {
+  return !!s.match(/.+@.+\..+/);
+}
+
+/**
+ * Email magic links always send us to the same place. If we want to redirect
+ * to a particular location after login, we need to remember it in storage.
+ */
+function useEmailRedirectTarget() {
+  return useStorage<string>({
+    key: "worth-of-words:email-redirect-destination",
+  });
+}

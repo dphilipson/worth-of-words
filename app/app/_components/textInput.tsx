@@ -12,16 +12,18 @@ export interface TextInputProps extends ComponentProps<"input"> {
   value: string;
   label?: string;
   button?: ReactNode;
+  disablePressEnter?: boolean;
   onValueChange(value: string): void;
-  onEnter?(): void;
+  onPressEnter?(): void;
 }
 
 export default memo(function TextInput({
   className,
   onValueChange,
-  onEnter,
+  onPressEnter,
   label,
   button,
+  disablePressEnter,
   ...otherProps
 }: TextInputProps): ReactNode {
   const onChange = useCallback(
@@ -32,11 +34,11 @@ export default memo(function TextInput({
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
-        onEnter?.();
+      if (!disablePressEnter && event.key === "Enter") {
+        onPressEnter?.();
       }
     },
-    [onEnter],
+    [disablePressEnter, onPressEnter],
   );
 
   const input = (

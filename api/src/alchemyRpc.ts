@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { ALCHEMY_URL, GAS_MANAGER_POLICY_ID } from "./constants";
+import { ALCHEMY_RPC_URL, GAS_MANAGER_POLICY_ID } from "./constants";
 import { JsonRpcRequest } from "./jsonRpc";
 
 interface RequestGasAndPaymasterAndDataOptions {
@@ -37,7 +37,7 @@ export async function forwardAlchemyRequest(
     options.policyId = GAS_MANAGER_POLICY_ID;
     request = { ...request, params: [options] };
   }
-  const response = await axios.post(ALCHEMY_URL, request);
+  const response = await axios.post(ALCHEMY_RPC_URL, request);
   return response.data;
 }
 

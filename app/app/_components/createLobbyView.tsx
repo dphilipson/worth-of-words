@@ -6,7 +6,7 @@ import { memo, ReactNode, useCallback, useEffect, useRef } from "react";
 import findOpponentsImage from "../_images/find-opponents.png";
 import { useCreateLobby } from "../_lib/createLobby";
 import { GameSpeed, getLobbyPreset } from "../_lib/lobbyPresets";
-import { useHideWelcomeBack } from "../_lib/turnkey";
+import { useHideWelcomeBack } from "../_lib/login";
 import { useWallet } from "../_lib/useWallet";
 import Card from "./card";
 import LoadingButton from "./loadingButton";

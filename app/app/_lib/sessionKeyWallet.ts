@@ -1,5 +1,5 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Hex } from "viem";
 import { privateKeyToAddress } from "viem/accounts";
 
@@ -17,11 +17,18 @@ import {
   isDeployed,
   sendUserOperation,
 } from "./modularAccount";
-import { useTurnkeyDetails } from "./turnkey";
 import { WalletLike } from "./useWallet";
 
+const OWNER_ADDRESS_KEY = "worth-of-words:wallet:owner-address";
 const ACCOUNT_ADDRESS_KEY = "worth-of-words:wallet:account-address";
 const SESSION_PRIVATE_KEY_KEY = "worth-of-words:wallet:session-private-key";
+
+export function useOwnerAddress() {
+  return useStorage({
+    key: OWNER_ADDRESS_KEY,
+    fromJson: (s) => s as Hex,
+  });
+}
 
 export function useAccountAddress() {
   return useStorage({
@@ -35,6 +42,19 @@ export function useSessionPrivateKey() {
     key: SESSION_PRIVATE_KEY_KEY,
     fromJson: (s) => s as Hex,
   });
+}
+
+export function useLogOut(): () => void {
+  const [, setOwnerAddress] = useOwnerAddress();
+  const [, setAccountAddress] = useAccountAddress();
+  const [, setSessionPrivateKey] = useSessionPrivateKey();
+
+  return useCallback(() => {
+    setOwnerAddress(undefined);
+    setAccountAddress(undefined);
+    setSessionPrivateKey(undefined);
+    window.location.href = "/";
+  }, [setOwnerAddress, setAccountAddress, setSessionPrivateKey]);
 }
 
 export function useSessionKeyWallet(): WalletLike | undefined {
@@ -72,10 +92,9 @@ interface WalletQueryOut {
 }
 
 function useSessionKeyWalletQuery(): UseQueryResult<WalletQueryOut | null> {
-  const [details] = useTurnkeyDetails();
+  const [ownerAddress] = useOwnerAddress();
   const [accountAddress] = useAccountAddress();
   const [sessionPrivateKey] = useSessionPrivateKey();
-  const ownerAddress = details?.address;
 
   // useQuery fails if returning undefined.
   return useQuery<WalletQueryOut | null>({

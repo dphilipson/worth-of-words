@@ -5,8 +5,7 @@ import { Address } from "viem";
 
 import { ABOUT_MODULAR_ACCOUNTS_URL, CHAIN } from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
-import { useAccountAddress } from "../_lib/sessionKeyWallet";
-import { useLogOut } from "../_lib/turnkey";
+import { useAccountAddress, useLogOut } from "../_lib/sessionKeyWallet";
 import BlockExplorerLink from "./blockExplorerLink";
 
 export interface AccountViewProps {

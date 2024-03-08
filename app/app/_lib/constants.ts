@@ -9,17 +9,13 @@ import { DEPLOYED_WORTH_OF_WORDS_ADDRESS } from "../_generated/deployedConstants
 import { notNull } from "./typechecks";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
-export const USE_ANVIL = !IS_PRODUCTION;
-export const USE_DEBUG_ACCOUNTS = !IS_PRODUCTION;
+export const USE_ANVIL = false; // !IS_PRODUCTION;
+export const USE_DEBUG_ACCOUNTS = false; // !IS_PRODUCTION;
 export const CHAIN = USE_ANVIL ? foundry : arbitrumSepolia;
 export const WORTH_OF_WORDS_API_URL = IS_PRODUCTION
   ? "https://api.worthofwords.com"
   : "http://localhost:3001";
 export const RPC_URL = `${WORTH_OF_WORDS_API_URL}/rpc`;
-export const TURNKEY_BASE_URL = "https://api.turnkey.com";
-export const TURNKEY_ORGANIZATION_ID = notNull(
-  process.env.NEXT_PUBLIC_TURNKEY_ORGANIZATION_ID,
-);
 export const DOMAIN_NAME = IS_PRODUCTION ? "www.worthofwords.com" : "localhost";
 export const HEAP_ID = notNull(
   IS_PRODUCTION
