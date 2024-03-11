@@ -1,6 +1,7 @@
 import { memo, ReactNode, useCallback, useEffect, useState } from "react";
 import { FaXmark } from "react-icons/fa6";
 
+import { WORD_LENGTH } from "../_lib/constants";
 import {
   getLivePlayerCount,
   getPlayer,
@@ -93,9 +94,11 @@ export default memo(function GameplayView(): ReactNode {
         </>
       );
     } else if (lobby.phase === Phase.COMMITING_GUESSES) {
-      const statusText = isInputtingGuess
-        ? "left to submit guess"
-        : `Waiting for players ${getWaitingPlayerText()}`;
+      const statusText = !isInputtingGuess
+        ? `Waiting for players ${getWaitingPlayerText()}`
+        : input.length === WORD_LENGTH
+        ? "Press Enter to submit"
+        : "left to submit guess";
       return (
         <>
           <Countdown
