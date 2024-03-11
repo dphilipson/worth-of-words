@@ -22,7 +22,7 @@ import TextInput from "../_components/textInput";
 import titleImage from "../_images/title.png";
 import unlockedAccountImage from "../_images/unlocked-account.png";
 import { ABOUT_MODULAR_ACCOUNTS_URL } from "../_lib/constants";
-import { useHasMounted } from "../_lib/hooks";
+import { useHasMounted, useIsLargeWindow } from "../_lib/hooks";
 import { generatePasskeyName, useHideWelcomeBack } from "../_lib/login";
 import {
   useFixedSearchParams,
@@ -60,6 +60,7 @@ export default memo(function AccountPage(): ReactNode {
   const redirectTarget = useRedirectTargetFromUrl();
   const router = useRouter();
   const hasMounted = useHasMounted();
+  const isLargeWindow = useIsLargeWindow();
   const searchParams = useFixedSearchParams();
   const cancelAuthRef = useRef(() => {});
 
@@ -91,7 +92,16 @@ export default memo(function AccountPage(): ReactNode {
         // Unfortunately we don't get a better indication than this.
         return;
       }
-      console.error("Failed to login", error);
+      if (
+        typeof error === "string" &&
+        (error as string).includes("decryption failed")
+      ) {
+        const platformGuess = isLargeWindow ? "in Safari" : "on iOS";
+        setErrorText(
+          `Login failed. Are you using private browsing ${platformGuess}? Email login isn't supported there yet, sorry!`,
+        );
+        return;
+      }
       setErrorText(error.toString());
     },
   });
