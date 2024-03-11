@@ -3,7 +3,7 @@ import { MultiOwnerModularAccount } from "@alchemy/aa-accounts";
 import { AuthParams } from "@alchemy/aa-alchemy";
 import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   memo,
   ReactNode,
@@ -23,9 +23,11 @@ import titleImage from "../_images/title.png";
 import unlockedAccountImage from "../_images/unlocked-account.png";
 import { ABOUT_MODULAR_ACCOUNTS_URL } from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
-import { useStorage } from "../_lib/localStorage";
 import { generatePasskeyName, useHideWelcomeBack } from "../_lib/login";
-import { useRedirectTargetFromUrl } from "../_lib/loginRedirects";
+import {
+  useFixedSearchParams,
+  useRedirectTargetFromUrl,
+} from "../_lib/loginRedirects";
 import {
   addSessionKeyDeployingIfNeeded,
   createOwnerAccount,
@@ -55,12 +57,10 @@ export default memo(function AccountPage(): ReactNode {
   const [, setAccountAddress] = useAccountAddress();
   const [sessionPrivateKey, setSessionPrivateKey] = useSessionPrivateKey();
   const [, setHideWelcomeBack] = useHideWelcomeBack();
-  const [emailRedirectTarget, setEmailRedirectTarget] =
-    useEmailRedirectTarget();
-  const redirectTargetFromUrl = useRedirectTargetFromUrl();
+  const redirectTarget = useRedirectTargetFromUrl();
   const router = useRouter();
   const hasMounted = useHasMounted();
-  const searchParams = useSearchParams();
+  const searchParams = useFixedSearchParams();
   const cancelAuthRef = useRef(() => {});
 
   const authenticate = useMutation({
@@ -117,12 +117,12 @@ export default memo(function AccountPage(): ReactNode {
   });
 
   const authenticateWithEmail = useCallback(() => {
-    setEmailRedirectTarget(redirectTargetFromUrl);
+    const redirectParams = new URLSearchParams({ redirect: redirectTarget });
     return authenticate.mutate({
-      params: { type: "email", email },
+      params: { type: "email", email, redirectParams },
       type: AuthType.EMAIL,
     });
-  }, [authenticate, email, setEmailRedirectTarget, redirectTargetFromUrl]);
+  }, [authenticate, email, redirectTarget]);
 
   const authenticateWithNewPasskey = useCallback(
     () =>
@@ -155,13 +155,14 @@ export default memo(function AccountPage(): ReactNode {
   );
 
   const bundle = searchParams.get("bundle");
+  const orgId = searchParams.get("orgId");
 
   useEffect(() => {
     if (sessionPrivateKey && inProgressAuthType !== AuthType.EMAIL_REDUX) {
-      router.replace(redirectTargetFromUrl);
-    } else if (bundle) {
+      router.replace(redirectTarget);
+    } else if (bundle && orgId) {
       authenticate.mutate({
-        params: { type: "email", bundle },
+        params: { type: "email", bundle, orgId },
         type: AuthType.EMAIL_REDUX,
       });
     }
@@ -222,7 +223,7 @@ export default memo(function AccountPage(): ReactNode {
             Just like that, you&apos;re all set up with your own modular
             account, powered by ERC-6900. Have fun playing Worth of Words!
           </p>
-          <Link className="btn btn-primary" href={emailRedirectTarget ?? "/"}>
+          <Link className="btn btn-primary" href={redirectTarget}>
             Let&apos;s go!
           </Link>
           <p>
@@ -318,14 +319,4 @@ export default memo(function AccountPage(): ReactNode {
 
 function isValidEmail(s: string): boolean {
   return !!s.match(/.+@.+\..+/);
-}
-
-/**
- * Email magic links always send us to the same place. If we want to redirect
- * to a particular location after login, we need to remember it in storage.
- */
-function useEmailRedirectTarget() {
-  return useStorage<string>({
-    key: "worth-of-words:email-redirect-destination",
-  });
 }

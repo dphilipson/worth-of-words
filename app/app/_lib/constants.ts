@@ -31,8 +31,6 @@ export const WORTH_OF_WORDS_ADDRESS = USE_ANVIL
   ? ANVIL_WORTH_OF_WORDS_ADDRESS
   : DEPLOYED_WORTH_OF_WORDS_ADDRESS;
 export const POST_DEADLINE_WAIT_TIME_MS = 4000;
-// Default is 5.
-export const FEE_BUFFER_PERCENT = BigInt(5);
 export const SESSION_KEY_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
 export const REFRESH_SESSION_KEY_AT_TTL = 1000 * 60 * 5; // 5 minutes
 export const GAS_MANAGER_ADDRESS = "0x0804Afe6EEFb73ce7F93CD0d5e7079a5a8068592";
