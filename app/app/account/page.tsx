@@ -49,6 +49,7 @@ enum AuthType {
 export default memo(function AccountPage(): ReactNode {
   const [email, setEmail] = useState("");
   const [inProgressAuthType, setInProgressAuthType] = useState(AuthType.NONE);
+  const [errorText, setErrorText] = useState("");
   const [ownerAccount, setOwnerAccount] = useState<MultiOwnerModularAccount>();
   const [, setOwnerAddress] = useOwnerAddress();
   const [, setAccountAddress] = useAccountAddress();
@@ -70,6 +71,7 @@ export default memo(function AccountPage(): ReactNode {
       params: AuthParams;
       type: AuthType;
     }) => {
+      setErrorText("");
       let isCancelled = false;
       cancelAuthRef.current = () => (isCancelled = true);
       const signer = getAlchemySigner();
@@ -90,6 +92,7 @@ export default memo(function AccountPage(): ReactNode {
         return;
       }
       console.error("Failed to login", error);
+      setErrorText(error.toString());
     },
   });
 
@@ -307,6 +310,7 @@ export default memo(function AccountPage(): ReactNode {
               Choose existing passkey <FaAngleRight />
             </LoadingButton>
           </div>
+          {errorText && <p className="text-red-500">{errorText}</p>}
         </MainCard>
       );
   }
