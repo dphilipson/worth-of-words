@@ -87,10 +87,11 @@ export default memo(function GameplayView(): ReactNode {
       // We are currently viewing a snapshot of the previous round.
       return (
         <>
-          <p>The round has ended!</p>
+          <span>End of round</span>
           <button className="btn btn-primary mt-2" onClick={advanceToNextRound}>
-            Start next round
+            Show next round
           </button>
+          <Countdown deadline={lobby.phaseDeadline} />
         </>
       );
     } else if (lobby.phase === Phase.COMMITING_GUESSES) {
@@ -144,7 +145,7 @@ export default memo(function GameplayView(): ReactNode {
         </div>
         <div className="mb-2 flex flex-col items-center sm:mb-4">
           <Card
-            className="mt-10 flex flex-col items-center p-2 sm:p-4"
+            className="mt-10 flex flex-col items-center px-3 py-2 sm:px-4 sm:py-4"
             noDefaultPadding={true}
           >
             {statusComponent}

@@ -9,8 +9,8 @@ import { DEPLOYED_WORTH_OF_WORDS_ADDRESS } from "../_generated/deployedConstants
 import { notNull } from "./typechecks";
 
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
-export const USE_ANVIL = !IS_PRODUCTION;
-export const USE_DEBUG_ACCOUNTS = !IS_PRODUCTION;
+export const USE_ANVIL = true || !IS_PRODUCTION;
+export const USE_DEBUG_ACCOUNTS = true || !IS_PRODUCTION;
 export const CHAIN = USE_ANVIL ? foundry : arbitrumSepolia;
 export const WORTH_OF_WORDS_API_URL = IS_PRODUCTION
   ? "https://api.worthofwords.com"
