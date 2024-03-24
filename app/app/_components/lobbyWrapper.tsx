@@ -11,9 +11,9 @@ const DEFAULT_LOBBY_ID_KEY = "worth-of-words:default-lobby-id";
 /**
  * Gets and sets a default lobby id if one isn't provided in the URL. In
  * addition to being sort of nice behavior if someone manually navigates to
- * `/app/lobby` without a hash, it also is a failsafe against a NextJS where
- * for unknown reasons its router drops the hash portion and performs a full
- * reload.
+ * `/app/lobby` without a hash, it also is a failsafe against a NextJS quirk
+ * where for unknown reasons its router drops the hash portion and performs a
+ * full reload.
  */
 export function useDefaultLobbyId() {
   return useStorage<string>({
