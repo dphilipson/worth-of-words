@@ -62,6 +62,7 @@ export default memo(function AccountPage(): ReactNode {
   const hasMounted = useHasMounted();
   const isLargeWindow = useIsLargeWindow();
   const searchParams = useFixedSearchParams();
+  const hasTriedEmailRedux = useRef(false);
   const cancelAuthRef = useRef(() => {});
 
   const authenticate = useMutation({
@@ -92,6 +93,7 @@ export default memo(function AccountPage(): ReactNode {
         // Unfortunately we don't get a better indication than this.
         return;
       }
+      console.error({ error });
       if (
         typeof error === "string" &&
         (error as string).includes("decryption failed")
@@ -170,7 +172,8 @@ export default memo(function AccountPage(): ReactNode {
   useEffect(() => {
     if (sessionPrivateKey && inProgressAuthType !== AuthType.EMAIL_REDUX) {
       router.replace(redirectTarget);
-    } else if (bundle && orgId) {
+    } else if (!hasTriedEmailRedux.current && bundle && orgId) {
+      hasTriedEmailRedux.current = true;
       authenticate.mutate({
         params: { type: "email", bundle, orgId },
         type: AuthType.EMAIL_REDUX,

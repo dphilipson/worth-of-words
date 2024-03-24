@@ -16,7 +16,7 @@ import {
   WORTH_OF_WORDS_ADDRESS,
 } from "./constants";
 import { emptyList } from "./empty";
-import { getLobbyEventsNowAndForever } from "./events";
+import { getLobbyEventsNowAndForever, LobbyEvent } from "./events";
 import {
   getUpdatedLobbyState,
   LobbyState,
@@ -228,14 +228,21 @@ function useLobbyState(lobbyId: bigint): LobbyState | undefined {
           );
           setState(initialState);
           console.log("Initial state:", initialState);
+          return !isGameEnding(initialEvents);
         },
         (newEvents) => {
           setState((currentState) => {
-            const updatedState = getUpdatedLobbyState(currentState!, newEvents);
+            if (!currentState) {
+              throw new Error(
+                "Received new events before state was initialized",
+              );
+            }
+            const updatedState = getUpdatedLobbyState(currentState, newEvents);
             console.log("Events:", newEvents);
             console.log("Updated state:", updatedState);
             return updatedState;
           });
+          return !isGameEnding(newEvents);
         },
       );
     })();
@@ -246,4 +253,8 @@ function useLobbyState(lobbyId: bigint): LobbyState | undefined {
   }, [lobbyId, publicClient]);
 
   return state;
+}
+
+function isGameEnding(events: LobbyEvent[]): boolean {
+  return events.some((event) => event.eventName === "GameEnded");
 }

@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@alchemy/aa-accounts": "3.4.2",
-    "@alchemy/aa-alchemy": "3.4.3",
+    "@alchemy/aa-alchemy": "3.4.4",
     "@alchemy/aa-core": "3.4.2",
     "@alchemy/aa-signers": "3.4.2",
     "@openzeppelin/merkle-tree": "^1.0.5",

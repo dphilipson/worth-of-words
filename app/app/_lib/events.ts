@@ -19,8 +19,10 @@ export function getLobbyEventsNowAndForever(
   client: PublicClient,
   address: Address,
   lobbyId: bigint,
-  onInitialLogs: (logs: LobbyEvent[]) => void,
-  onNewLogs: (logs: LobbyEvent[]) => void,
+  // Returns true if should continue.
+  onInitialLogs: (logs: LobbyEvent[]) => boolean,
+  // Ditto.
+  onNewLogs: (logs: LobbyEvent[]) => boolean,
 ): () => void {
   let isCancelled = false;
   let hasSentInitialLogs = false;
@@ -37,12 +39,16 @@ export function getLobbyEventsNowAndForever(
       if (isCancelled) {
         return;
       }
+      let shouldContinue = true;
       if (!hasSentInitialLogs) {
         hasSentInitialLogs = true;
-        onInitialLogs(events);
+        shouldContinue &&= onInitialLogs(events);
         onInitialLogs = undefined!;
       } else if (events.length > 0) {
-        onNewLogs(events);
+        shouldContinue &&= onNewLogs(events);
+      }
+      if (!shouldContinue) {
+        return;
       }
       await delay(POLL_INTERVAL_MS);
       if (isCancelled) {
