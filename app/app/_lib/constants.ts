@@ -60,7 +60,7 @@ export const ABOUT_GAS_MANAGER_URL =
 export const ABOUT_BUNDLER_URL =
   "https://www.alchemy.com/blog/open-sourcing-rundler?a=worth-of-words";
 export const ABOUT_AA_SDK_URL = "https://github.com/alchemyplatform/aa-sdk";
-export const ABOUT_ACCOUNT_KIT_URL =
-  "https://www.alchemy.com/account-kit?a=worth-of-words";
+export const ABOUT_EMBEDDED_ACCOUNTS_URL =
+  "https://www.alchemy.com/embedded-accounts?a=worth-of-words";
 export const ABOUT_ZERO_KNOWLEDGE_PROOFS_URL =
   "https://en.wikipedia.org/wiki/Zero-knowledge_proof";

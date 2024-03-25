@@ -11,7 +11,7 @@ import {
 } from "react";
 
 import poweredByEmbeddedAccounts from "../_images/powered-by-embedded-accounts.svg";
-import { ABOUT_ACCOUNT_KIT_URL } from "../_lib/constants";
+import { ABOUT_EMBEDDED_ACCOUNTS_URL } from "../_lib/constants";
 
 export default memo(function Footer(): ReactNode {
   const { hideFooterCount: footerHiddenCount } = useContext(FooterContext);
@@ -20,7 +20,7 @@ export default memo(function Footer(): ReactNode {
   }
   return (
     <footer className="mt-8 flex h-16 items-center bg-white bg-opacity-80 px-4 sm:mt-16 sm:px-24">
-      <a href={ABOUT_ACCOUNT_KIT_URL}>
+      <a href={ABOUT_EMBEDDED_ACCOUNTS_URL}>
         <Image
           className="h-7 w-auto sm:h-8"
           src={poweredByEmbeddedAccounts}

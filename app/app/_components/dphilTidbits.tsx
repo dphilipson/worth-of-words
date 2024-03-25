@@ -12,7 +12,7 @@ import {
 
 import dphilImage from "../_images/dphil.png";
 import {
-  ABOUT_ACCOUNT_KIT_URL,
+  ABOUT_EMBEDDED_ACCOUNTS_URL,
   ABOUT_GAS_MANAGER_URL,
   ABOUT_MODULAR_ACCOUNTS_URL,
 } from "../_lib/constants";
@@ -49,9 +49,9 @@ export const TIDBITS: Tidbit[] = [
     learnMoreUrl: ABOUT_MODULAR_ACCOUNTS_URL,
   },
   {
-    title: "Build your own app with Account Kit",
-    body: "You can create a game like this by using Account Kit, your out-of-the-box smart accounts solution.",
-    learnMoreUrl: ABOUT_ACCOUNT_KIT_URL,
+    title: "Build your own app with Embedded Accounts",
+    body: "You can create a game like this by using Embedded Accounts, your out-of-the-box smart accounts solution.",
+    learnMoreUrl: ABOUT_EMBEDDED_ACCOUNTS_URL,
   },
   {
     title: "This started as my hackathon project",

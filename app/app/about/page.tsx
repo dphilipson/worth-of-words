@@ -5,8 +5,8 @@ import BlockExplorerLink from "../_components/blockExplorerLink";
 import Card from "../_components/card";
 import {
   ABOUT_AA_SDK_URL,
-  ABOUT_ACCOUNT_KIT_URL,
   ABOUT_BUNDLER_URL,
+  ABOUT_EMBEDDED_ACCOUNTS_URL,
   ABOUT_GAS_MANAGER_URL,
   ABOUT_MODULAR_ACCOUNTS_URL,
   ABOUT_ZERO_KNOWLEDGE_PROOFS_URL,
@@ -115,15 +115,16 @@ export default memo(function AboutPage(): ReactNode {
         a smart contract that allows Worth of Words to sponsor users so they
         play without using their own money to put actions on the blockchain.
       </p>
-      <h4>Account Kit</h4>
+      <h4>Embedded Accounts</h4>
       <p>
         Modular Accounts and the Gas Manager are both part of{" "}
-        <a href={ABOUT_ACCOUNT_KIT_URL}>Account Kit</a>, Alchemy&apos;s
-        framework for building applications with embedded accounts. In addition
-        to the above, Worth of Words also uses Account Kit&apos;s{" "}
-        <a href={ABOUT_AA_SDK_URL}>aa-sdk</a> for working with smart accounts
-        and its <a href={ABOUT_BUNDLER_URL}>Bundler API</a> for submitting
-        operations to the blockchain.
+        <a href={ABOUT_EMBEDDED_ACCOUNTS_URL}>Embedded Accounts</a>,
+        Alchemy&apos;s framework for building applications with simple
+        non-custodial accounts. In addition to the above, Worth of Words also
+        uses Embedded Accounts&apos; <a href={ABOUT_AA_SDK_URL}>aa-sdk</a> for
+        working with smart accounts and its{" "}
+        <a href={ABOUT_BUNDLER_URL}>Bundler API</a> for submitting operations to
+        the blockchain.
       </p>
       <h4 id="zero-knowledge-proofs">Zero-knowledge proofs</h4>
       <p>
