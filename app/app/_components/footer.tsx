@@ -10,7 +10,7 @@ import {
   useState,
 } from "react";
 
-import poweredByAccountKit from "../_images/powered-by-account-kit.svg";
+import poweredByEmbeddedAccounts from "../_images/powered-by-embedded-accounts.svg";
 import { ABOUT_ACCOUNT_KIT_URL } from "../_lib/constants";
 
 export default memo(function Footer(): ReactNode {
@@ -19,11 +19,12 @@ export default memo(function Footer(): ReactNode {
     return undefined;
   }
   return (
-    <footer className="mt-8 flex h-16 items-center bg-white bg-opacity-80 pl-8 sm:mt-16 sm:pl-24">
+    <footer className="mt-8 flex h-16 items-center bg-white bg-opacity-80 px-4 sm:mt-16 sm:px-24">
       <a href={ABOUT_ACCOUNT_KIT_URL}>
         <Image
-          src={poweredByAccountKit}
-          alt="Powered by AccountKit"
+          className="h-7 w-auto sm:h-8"
+          src={poweredByEmbeddedAccounts}
+          alt="Powered by Embedded Accounts"
           priority={true}
         />
       </a>
