@@ -1,5 +1,6 @@
 import { Address } from "viem";
 
+import { WORTH_OF_WORDS_ADDRESS } from "./constants";
 import { useStorage } from "./localStorage";
 
 export interface SecretsAndSalt {
@@ -31,7 +32,7 @@ export function useLobbyStorage(
   walletAddress: Address | undefined,
 ): LobbyStorage | undefined {
   const getFullKey = (key: string) =>
-    `worth-of-words:lobby:${lobbyId}:player:${walletAddress}:${key}`;
+    `worth-of-words:${WORTH_OF_WORDS_ADDRESS}:lobby:${lobbyId}:player:${walletAddress}:${key}`;
   const [secrets, setSecrets] = useStorage<SecretsAndSalt>({
     key: getFullKey(SECRETS_KEY),
     toJson: ({ words, salt }) => ({ words, salt: salt.toString() }),
