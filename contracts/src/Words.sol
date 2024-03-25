@@ -8,7 +8,6 @@ library Words {
 
     uint8 public constant WORD_LENGTH = 5;
     uint8 private constant A_IN_ASCII = 65;
-    uint8 private constant PUB_SIGNAL_GUESS_START_INDEX = 6;
 
     function toString(Word self) internal pure returns (string memory) {
         bytes memory outBytes = new bytes(WORD_LENGTH);

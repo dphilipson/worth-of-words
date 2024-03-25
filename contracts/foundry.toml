@@ -13,6 +13,7 @@ mumbai = "${MUMBAI_RPC_URL}"
 
 [etherscan]
 arbitrum-sepolia = { key = "${ARBISCAN_API_KEY}" }
+optimism-sepolia = { key = "${OPTIMISTIC_ETHERSCAN_API_KEY}" }
 mumbai = { key = "$POLYGONSCAN_API_KEY}" }
 
 

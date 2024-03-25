@@ -1,5 +1,5 @@
 import { keccak256 } from "viem";
-import { arbitrumSepolia, foundry } from "viem/chains";
+import { arbitrumSepolia, foundry, optimismSepolia } from "viem/chains";
 
 import {
   ANVIL_PAYMASTER_ADDRESS,
@@ -11,7 +11,7 @@ import { notNull } from "./typechecks";
 export const IS_PRODUCTION = process.env.NODE_ENV === "production";
 export const USE_ANVIL = !IS_PRODUCTION;
 export const USE_DEBUG_ACCOUNTS = !IS_PRODUCTION;
-export const CHAIN = USE_ANVIL ? foundry : arbitrumSepolia;
+export const CHAIN = USE_ANVIL ? foundry : optimismSepolia;
 export const WORTH_OF_WORDS_API_URL = IS_PRODUCTION
   ? "https://api.worthofwords.com"
   : "http://localhost:3001";
@@ -33,7 +33,10 @@ export const WORTH_OF_WORDS_ADDRESS = USE_ANVIL
 export const POST_DEADLINE_WAIT_TIME_MS = 4000;
 export const SESSION_KEY_TTL = 1000 * 60 * 60 * 24 * 7; // 7 days
 export const REFRESH_SESSION_KEY_AT_TTL = 1000 * 60 * 5; // 5 minutes
-export const GAS_MANAGER_ADDRESS = "0x0804Afe6EEFb73ce7F93CD0d5e7079a5a8068592";
+export const GAS_MANAGER_ADDRESS =
+  CHAIN.id === (arbitrumSepolia.id as number)
+    ? "0x0804Afe6EEFb73ce7F93CD0d5e7079a5a8068592"
+    : "0x4f84a207A80c39E9e8BaE717c1F25bA7AD1fB08F";
 export const PAYMASTER_ADDRESS = USE_ANVIL
   ? ANVIL_PAYMASTER_ADDRESS
   : GAS_MANAGER_ADDRESS;

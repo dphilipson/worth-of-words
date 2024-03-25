@@ -1,5 +1,6 @@
 import { memo, ReactNode } from "react";
 import { Address } from "viem";
+import { optimismSepolia } from "viem/chains";
 
 import { CHAIN } from "../_lib/constants";
 
@@ -10,7 +11,12 @@ export interface EtherscanishLinkProps {
   newTab?: boolean;
 }
 
-const EXPLORER_URL = CHAIN.blockExplorers?.default.url ?? "unknown-chain";
+const EXPLORER_URL = (() => {
+  if (CHAIN.id === (optimismSepolia.id as number)) {
+    return "https://sepolia-optimism.etherscan.io";
+  }
+  return CHAIN.blockExplorers?.default.url ?? "unknown-chain";
+})();
 
 export default memo(function BlockExplorerLink({
   className,

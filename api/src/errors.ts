@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { NextFunction, Request, Response } from "express";
 
 import { JsonRpcErrorResponse } from "./jsonRpc";
@@ -24,7 +25,16 @@ export function handleErrorsForJsonRpc(handler: AsyncHandler): AsyncHandler {
     try {
       await handler(req, res, next);
     } catch (error) {
-      console.error("Uncaught error in JSON-RPC handler", error);
+      if (error?.response?.data?.jsonrpc === "2.0") {
+        const { data } = error.response;
+        console.error("JSON-RPC error response", data);
+        res.status((error as AxiosError).response?.status ?? 500).send(data);
+        return;
+      }
+      console.error(
+        "Uncaught error in JSON-RPC handler",
+        error?.response?.data
+      );
       const payload: JsonRpcErrorResponse = {
         jsonrpc: "2.0",
         id: req.body.id ?? null,

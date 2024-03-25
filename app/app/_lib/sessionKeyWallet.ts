@@ -1,3 +1,4 @@
+import { MultiOwnerModularAccount } from "@alchemy/aa-accounts";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 import { Hex } from "viem";
@@ -109,13 +110,25 @@ function useSessionKeyWalletQuery(): UseQueryResult<WalletQueryOut | null> {
         return null;
       }
       const sessionPublicKey = privateKeyToAddress(sessionPrivateKey);
-      const [exactExpiryTime, canAccessGame, account, deployed] =
-        await Promise.all([
+      let promiseResults: [number, boolean, MultiOwnerModularAccount, boolean];
+      try {
+        promiseResults = await Promise.all([
           getSessionKeyExpiryTime({ accountAddress, sessionPublicKey }),
           canSessionKeyAccessGame({ accountAddress, sessionPublicKey }),
           createSessionKeyAccount({ accountAddress, sessionPrivateKey }),
           isDeployed(accountAddress),
         ]);
+      } catch (error) {
+        if (isInvalidSessionKeyError(error)) {
+          // The session key does not exist. That most likely means either the
+          // user deleted it or we have switched to a different set of
+          // contracts, e.g. because we upgraded or switched to a new chain.
+          return null;
+        }
+        throw error;
+      }
+      const [exactExpiryTime, canAccessGame, account, deployed] =
+        promiseResults;
       const expiryTime = exactExpiryTime - REFRESH_SESSION_KEY_AT_TTL;
       if (!deployed || !canAccessGame || expiryTime < Date.now()) {
         return null;
@@ -133,4 +146,12 @@ function useSessionKeyWalletQuery(): UseQueryResult<WalletQueryOut | null> {
     },
     staleTime: Number.POSITIVE_INFINITY,
   });
+}
+
+function isInvalidSessionKeyError(error: any): boolean {
+  // I sure hope this doesn't change in future Viem versions.
+  return (
+    error?.name === "ContractFunctionExecutionError" &&
+    error?.cause?.data?.errorName === "InvalidSessionKey"
+  );
 }

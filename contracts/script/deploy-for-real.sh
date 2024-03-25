@@ -10,6 +10,6 @@ CONTRACTS_DIR=${SCRIPT_DIR}/..
 cd $CONTRACTS_DIR
 
 source .env
-forge script script/DeployForReal.s.sol:DeployForRealScript --rpc-url $ARBITRUM_SEPOLIA_RPC_URL --broadcast --verify -vvvv
+forge script script/DeployForReal.s.sol:DeployForRealScript --rpc-url $OPTIMISM_SEPOLIA_RPC_URL --broadcast --verify -vvvv
 mkdir -p ../app/app/_generated/
 cp out/deployedConstants.ts ../app/app/_generated/
