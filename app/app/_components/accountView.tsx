@@ -5,7 +5,11 @@ import { Address } from "viem";
 
 import { ABOUT_MODULAR_ACCOUNTS_URL, CHAIN } from "../_lib/constants";
 import { useHasMounted } from "../_lib/hooks";
-import { useAccountAddress, useLogOut } from "../_lib/sessionKeyWallet";
+import {
+  useAccountAddress,
+  useLogOut,
+  useOwnerAddress,
+} from "../_lib/sessionKeyWallet";
 import BlockExplorerLink from "./blockExplorerLink";
 
 export interface AccountViewProps {
@@ -15,6 +19,7 @@ export interface AccountViewProps {
 export default memo(function AccountView({
   closeModal,
 }: AccountViewProps): ReactNode {
+  const [ownerAddress] = useOwnerAddress();
   const [accountAddress] = useAccountAddress();
   const hasMounted = useHasMounted();
   const logOut = useLogOut();
@@ -26,6 +31,22 @@ export default memo(function AccountView({
         <Link className="btn btn-primary" href="/account" onClick={closeModal}>
           Log in
         </Link>
+      </>
+    );
+  }
+
+  function getPartiallyLoggedInView(): ReactNode {
+    return (
+      <>
+        <p>
+          You are in the middle of logging in.
+          <br />
+          <br />
+          If you would like to restart the login process, you can:
+        </p>
+        <button className="btn btn-neutral mt-4" onClick={logOut}>
+          Log out
+        </button>
       </>
     );
   }
@@ -54,11 +75,18 @@ export default memo(function AccountView({
       </>
     );
   }
-
-  const contents =
-    hasMounted && accountAddress
-      ? getLoggedInView(accountAddress)
-      : getLoggedOutView();
+  const contents = (() => {
+    if (!hasMounted) {
+      return getLoggedOutView();
+    }
+    if (accountAddress) {
+      return getLoggedInView(accountAddress);
+    }
+    if (ownerAddress) {
+      return getPartiallyLoggedInView();
+    }
+    return getLoggedOutView();
+  })();
 
   return (
     <div className="prose relative flex flex-col items-center text-center">

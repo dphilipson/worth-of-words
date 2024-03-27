@@ -52,6 +52,7 @@ export default memo(function AccountPage(): ReactNode {
   const [email, setEmail] = useState("");
   const [inProgressAuthType, setInProgressAuthType] = useState(AuthType.NONE);
   const [errorText, setErrorText] = useState("");
+  const [createSessionErrorText, setCreateSessionErrorText] = useState("");
   const [ownerAccount, setOwnerAccount] = useState<MultiOwnerModularAccount>();
   const [, setOwnerAddress] = useOwnerAddress();
   const [, setAccountAddress] = useAccountAddress();
@@ -114,6 +115,7 @@ export default memo(function AccountPage(): ReactNode {
 
   const createSessionKey = useMutation({
     mutationFn: async () => {
+      setCreateSessionErrorText("");
       if (!ownerAccount) {
         throw new Error(
           "Cannot create session key before owner account is initialized.",
@@ -125,6 +127,10 @@ export default memo(function AccountPage(): ReactNode {
       setAccountAddress(ownerAccount.address);
       setSessionPrivateKey(newSessionPrivateKey);
       setHideWelcomeBack(true);
+    },
+    onError: (error) => {
+      console.error({ error });
+      setCreateSessionErrorText(error.toString());
     },
   });
 
@@ -266,6 +272,9 @@ export default memo(function AccountPage(): ReactNode {
             >
               <FaFingerprint /> Start a new session
             </LoadingButton>
+            {createSessionErrorText && (
+              <p className="text-red-500">{createSessionErrorText}</p>
+            )}
             <p>
               <a
                 href={ABOUT_MODULAR_ACCOUNTS_URL}
